@@ -1,0 +1,361 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 Lecture 08: Parallelism 2</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html" class="active"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Lecture 08</div><h1>Lecture 08: Parallelism 2</h1><p class="meta">Stanford CS336 · Spring 2025 · 1:15:10 · <a href="https://www.youtube.com/watch?v=LHpr5ytssLo" target="_blank">Watch on YouTube ↗</a></p><div class="banner">📝 Auto-generated notes from the full lecture video (slides, equations, and live code) and transcript. Verify critical details against the source.</div><div class="embed"><a href="https://www.youtube.com/watch?v=LHpr5ytssLo" target="_blank" rel="noopener" style="background-image:url(https://i.ytimg.com/vi/LHpr5ytssLo/hqdefault.jpg)"><span class="play"><span>▶ Watch on YouTube</span></span></a></div><h2 id="tldr">TL;DR</h2>
+<ul>
+<li><strong>Data Transfer Bottleneck</strong>: The primary challenge in distributed training is minimizing data transfer bottlenecks, as moving data between different memory hierarchies (L1 cache, HBM, NVLink, NVSwitch, Ethernet) is significantly slower than computation.</li>
+<li><strong>Collective Operations</strong>: These are fundamental primitives (broadcast, scatter, gather, reduce, all-gather, reduce-scatter) for distributed programming, abstracting complex point-to-point communications across multiple nodes and GPUs.</li>
+<li><strong>Hardware Evolution</strong>: Modern GPU architectures (like NVIDIA's H100 with NVLink and NVSwitch) are designed to bypass CPUs and Ethernet for direct, high-bandwidth GPU-to-GPU communication, significantly improving performance for deep learning workloads.</li>
+<li><strong>Software Stack</strong>: NVIDIA's NCCL (Collective Communication Library) translates high-level collective operations into low-level hardware-optimized packet transfers. PyTorch's <code>torch.distributed</code> library provides a Pythonic interface to NCCL and supports various backends (NCCL for GPU, Gloo for CPU).</li>
+<li><strong>Distributed Training Strategies</strong>: Data parallelism, tensor parallelism, and pipeline parallelism are different ways to shard models and data. Data parallelism cuts data along the batch dimension, tensor parallelism cuts models along the hidden dimension, and pipeline parallelism cuts models along layers.</li>
+<li><strong>Trade-offs</strong>: Implementing distributed training involves managing complex tradeoffs between recomputation vs. memory/communication, and balancing computational efficiency with architectural complexity. Higher-level frameworks (like Jax/TPUs or PyTorch's FSDP) abstract much of this complexity, allowing users to focus on model definition.</li>
+</ul>
+<h2 id="key-concepts">Key Concepts</h2>
+<ul>
+<li>Data transfer bottleneck</li>
+<li>Arithmetic intensity</li>
+<li>L1 cache, HBM, NVLink, NVSwitch, Ethernet</li>
+<li>Collective operations (broadcast, scatter, gather, reduce, all-gather, reduce-scatter)</li>
+<li>World size, rank</li>
+<li>NCCL (NVIDIA Collective Communication Library)</li>
+<li><code>torch.distributed</code> (PyTorch distributed library)</li>
+<li>Data parallelism (DDP)</li>
+<li>Tensor parallelism</li>
+<li>Pipeline parallelism</li>
+<li>Communication/computation overlap</li>
+<li>Activation checkpointing</li>
+<li>Hardware-software co-design</li>
+<li>Jax/TPUs and compiler-driven sharding</li>
+</ul>
+<hr />
+<h2 id="000-introduction-optimizing-deep-learning-workloads">[0:00] Introduction: Optimizing Deep Learning Workloads</h2>
+<p>This is week two of the systems lecture, focusing on leveraging hardware to accelerate model training. Last week, we discussed parallelism within a single GPU. This week, the topic is parallelism across multiple GPUs.</p>
+<h3 id="023-hardware-architecture-overview">[0:23] Hardware Architecture Overview</h3>
+<figure class="slide"><img src="figs/lec08/00029.jpg" loading="lazy" alt="Diagram of multi-node GPU architecture with NVLink and NVSwitch connections."><figcaption><span class="ft">0:29</span> Diagram of multi-node GPU architecture with NVLink and NVSwitch connections.</figcaption></figure>
+
+<p>The fundamental hardware setup involves:
+- <strong>Nodes</strong>: These are individual computers, typically containing multiple GPUs (e.g., 8).
+- <strong>GPUs</strong>: Each GPU contains several Streaming Multiprocessors (SMs).
+- <strong>SMs</strong>: These are the arithmetic logic units (ALUs) that perform the actual computations.</p>
+<p><strong>Memory and Communication Hierarchy (from small/fast to big/slow):</strong>
+- <strong>Within an SM</strong>: Very small L1 cache.
+- <strong>On a GPU</strong>: High Bandwidth Memory (HBM), which is larger than L1 cache.
+- <strong>Between GPUs on the same node</strong>: NVLink connects GPUs directly.
+- <strong>Between GPUs on different nodes</strong>: NVSwitch connects GPUs directly (bypassing CPU and Ethernet).</p>
+<p>The core idea is that compute happens within the SMs, and these computations require inputs and produce outputs. The further away the data is from the SM, the slower the access. The goal is to structure computations to avoid data transfer bottlenecks and keep arithmetic intensity high, saturating the GPUs.</p>
+<p>Last week, techniques like fusion and tiling were discussed to reduce memory access within a single GPU by loading data into faster, local caches (L1, shared memory) and performing multiple operations before writing back to HBM.</p>
+<p>This week, the focus shifts to reducing communication across GPUs and nodes through replication and sharding of models, parameters, and optimizer states.</p>
+<h2 id="102-unifying-theme-orchestrate-computation-to-avoid-data-transfer-bottlenecks">[1:02] Unifying Theme: Orchestrate Computation to Avoid Data Transfer Bottlenecks</h2>
+<figure class="slide"><img src="figs/lec08/00102.jpg" loading="lazy" alt="Professor presenting, gesturing with his right hand, looking at the audience."><figcaption><span class="ft">1:42</span> Professor presenting, gesturing with his right hand, looking at the audience.</figcaption></figure>
+
+<p>The overarching theme is to orchestrate computation to avoid data transfer bottlenecks. Data transfer is generally much slower than computation, making it the primary bottleneck.</p>
+<p>The hierarchy of memory access speeds, from fastest to slowest:
+- <strong>Single node, single GPU</strong>: L1 cache / shared memory (extremely fast, very small)
+- <strong>Single node, single GPU</strong>: HBM (fast, larger)
+- <strong>Single node, multi-GPU</strong>: NVLink (slower than HBM, but faster than inter-node communication)
+- <strong>Multi-node, multi-GPU</strong>: NVSwitch (slowest, largest scale)</p>
+<p>This lecture will concretize these concepts in code.</p>
+<h2 id="230-part-1-building-blocks-of-distributed-communicationcomputation">[2:30] Part 1: Building Blocks of Distributed Communication/Computation</h2>
+<h3 id="239-collective-operations">[2:39] Collective Operations</h3>
+<figure class="slide"><img src="figs/lec08/00231.jpg" loading="lazy" alt="Professor looking down at his laptop on the podium."><figcaption><span class="ft">3:51</span> Professor looking down at his laptop on the podium.</figcaption></figure>
+<figure class="slide"><img src="figs/lec08/00240.jpg" loading="lazy" alt="Professor looking up from his laptop, speaking to the audience."><figcaption><span class="ft">4:00</span> Professor looking up from his laptop, speaking to the audience.</figcaption></figure>
+<figure class="slide"><img src="figs/lec08/00330.jpg" loading="lazy" alt="Slide defining collective operations, world size, and rank in distributed programming."><figcaption><span class="ft">5:30</span> Slide defining collective operations, world size, and rank in distributed programming.</figcaption></figure>
+<figure class="slide"><img src="figs/lec08/00438.jpg" loading="lazy" alt="Diagram illustrating the &quot;all-reduce&quot; operation as reduce-scatter plus all-gather."><figcaption><span class="ft">7:18</span> Diagram illustrating the &quot;all-reduce&quot; operation as reduce-scatter plus all-gather.</figcaption></figure>
+
+<p>Collective operations are conceptual primitives used for distributed programming. "Collective" means they specify a communication pattern across many (e.g., 256) nodes. These primitives are classic in parallel programming literature from the 1980s and provide a better/faster abstraction than managing point-to-point communication yourself. They are tried and true methods for distributed communication.</p>
+<p><strong>Terminology:</strong>
+- <strong>World size</strong>: The total number of devices (e.g., 4).
+- <strong>Rank</strong>: A device's unique identifier (e.g., 0, 1, 2, 3 for a world size of 4).</p>
+<p><strong>Types of Collective Operations:</strong>
+- <strong>Broadcast</strong>: Data from one rank (e.g., Rank 0) is sent to all other ranks.
+  - Initial state: Rank 0 has <code>[t0]</code>, others have <code>[]</code>.
+  - Final state: All ranks have <code>[t0]</code>.
+- <strong>Scatter</strong>: Data from one rank (e.g., Rank 0 has <code>[t0, t1, t2, t3]</code>) is distributed such that each rank receives a different part (e.g., Rank 0 gets <code>[t0]</code>, Rank 1 gets <code>[t1]</code>, etc.).
+  - Initial state: Rank 0 has <code>[t0, t1, t2, t3]</code>, others have <code>[]</code>.
+  - Final state: Rank 0 has <code>[t0]</code>, Rank 1 has <code>[t1]</code>, Rank 2 has <code>[t2]</code>, Rank 3 has <code>[t3]</code>.
+- <strong>Gather</strong>: The inverse of scatter. Data from all ranks (e.g., Rank 0 has <code>[t0]</code>, Rank 1 has <code>[t1]</code>, etc.) is collected onto a single rank (e.g., Rank 0).
+  - Initial state: Rank 0 has <code>[t0]</code>, Rank 1 has <code>[t1]</code>, etc.
+  - Final state: Rank 0 has <code>[t0, t1, t2, t3]</code>, others have <code>[]</code>.
+- <strong>Reduce</strong>: Similar to gather, but instead of concatenating, an associative/commutative operation (e.g., sum, min, max, average) is performed on the collected data.
+  - Initial state: Rank 0 has <code>[t0]</code>, Rank 1 has <code>[t1]</code>, etc.
+  - Final state: Rank 0 has <code>[T = t0 + t1 + t2 + t3]</code>, others have <code>[]</code>.
+- <strong>All-gather</strong>: Similar to gather, but the collected data is distributed to <em>all</em> ranks.
+  - Initial state: Rank 0 has <code>[t0]</code>, Rank 1 has <code>[t1]</code>, etc.
+  - Final state: All ranks have <code>[t0, t1, t2, t3]</code>.
+- <strong>Reduce-scatter</strong>: A combination of reduce and scatter. Each rank contributes a portion of its data to a global reduction, and the result is scattered back such that each rank receives a portion of the reduced data.
+  - Initial state: Each rank <code>i</code> has <code>in_i</code>.
+  - Final state: Each rank <code>i</code> receives <code>out_i</code>, where <code>out_i</code> is a segment of the global reduction <code>SUM(in_0, in_1, ..., in_N)</code>.
+  - All-reduce is equivalent to reduce-scatter + all-gather.</p>
+<p><strong>How to remember the terminology:</strong>
+- <strong>Reduce</strong>: Performs some associative/commutative operation (sum, min, max).
+- <strong>Broadcast/scatter</strong>: Is inverse of gather.
+- <strong>All</strong>: Means destination is all devices.</p>
+<h3 id="815-hardware-and-software-for-distributed-communication">[8:15] Hardware and Software for Distributed Communication</h3>
+<h4 id="820-hardware-setup">[8:20] Hardware Setup</h4>
+<figure class="slide"><img src="figs/lec08/00535.jpg" loading="lazy" alt="Diagram comparing classic (Ethernet) and modern (data center) hardware communication."><figcaption><span class="ft">8:55</span> Diagram comparing classic (Ethernet) and modern (data center) hardware communication.</figcaption></figure>
+<figure class="slide"><img src="figs/lec08/00826.jpg" loading="lazy" alt="Slide explaining NVIDIA Collective Communication Library (NCCL) and its functions."><figcaption><span class="ft">13:46</span> Slide explaining NVIDIA Collective Communication Library (NCCL) and its functions.</figcaption></figure>
+<figure class="slide"><img src="figs/lec08/00933.jpg" loading="lazy" alt="Slide detailing PyTorch distributed library (torch.distributed) capabilities."><figcaption><span class="ft">15:33</span> Slide detailing PyTorch distributed library (torch.distributed) capabilities.</figcaption></figure>
+<figure class="slide"><img src="figs/lec08/01028.jpg" loading="lazy" alt="Code snippet defining the `setup` function for distributed training."><figcaption><span class="ft">17:08</span> Code snippet defining the `setup` function for distributed training.</figcaption></figure>
+<figure class="slide"><img src="figs/lec08/01124.jpg" loading="lazy" alt="Terminal output showing NIC legend and results of all-reduce and reduce-scatter operations."><figcaption><span class="ft">18:44</span> Terminal output showing NIC legend and results of all-reduce and reduce-scatter operations.</figcaption></figure>
+<figure class="slide"><img src="figs/lec08/01230.jpg" loading="lazy" alt="Terminal output continuing with all-gather, all-reduce bandwidth, and data parallelism logs."><figcaption><span class="ft">20:30</span> Terminal output continuing with all-gather, all-reduce bandwidth, and data parallelism logs.</figcaption></figure>
+
+<ul>
+<li><strong>Classic (in the home)</strong>: GPUs on the same node communicate via a PCIe bus (v7.0, 16 lanes =&gt; 242 GB/s). GPUs on different nodes communicate via Ethernet (~200 MB/s). This setup is suboptimal for deep learning due to high overhead (data copying, kernel involvement, slow transport).</li>
+<li><strong>Modern (in the data center)</strong>:<ul>
+<li><strong>Within a node</strong>: NVLink connects GPUs directly, bypassing the CPU.</li>
+<li><strong>Across nodes</strong>: NVSwitch connects GPUs directly, bypassing Ethernet.</li>
+<li>Example: Each H100 GPU has 18 NVLink 4.0 links, for a total of 900 GB/s. This is significantly faster than PCIe or Ethernet.</li>
+<li>For comparison, memory bandwidth for HBM is 3.9 TB/s (still faster than NVLink).</li>
+</ul>
+</li>
+</ul>
+<p>To check your hardware setup, you can use <code>os.system("nvidia-smi topo -m")</code>. This command shows how GPUs are connected via NVLink and NICs (for PCIe).</p>
+<h4 id="11050-nvidia-collective-communication-library-nccl">[1:10:50] NVIDIA Collective Communication Library (NCCL)</h4>
+<p>NCCL is a low-level library provided by NVIDIA that handles collective operations. It:
+- Detects the topology of hardware (e.g., number of nodes, switches, NVLink/PCIe).
+- Optimizes the path between GPUs for efficient data transfer.
+- Launches CUDA kernels to send/receive data.</p>
+<p>NCCL abstracts away the complexities of low-level communication, allowing programmers to use high-level collective operations without worrying about hardware specifics.</p>
+<h4 id="11358-pytorch-distributed-library-torchdistributed">[1:13:58] PyTorch Distributed Library (<code>torch.distributed</code>)</h4>
+<p><code>torch.distributed</code> provides a clean Pythonic interface for collective operations (e.g., <code>all_gather_into_tensor</code>). It supports multiple backends for different hardware (e.g., Gloo for CPU, NCCL for GPU). This allows for greater portability, as the same code can run on different hardware configurations, though performance will vary. It also supports higher-level algorithms (e.g., FullyShardedDataParallel - FSDP), but this course focuses on implementing from scratch.</p>
+<h3 id="11600-collective-operations-examples-in-pytorch">[1:16:00] Collective Operations Examples in PyTorch</h3>
+<p>Let's walk through some examples of <code>torch.distributed</code> collective operations. The examples use a utility function <code>spawn(collective_operations_main, world_size=4)</code> which runs the <code>collective_operations_main</code> function asynchronously on <code>world_size</code> number of processes, each with a unique rank.</p>
+<pre><code class="language-python">def collective_operations_main(rank: int, world_size: int):
+    &quot;&quot;&quot;This function is running asynchronously for each process (rank = 0, ..., world_size - 1).&quot;&quot;&quot;
+    setup(rank, world_size)
+
+    # All-reduce
+    dist.barrier()  # Wait for all processes to get to this point (in this case, for print statements)
+
+    tensor = torch.tensor([0., 1, 2, 3], device=get_device(rank)) + rank  # Both input and output
+    print(f&quot;Rank {rank} [before all-reduce]: {tensor}&quot;, flush=True)
+
+    dist.all_reduce(tensor=tensor, op=dist.ReduceOp.SUM, async_op=False)  # Modifies tensor in place
+    print(f&quot;Rank {rank} [after all-reduce]: {tensor}&quot;, flush=True)
+
+    # Reduce-scatter
+    dist.barrier()
+
+    input = torch.arange(world_size, dtype=torch.float32, device=get_device(rank)) + rank  # Input
+    output = torch.empty(1, device=get_device(rank))  # Allocate output
+
+    print(f&quot;Rank {rank} [before reduce-scatter]: input={input}, output={output}&quot;, flush=True)
+    dist.reduce_scatter_tensor(output=output, input=input, op=dist.ReduceOp.SUM, async_op=False)
+    print(f&quot;Rank {rank} [after reduce-scatter]: input={input}, output={output}&quot;, flush=True)
+
+    # All-gather
+    dist.barrier()
+
+    input = output  # Input is the output of reduce-scatter
+    output = torch.empty(world_size, device=get_device(rank))  # Allocate output
+
+    print(f&quot;Rank {rank} [before all-gather]: input={input}, output={output}&quot;, flush=True)
+    dist.all_gather_into_tensor(tensor_list=activations, tensor=x, async_op=False)
+    print(f&quot;Rank {rank} [after all-gather]: input={input}, output={output}&quot;, flush=True)
+
+    # Indeed, all-reduce = reduce-scatter + all-gather!
+    cleanup()
+</code></pre>
+<p><strong>Setup (<code>setup(rank, world_size)</code>):</strong>
+- Each process needs to initialize itself and find other processes.
+- They connect to a single host (e.g., <code>localhost:15623</code>) for coordination. This is not where data flows, but where processes discover each other.
+- <code>dist.init_process_group("nccl", rank=rank, world_size=world_size)</code> initializes the process group using NCCL (or Gloo for CPU).</p>
+<p><strong><code>dist.barrier()</code>:</strong>
+- A synchronization primitive that waits for all processes in the process group to reach that point. Useful for ensuring print statements are grouped or for specific synchronization needs.</p>
+<p><strong>All-reduce Example:</strong>
+1. Each rank creates a tensor: <code>tensor = torch.tensor([0., 1, 2, 3], device=get_device(rank)) + rank</code>.
+   - Rank 0: <code>[0., 1., 2., 3.]</code>
+   - Rank 1: <code>[1., 2., 3., 4.]</code>
+   - Rank 2: <code>[2., 3., 4., 5.]</code>
+   - Rank 3: <code>[3., 4., 5., 6.]</code>
+2. <code>dist.all_reduce(tensor=tensor, op=dist.ReduceOp.SUM, async_op=False)</code> performs an in-place sum reduction across all ranks and distributes the result to all ranks.
+   - After all-reduce, all ranks will have <code>[6., 10., 14., 18.]</code> (sum of corresponding elements across ranks).</p>
+<p><strong>Reduce-scatter Example:</strong>
+1. Each rank creates an input tensor: <code>input = torch.arange(world_size, dtype=torch.float32, device=get_device(rank)) + rank</code>.
+2. Each rank allocates an empty output tensor: <code>output = torch.empty(1, device=get_device(rank))</code>.
+3. <code>dist.reduce_scatter_tensor(output=output, input=input, op=dist.ReduceOp.SUM, async_op=False)</code> performs a sum reduction and scatters the result.
+   - Rank 0's output will be the sum of the 0th elements from all inputs: <code>0+1+2+3 = 6</code>.
+   - Rank 1's output will be the sum of the 1st elements from all inputs: <code>1+2+3+4 = 10</code>.
+   - And so on.
+   - This operation produces the same reduced values as all-reduce, but each rank only receives its designated portion.</p>
+<p><strong>All-gather Example:</strong>
+1. The input for all-gather is the output from reduce-scatter.
+2. Each rank allocates an empty output tensor of <code>world_size</code> elements.
+3. <code>dist.all_gather_into_tensor(tensor_list=activations, tensor=x, async_op=False)</code> collects all inputs and distributes the full collected tensor to all ranks.
+   - After all-gather, all ranks will have <code>[6., 10., 14., 18.]</code>.</p>
+<p>This demonstrates that <code>all_reduce</code> is indeed equivalent to <code>reduce_scatter</code> followed by <code>all_gather</code>.</p>
+<h3 id="355-benchmarking-collective-operations">[3:55] Benchmarking Collective Operations</h3>
+<p>Benchmarking helps measure actual NCCL bandwidth.
+- <strong>Warmup</strong>: Run the operation once to ensure CUDA kernels are loaded and any lazy computations are performed.
+- <strong>Synchronization</strong>: Use <code>torch.cuda.synchronize()</code> and <code>dist.barrier()</code> to ensure all processes and CUDA kernels are finished before starting the timer.
+- <strong>Timing</strong>: Use <code>time.time()</code> to measure the duration.</p>
+<p><strong>Measuring Bandwidth for All-reduce:</strong>
+- <strong>Sent bytes</strong>: <code>tensor.element_size() * tensor.numel() * 2</code>
+    - The <code>* 2</code> factor accounts for both sending the input and receiving the output. Each rank sends its data, and then receives the aggregated data.
+- <strong>Total duration</strong>: <code>world_size * duration</code> (assuming all ranks contribute equally).
+- <strong>Bandwidth</strong>: <code>sent_bytes / total_duration</code>.</p>
+<p>For an all-reduce of 100 million elements on 4 GPUs, the measured bandwidth was ~277 GB/s. This is lower than the theoretical 900 GB/s for H100s, highlighting that real-world performance depends on tensor size, number of devices, and other factors. Benchmarking is crucial to understand actual performance.</p>
+<p><strong>Measuring Bandwidth for Reduce-scatter:</strong>
+- <strong>Sent bytes</strong>: <code>tensor.element_size() * tensor.numel() * 1</code>
+    - The <code>* 1</code> factor is used because in reduce-scatter, each rank sends its input, but only receives a <em>portion</em> of the reduced output. Effectively, it's like a reduction where data flows in one direction to be aggregated.
+- For a reduce-scatter of 100 million elements on 4 GPUs, the measured bandwidth was ~75 GB/s.</p>
+<p>The difference in bandwidth between all-reduce and reduce-scatter (277 GB/s vs. 75 GB/s) can be attributed to several factors, including potential hardware accelerations in NVIDIA's network for all-reduce operations.</p>
+<h2 id="230-part-2-distributed-training-strategies">[2:30] Part 2: Distributed Training Strategies</h2>
+<p>This section walks through bare-bones implementations of distributed training strategies on deep MLPs. MLPs are used as a representative architecture because compute bottlenecks in Transformers often resemble those in MLPs.</p>
+<h3 id="306-data-parallelism-ddp">[3:06] Data Parallelism (DDP)</h3>
+<p>In DDP, the data is sharded along the batch dimension. Each rank gets a slice of the data.
+- <strong>Losses</strong>: Different across ranks (computed on local data).
+- <strong>Gradients</strong>: All-reduced to be the same across ranks.
+- <strong>Parameters</strong>: Therefore, parameters remain the same across ranks.</p>
+<p><strong>DDP Implementation Details:</strong>
+1. <strong>Generate Sample Data</strong>: <code>batch_size = 128</code>, <code>num_dim = 1024</code>.
+2. <strong>Slice Data</strong>: Each rank calculates its <code>local_batch_size</code> (<code>batch_size / world_size</code>) and determines its <code>start_index</code> and <code>end_index</code> to access its specific slice of the data.
+3. <strong>Create MLP Parameters</strong>: Each layer's parameters are <code>num_dim</code> by <code>num_dim</code> matrices.
+4. <strong>Optimizer</strong>: <code>torch.optim.AdamW</code> is used.
+5. <strong>Training Loop</strong>:
+   - <strong>Forward Pass</strong>: Data is passed through the MLP layers (<code>x = x @ param</code>, <code>x = F.gelu(x)</code>).
+   - <strong>Compute Loss</strong>: <code>loss = x.square().mean()</code>.
+   - <strong>Backward Pass</strong>: <code>loss.backward()</code>.
+   - <strong>Synchronize Gradients</strong>: This is the key step for DDP. For each parameter, <code>dist.all_reduce(tensor=param.grad, op=dist.ReduceOp.AVG, async_op=False)</code> is called to average the gradients across all ranks. This ensures all ranks have the same gradients.
+   - <strong>Update Parameters</strong>: <code>optimizer.step()</code>.</p>
+<p>DDP effectively runs <code>world_size</code> number of SGD runs, but because gradients are synchronized, all models converge to the same state. The <code>all_reduce</code> operation acts as a synchronization point, ensuring all ranks are at the same step before proceeding.</p>
+<h3 id="440-tensor-parallelism">[4:40] Tensor Parallelism</h3>
+<p>In tensor parallelism, the model is sharded along the hidden dimension. The data remains the same across all ranks.
+- Each rank gets a part of each layer.
+- All data/activations need to be transferred between ranks.</p>
+<p><strong>Tensor Parallelism Implementation Details (Forward Pass only):</strong>
+1. <strong>Generate Sample Data</strong>: <code>batch_size = 128</code>, <code>num_dim = 1024</code>.
+2. <strong>Shard <code>num_dim</code></strong>: <code>local_num_dim = num_dim / world_size = 256</code>.
+3. <strong>Create MLP Parameters</strong>: Each layer's parameter matrix is now <code>num_dim</code> by <code>local_num_dim</code>.
+4. <strong>Forward Pass Loop (for each layer):</strong>
+   - <strong>Compute Activations</strong>: <code>x = x @ param</code>, <code>x = F.gelu(x)</code>. Note that <code>x</code> is <code>batch_size</code> by <code>local_num_dim</code>.
+   - <strong>Allocate Memory for Activations</strong>: <code>activations = torch.empty(batch_size, local_num_dim, device=get_device(rank))</code>.
+   - <strong>Send Activations via All-gather</strong>: <code>dist.all_gather_into_tensor(tensor_list=activations, tensor=x, async_op=False)</code>. This collects all the sharded activations from each rank and distributes the full set of activations to all ranks.
+   - <strong>Concatenate Activations</strong>: <code>x = torch.cat(activations, dim=1)</code>. This reconstructs the full activation tensor (<code>batch_size</code> by <code>num_dim</code>).</p>
+<p>This process is repeated for each layer. As seen, tensor parallelism involves significant communication (all-gather for activations) at each layer, requiring high-bandwidth interconnects.</p>
+<h3 id="625-pipeline-parallelism">[6:25] Pipeline Parallelism</h3>
+<p>In pipeline parallelism, the model is sharded along layers. All ranks get all the data.
+- Each rank gets a subset of the layers.
+- All data/activations need to be transferred between ranks.</p>
+<p><strong>Pipeline Parallelism Implementation Details (Forward Pass only):</strong>
+1. <strong>Generate Sample Data</strong>: <code>batch_size = 128</code>, <code>num_dim = 1024</code>.
+2. <strong>Shard Layers</strong>: <code>local_num_layers = num_layers / world_size = 2</code>. Each rank gets two layers.
+3. <strong>Create MLP Parameters</strong>: Parameters are allocated only for the layers assigned to each rank.
+4. <strong>Forward Pass Loop (for each microbatch):</strong>
+   - <strong>Break into Microbatches</strong>: To minimize pipeline bubbles, the batch is divided into microbatches (e.g., <code>micro_batch_size = 32</code>).
+   - <strong>Process Microbatches</strong>:
+     - <strong>Receive Activations</strong>: If <code>rank &gt; 0</code>, <code>dist.recv(tensor=x, src=rank-1)</code> receives activations from the previous rank.
+     - <strong>Compute Layers</strong>: Apply the assigned layers to the received activations.
+     - <strong>Send Activations</strong>: If <code>rank &lt; world_size - 1</code>, <code>dist.send(tensor=x, dst=rank+1)</code> sends activations to the next rank.</p>
+<p><strong>Missing from this basic implementation:</strong>
+- <strong>Overlapping Communication/Computation</strong>: The current implementation uses synchronous <code>send</code> and <code>recv</code>. Asynchronous operations (<code>isend</code>, <code>irecv</code>) would allow computation to overlap with communication, reducing pipeline bubbles.
+- <strong>Backward Pass</strong>: Implementing the backward pass requires careful scheduling to interleave forward and backward steps across the pipeline.</p>
+<h2 id="655-whats-missing">[6:55] What's Missing?</h2>
+<ul>
+<li><strong>More General Models</strong>: The examples used simple MLPs. Real-world models like Transformers have more complex architectures (e.g., attention mechanisms) that require more sophisticated sharding strategies.</li>
+<li><strong>More Communication/Computation Overlap</strong>: The current implementations are basic and don't fully exploit asynchronous operations to overlap communication with computation, which is crucial for performance.</li>
+<li><strong>More Complex Code with More Bookkeeping</strong>: Implementing these strategies for arbitrary models requires significant bookkeeping to manage parameters, optimizer states, and activations across devices.</li>
+</ul>
+<h3 id="750-jaxtpus-a-different-approach">[7:50] Jax/TPUs: A Different Approach</h3>
+<p>Jax/TPUs offer a different paradigm. You define the model and the sharding strategy, and the Jax compiler handles the rest. This provides a higher-level abstraction compared to PyTorch, where you build up from primitives.</p>
+<p><strong>Example: FSDP in Jax (Levanter project)</strong>
+- You define your model and optimizer states.
+- You specify which axes to shard for parameters (e.g., <code>embed</code> for embedding, <code>data</code> for batch).
+- The Jax compiler automatically handles the sharding and communication.
+- This allows for FSDP in ~10 lines of code.</p>
+<p><strong>Example: Tensor Parallelism in Jax</strong>
+- You specify which axes to shard for tensor parallelism (e.g., <code>head</code> for attention heads, <code>model</code> for MLP layers).
+- The Jax compiler handles the rest.</p>
+<p>This approach offers conceptual simplicity, as the compiler automatically translates high-level sharding specifications into low-level primitives. However, this course focuses on PyTorch to demonstrate how to build up from primitives.</p>
+<h2 id="825-summary">[8:25] Summary</h2>
+<ul>
+<li><strong>Many ways to parallelize</strong>: Data (batch), tensor (expert/width), pipeline (depth), sequence (length).</li>
+<li><strong>Re-compute or store</strong>: You can re-compute activations from scratch to save memory or store them in memory/another GPU's memory and communicate them.</li>
+<li><strong>Hardware is getting faster</strong>: But bigger models will always push the limits of hardware capabilities, necessitating these hierarchical distributed training techniques.</li>
+</ul>
+<p><strong>Collective operations</strong> are the conceptual primitives used for distributed programming. They are classic in parallel programming literature from the 1980s and provide a better/faster abstraction than managing point-to-point communication yourself.</p>
+<h2 id="840-practical-takeaways">[8:40] Practical Takeaways</h2>
+<ul>
+<li>Understanding the memory and communication hierarchy is key to optimizing distributed deep learning.</li>
+<li>Collective operations are fundamental building blocks, and <code>torch.distributed</code> provides a powerful interface for using them.</li>
+<li>Benchmarking is essential to measure actual performance and identify bottlenecks.</li>
+<li>Different parallelism strategies (data, tensor, pipeline) involve different ways of sharding models and data, each with its own communication patterns and trade-offs.</li>
+<li>Overlapping communication and computation is crucial for maximizing efficiency in distributed training.</li>
+<li>While higher-level frameworks (like Jax) abstract much of the complexity, understanding the underlying primitives helps in debugging and optimizing custom architectures.</li>
+<li>Hardware will continue to improve, but models will always grow larger, making efficient distributed training a continuous challenge.</li>
+</ul>
+<h2 id="845-open-questions-things-to-remember">[8:45] Open Questions / Things to Remember</h2>
+<ul>
+<li>How to handle non-determinism issues on GPUs for exact reproducibility.</li>
+<li>How to implement asynchronous sends/receives (<code>isend</code>, <code>irecv</code>) to overlap communication and computation.</li>
+<li>How to manage complex bookkeeping for arbitrary model architectures in distributed settings.</li>
+<li>The trade-offs between recomputation and storing activations in memory/communicating them.</li>
+<li>The role of specialized hardware (like Grock, Cerebras) with large on-chip memory for reducing data movement.</li>
+<li>The fundamental difference between CPU-era control-flow focused programming and data-flow focused deep learning workloads.</li>
+<li>The concept of a static computation graph in deep learning and how it enables smarter optimization and layout of computations.</li>
+</ul><div class="pager"><a href="lec07.html">← Lec 07</a><a href="lec09.html" style="text-align:right">Lec 09 →</a></div></main></div></body></html>

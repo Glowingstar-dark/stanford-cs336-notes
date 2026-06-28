@@ -1,0 +1,980 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 Lecture 07: Parallelism 1</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html" class="active"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Lecture 07</div><h1>Lecture 07: Parallelism 1</h1><p class="meta">Stanford CS336 · Spring 2025 · 1:24:42 · <a href="https://www.youtube.com/watch?v=l1RJcDjzK8M" target="_blank">Watch on YouTube ↗</a></p><div class="banner">📝 Auto-generated notes from the full lecture video (slides, equations, and live code) and transcript. Verify critical details against the source.</div><div class="embed"><a href="https://www.youtube.com/watch?v=l1RJcDjzK8M" target="_blank" rel="noopener" style="background-image:url(https://i.ytimg.com/vi/l1RJcDjzK8M/hqdefault.jpg)"><span class="play"><span>▶ Watch on YouTube</span></span></a></div><p><strong>TL;DR</strong>
+*   Training large language models (LLMs) requires multi-GPU and multi-node parallelism due to memory and compute limitations of single GPUs.
+*   Parallelism strategies are broadly categorized into Data Parallelism (DP), Model Parallelism (MP), and Activation Parallelism.
+*   ZeRO (Zero Redundancy Optimizer) is a key DP technique that shards optimizer states, gradients, and parameters across GPUs to save memory, effectively making DP memory-scalable.
+*   Model Parallelism (Pipeline and Tensor) splits the model itself across devices, trading communication overhead for memory scalability.
+*   Activation Parallelism (Sequence Parallelism, Activation Recomputation) addresses the significant memory footprint of intermediate activations, which can become a bottleneck for very large models or long sequences.
+*   Effective large-scale training often combines multiple parallelism techniques (3D/4D parallelism) to balance memory, compute, and communication costs.</p>
+<p><strong>Key Concepts</strong>
+*   Multi-GPU/Multi-node Parallelism
+*   Collective Communication (all_reduce, reduce_scatter, all_gather, broadcast)
+*   Data Parallelism (DP)
+*   ZeRO (Zero Redundancy Optimizer) stages 1, 2, 3 (FSDP)
+*   Model Parallelism (MP)
+*   Pipeline Parallelism (PP)
+*   Tensor Parallelism (TP)
+*   Activation Parallelism
+*   Sequence Parallelism (SP)
+*   Activation Recomputation
+*   Batch Size as a Resource
+*   Communication vs. Computation Bound
+*   Hardware Hierarchy (NVLink, InfiniBand, Toroidal Mesh)</p>
+<hr />
+<h2 id="0000-introduction-the-need-for-multi-machine-parallelism">[00:00] Introduction: The Need for Multi-Machine Parallelism</h2>
+<p>The lecture focuses on multi-machine optimization, specifically parallelism across machines for training huge models.</p>
+<p><strong>Goals:</strong>
+*   Understand the systems complexities of training huge models.
+*   Explore different parallelization paradigms and why people use multiple approaches at once.
+*   Describe what large-scale training runs often look like.</p>
+<p><strong>Outline:</strong>
+*   <strong>Part 1</strong>: Basics of networking for LLMs.
+*   <strong>Part 2</strong>: Different forms of parallel LLM training.
+*   <strong>Part 3</strong>: Scaling and training big LMs with parallelism.</p>
+<h3 id="0005-limits-to-gpu-based-scaling-compute">[00:05] Limits to GPU-based Scaling - Compute</h3>
+<figure class="slide"><img src="figs/lec07/00019.jpg" loading="lazy" alt="Lecture 7: Parallelism Basics, presented by Tatsu H for Stanford CS336."><figcaption><span class="ft">0:19</span> Lecture 7: Parallelism Basics, presented by Tatsu H for Stanford CS336.</figcaption></figure>
+
+<p>While single-GPU compute (FLOPs/GPU) has seen impressive exponential growth, training the largest LLMs today requires more than a single GPU can offer. The world's fastest supercomputers already operate at exaFLOPs of compute, indicating the need for distributed systems.</p>
+<h3 id="0243-limits-to-gpu-based-scaling-memory">[02:43] Limits to GPU-based Scaling - Memory</h3>
+<figure class="slide"><img src="figs/lec07/00150.jpg" loading="lazy" alt="Slide on limits to GPU-based scaling, showing performance development graphs and gains."><figcaption><span class="ft">2:30</span> Slide on limits to GPU-based scaling, showing performance development graphs and gains.</figcaption></figure>
+
+<p>Models are getting extremely large, with billions and even trillions of parameters (e.g., GPT-3 175B, Megatron-Turing NLG 530B). A single GPU often cannot fit these models into its memory. This presents both compute and memory constraints that necessitate multi-machine parallelism.</p>
+<h3 id="0324-multi-gpu-multi-machine-parallelism-hardware-overview">[03:24] Multi-GPU, Multi-Machine Parallelism Hardware Overview</h3>
+<p>Modern GPU servers (like NVIDIA DGX systems) are designed with a hierarchy of communication speeds:
+*   <strong>Intra-GPU parallelism (within a single machine)</strong>: GPUs within the same server are connected via very high-speed interconnects (e.g., NVLink, xGMI). This allows for very fast communication between GPUs on the same node.
+*   <strong>Inter-node parallelism (across machines)</strong>: Communication between GPUs on different machines (nodes) is slower, typically going through network switches (e.g., HDR InfiniBand, PCIe Express). This creates a tiered communication latency.
+*   <strong>TPU Networking</strong>: Google's TPUs use a toroidal mesh topology, where each chip primarily communicates with its immediate neighbors very quickly. This design is highly scalable for collective communication operations. In contrast, GPUs often use an all-to-all connection up to a certain number of GPUs (e.g., 256), beyond which communication becomes slower due to hierarchical switching.</p>
+<p>This hardware hierarchy dictates how models are effectively parallelized in practice.</p>
+<h3 id="0457-basics-of-collective-communication">[04:57] Basics of Collective Communication</h3>
+<figure class="slide"><img src="figs/lec07/00324.jpg" loading="lazy" alt="Slide illustrating basics of collective communication: All Reduce, Broadcast, All Gather, Reduce Scatter."><figcaption><span class="ft">5:24</span> Slide illustrating basics of collective communication: All Reduce, Broadcast, All Gather, Reduce Scatter.</figcaption></figure>
+
+<p>Collective communication operations are fundamental for distributed training.
+*   <strong>All Reduce</strong>: Each rank (GPU/machine) has an input (<code>inX</code>). All inputs are combined (e.g., summed), and the final result (<code>out</code>) is copied to all ranks. Cost is roughly <code>2 * size_of_data</code>.
+*   <strong>Broadcast</strong>: A root rank's input (<code>in</code>) is copied to all other ranks' outputs (<code>out</code>). Cost is roughly <code>1 * size_of_data</code>.
+*   <strong>Reduce</strong>: Similar to all_reduce, but the combined result (<code>out</code>) is only sent to one root rank.
+*   <strong>All Gather</strong>: Each rank's input (<code>inX</code>) is appended to form a larger output, and this full combined output is copied to all ranks.
+*   <strong>Reduce Scatter</strong>: Each rank's input (<code>inX</code>) is combined (e.g., summed) with parts of other ranks' inputs, and then a <em>portion</em> of the combined result is sent to each rank.</p>
+<h3 id="0703-important-detail-all_reduce-vs-reduce_scatter-gather">[07:03] Important Detail: all_reduce vs reduce_scatter-gather</h3>
+<p>An important equivalence: an <code>all_reduce</code> operation can be implemented as two steps: a <code>reduce_scatter</code> followed by an <code>all_gather</code>.
+*   <strong>All Reduce</strong>: All GPUs contribute their data (A, B, C, D), and all GPUs receive the sum (A+B+C+D).
+*   <strong>Reduce-Scatter + All-Gather</strong>:
+    1.  <strong>Reduce-Scatter</strong>: Each GPU sums a <em>portion</em> of the data from all other GPUs. For example, GPU0 receives (A0+B0+C0+D0), GPU1 receives (A1+B1+C1+D1), etc. (where A0 is the first part of A, B0 is the first part of B, etc.).
+    2.  <strong>All-Gather</strong>: Each GPU then broadcasts its combined portion to all other GPUs, so every GPU eventually reconstructs the full sum (A+B+C+D).</p>
+<p><strong>Key Insight</strong>: In the bandwidth-limited regime, this two-step approach (reduce_scatter + all_gather) is often the best you can do, and it has the same communication cost as a direct all_reduce. This equivalence is crucial for understanding the performance characteristics of parallelization algorithms.</p>
+<h3 id="0832-tpus-vs-gpus-design-differences-at-the-communication-level">[08:32] TPUs vs GPUs - Design Differences at the Communication Level</h3>
+<figure class="slide"><img src="figs/lec07/00599.jpg" loading="lazy" alt="Slide comparing TPU and GPU networking design differences at the communication level."><figcaption><span class="ft">9:59</span> Slide comparing TPU and GPU networking design differences at the communication level.</figcaption></figure>
+
+<ul>
+<li><strong>TPU Networking</strong>: Uses a toroidal mesh, where chips primarily communicate with neighbors. This is highly scalable but limits direct communication to non-neighbors.</li>
+<li><strong>GPU Networking</strong>: Often uses an all-to-all connection up to ~256 GPUs (within a superpod/rack) via high-bandwidth NVLink/InfiniBand. Beyond this, communication typically goes through slower leaf/spine switches.</li>
+</ul>
+<p>This difference implies that for collective communications, TPUs might be more efficient for certain patterns due to their direct neighbor connections, while GPUs excel at all-to-all communication within their high-bandwidth clusters.</p>
+<h3 id="1027-part-1-recap">[10:27] Part 1 Recap</h3>
+<figure class="slide"><img src="figs/lec07/00703.jpg" loading="lazy" alt="Slide comparing TPU and GPU networking design differences at the communication level."><figcaption><span class="ft">11:43</span> Slide comparing TPU and GPU networking design differences at the communication level.</figcaption></figure>
+
+<ul>
+<li><strong>New unit of compute</strong>: The datacenter (not just a single GPU).</li>
+<li><strong>What we want from multi-machine scaling</strong>:<ul>
+<li><strong>Linear memory scaling</strong>: Max model parameters scales linearly with the number of GPUs.</li>
+<li><strong>Linear compute scaling</strong>: Model FLOPs scale linearly with the number of GPUs.</li>
+</ul>
+</li>
+<li><strong>Simple collective comms primitives</strong>: Algorithms are built by combining these primitives, so performance analysis often boils down to counting communication operations.</li>
+</ul>
+<hr />
+<h2 id="1233-part-2-standard-llm-parallelization-primitives">[12:33] Part 2 - Standard LLM Parallelization Primitives</h2>
+<p>How do we parallelize LLMs? There are three important ideas:</p>
+<ol>
+<li><strong>Data Parallelism (DP)</strong>:<ul>
+<li>Naive data parallel</li>
+<li>ZeRO levels 1-3</li>
+</ul>
+</li>
+<li><strong>Model Parallelism (MP)</strong>:<ul>
+<li>Pipeline parallel</li>
+<li>Tensor parallel</li>
+</ul>
+</li>
+<li><strong>Activation Parallelism</strong>:<ul>
+<li>Sequence parallel</li>
+</ul>
+</li>
+</ol>
+<p>These techniques, when combined, provide the tools to scale both compute and memory gracefully across many machines.</p>
+<h3 id="1417-naive-data-parallelism">[14:17] Naive Data Parallelism</h3>
+<p><strong>Starting Point</strong>: Imagine we are doing naive Stochastic Gradient Descent (SGD).
+$$ \theta_{t+1} = \theta_t - \eta \nabla_B f(x_i) $$
+<strong>Naive Parallelism</strong>: Split the B-sized batch across M machines. Exchange gradients to synchronize.</p>
+<p><strong>How does this do?</strong>
+*   <strong>Compute scaling</strong>: Each GPU processes <code>B/M</code> examples. This is good if <code>B</code> is large enough to saturate GPU compute.
+*   <strong>Communication overhead</strong>: Transmits <code>2 * #params</code> every batch (for all_reduce). This is okay if batches are big, as computation can mask communication.
+*   <strong>Memory scaling</strong>: <strong>None</strong>. Every GPU needs <code>#params</code> at least (for model weights, gradients, and optimizer states).</p>
+<h3 id="1610-whats-wrong-with-naive-data-parallel-memory">[16:10] What's Wrong with Naive Data Parallel? - Memory</h3>
+<p>Memory is a significant problem. A single GPU often runs out of memory. In naive DP, we copy the entire model parameters to each GPU.</p>
+<p><strong>Memory Situation is Terrible</strong>:
+Depending on precision (e.g., BF16/FP32), a single parameter requires multiple bytes for different components:
+*   2 bytes for FP/BF16 model parameters
+*   2 bytes for FP/BF16 gradients
+*   4 bytes for FP32 master weights (the thing you accumulate into SGD)
+*   4 (or 2) bytes for FP32/BF16 Adam first moment estimates
+*   4 (or 2) bytes for FP32/BF16 Adam second moment estimates</p>
+<p>This means we need ~5 copies of weights, totaling ~16 bytes per parameter. This quickly exhausts GPU memory, especially for large models.</p>
+<h3 id="1757-zero-solving-the-memory-overhead-issue-of-dp">[17:57] ZeRO - Solving the Memory Overhead Issue of DP</h3>
+<p><strong>Core idea</strong>: Split up the expensive parts (state) and use the reduce-scatter equivalence.</p>
+<p>Let's visualize memory usage for a 7.5B parameter model distributed over 64 accelerators (GPUs) with naive DP:
+*   <strong>Baseline</strong>: Total memory consumed is ~120GB. This includes parameters (P), gradients (G), and optimizer states (OS). The optimizer states (OS) are the largest component.</p>
+<p><strong>ZeRO stages</strong>:
+*   <strong>ZeRO Stage 1 (P_os)</strong>: Optimizer state sharding.
+    *   <strong>High-level idea</strong>: Split up the optimizer state (first + second moments) across GPUs. Everyone still has the parameters and gradients. Each worker is responsible for updating a subset of parameters (corresponding to its slice).
+    *   <strong>Memory consumed</strong>: $(2 + 2 + K) \frac{\Psi}{N_d}$ where $K$ is the optimizer state size, $\Psi$ is total parameters, $N_d$ is number of devices. This reduces memory from 120GB to ~31.4GB.
+    *   <strong>How it works</strong>:
+        1.  Everyone computes a full gradient on their subset of the batch.
+        2.  <code>ReduceScatter</code> the gradients: Each GPU (rank) receives the sum of gradients for the parameters it <em>owns</em>. Communication cost: <code>2 * #params</code>.
+        3.  Each machine updates their parameter slice using their gradient + state.
+        4.  <code>AllGather</code> the updated parameters: Each GPU broadcasts its updated parameter slice to all other GPUs, so everyone has the full updated model. Communication cost: <code>2 * #params</code>.
+    *   <strong>Comparison with Naive DDP</strong>:
+        *   <strong>Communication primitive</strong>: Naive DDP uses <code>all_reduce</code> (one gradient). ZeRO stage 1 uses <code>reduce_scatter</code> (gradients) + <code>all_gather</code> (parameters).
+        *   <strong>Communication cost</strong>: Both are <code>2 * #params</code>.
+        *   <strong>Memory</strong>: Naive DDP: <code>(4 + K) * #params</code>. ZeRO stage 1: <code>(4 + K/Ngpu) * #params</code>.
+        *   <strong>Key point</strong>: ZeRO stage 1 is <strong>free</strong> in the bandwidth-limited regime (same communication cost as all_reduce) but provides significant memory savings.</p>
+<ul>
+<li>
+<p><strong>ZeRO Stage 2 (P_os+g)</strong>: Optimizer state + gradient sharding.</p>
+<ul>
+<li><strong>High-level idea</strong>: Also keep the gradients (pink slices) sharded across the machines.</li>
+<li><strong>Memory consumed</strong>: $(2 + K) \frac{\Psi}{N_d}$. This reduces memory further to ~16.6GB.</li>
+<li><strong>Complexity</strong>: We can never instantiate a full gradient vector. Each worker must compute a full gradient (since we're doing a data parallel run). This means during the backward pass, as soon as a layer's gradients are computed, they must be immediately reduced/scattered to the owning GPU and then freed. This requires incremental computation/communication.</li>
+<li><strong>How it works</strong>:<ol>
+<li>Everyone incrementally goes backward on the computation graph.</li>
+<li>After computing a layer's gradients, immediately <code>reduce_scatter</code> this to the right worker (the GPU owning that parameter slice).</li>
+<li>Once gradients are not needed in the backward graph, immediately free them.</li>
+<li>Each machine updates their parameter using their gradient + state.</li>
+<li><code>AllGather</code> the parameters.</li>
+</ol>
+</li>
+<li><strong>Communication cost</strong>: Still <code>2 * #params</code> (total, not per layer).</li>
+</ul>
+</li>
+<li>
+<p><strong>ZeRO Stage 3 (P_os+g+p)</strong>: Optimizer state + gradient + parameter sharding (aka FSDP - Fully Sharded Data Parallel).</p>
+<ul>
+<li><strong>High-level idea</strong>: Shard everything, including parameters. Use the same incremental communication/computation ideas. Send and request parameters on demand while stepping through the compute graph.</li>
+<li><strong>Memory consumed</strong>: $(2 + K) \frac{\Psi}{N_d}$. This reduces memory further to ~1.9GB.</li>
+<li><strong>How it works (baby version)</strong>:<ol>
+<li><strong>Forward Pass</strong>: For each layer, <code>all_gather</code> the weights needed for that layer. Perform the forward computation. Immediately <code>free</code> the weights. This happens incrementally layer by layer.</li>
+<li><strong>Backward Pass</strong>: For each layer, <code>all_gather</code> the weights. Perform the backward computation. <code>Reduce_scatter</code> the gradients to the owning GPU. Immediately <code>free</code> the weights and gradients.</li>
+<li><strong>Update Weights</strong>: Each GPU updates its owned parameter slice.</li>
+<li><strong>All-Gather Parameters</strong>: <code>All_gather</code> the updated parameters so all GPUs have the full updated model.</li>
+</ol>
+</li>
+<li><strong>Communication cost</strong>: <code>2 * all_gather</code> (for all parameters) + <code>1 * reduce_scatter</code> (for all parameters). Total <code>3 * #params</code>.</li>
+<li><strong>Key point</strong>: The surprising part is that this is possible with <strong>low overhead</strong> due to overlapping communication and computation. All-gathers can happen at once while forward computation proceeds, masking the communication cost. This is achieved by queuing requests for weights/gradients before they are actually needed.</li>
+</ul>
+</li>
+</ul>
+<h3 id="1828-whats-the-point-zero-summary">[18:28] What's the Point? (ZeRO Summary)</h3>
+<figure class="slide"><img src="figs/lec07/01120.jpg" loading="lazy" alt="Slide on ZeRO, solving memory overhead of Data Parallelism, with memory consumption table."><figcaption><span class="ft">18:40</span> Slide on ZeRO, solving memory overhead of Data Parallelism, with memory consumption table.</figcaption></figure>
+<figure class="slide"><img src="figs/lec07/01609.jpg" loading="lazy" alt="Table comparing ZeRO stage 1 and naive data parallel communication primitives, costs, and memory."><figcaption><span class="ft">26:49</span> Table comparing ZeRO stage 1 and naive data parallel communication primitives, costs, and memory.</figcaption></figure>
+
+<ul>
+<li><strong>Distributed data parallel costs</strong>: <code>2 * #param</code> communication (for naive DP).</li>
+<li><strong>ZeRO Stage 1</strong>: <code>2 * #param</code> - it's free! (same comm cost, but memory savings). You might as well always do it.</li>
+<li><strong>ZeRO Stage 2</strong>: <code>2 * #param</code> - almost free (ignoring overhead from incremental processing).</li>
+<li><strong>ZeRO Stage 3</strong>: <code>3 * #param</code> - 1.5x comm cost, but that's not bad! (ignoring latency, which is masked by overlapping).</li>
+</ul>
+<p><strong>ZeRO in Practice - Will it fit?</strong>
+On an 8x A100 80GB node:
+*   <strong>Baseline (Naive DP)</strong>: Max model size ~6.66B parameters. Formula for B/param: 12.
+*   <strong>ZeRO Stage 1</strong>: Max model size ~16B parameters. Formula for B/param: 5.
+*   <strong>ZeRO Stage 2</strong>: Max model size ~24.62B parameters. Formula for B/param: 2 (param) + 10 (grad + state) / 8.
+*   <strong>ZeRO Stage 3</strong>: Max model size ~53.33B parameters. Formula for B/param: 12/8.</p>
+<p>ZeRO allows fitting significantly larger models into memory by sharding the model state.</p>
+<h3 id="3031-issues-remain-with-data-parallel-compute-scaling">[30:31] Issues Remain with Data Parallel - Compute Scaling</h3>
+<figure class="slide"><img src="figs/lec07/02332.jpg" loading="lazy" alt="Slide explaining the communication costs of ZeRO stages 1, 2, and 3."><figcaption><span class="ft">38:52</span> Slide explaining the communication costs of ZeRO stages 1, 2, and 3.</figcaption></figure>
+
+<ul>
+<li>With data parallel, if <code>#machines &gt; batch size</code> (and near this, communication overhead is high), efficiency drops.</li>
+<li>There are diminishing returns to batch sizes for optimization. Beyond a "critical batch size", increasing the batch size yields little benefit for optimization.</li>
+<li>This means data parallel alone cannot achieve arbitrarily large parallelism. Batch size becomes a critical resource that needs to be managed.</li>
+</ul>
+<h3 id="4400-issues-remain-with-data-parallel-models-dont-fit">[44:00] Issues Remain with Data Parallel - Models Don't Fit</h3>
+<ul>
+<li>ZeRO stages 1 and 2 don't scale memory for activations.</li>
+<li>ZeRO stage 3 is good in principle but can be slow and does not reduce activation memory.</li>
+<li>This highlights the need for other parallelism strategies when models become too large to fit even with ZeRO.</li>
+</ul>
+<hr />
+<h2 id="4514-beyond-data-parallel-model-parallelism">[45:14] Beyond Data Parallel - Model Parallelism</h2>
+<p><strong>What is Model Parallelism?</strong>
+*   It splits the parameters across GPUs (like ZeRO3).
+*   But it communicates <strong>activations</strong> (while ZeRO3 sends parameters).</p>
+<p>We cover two different types of model parallelism:
+1.  <strong>Pipeline Parallelism (PP)</strong>
+2.  <strong>Tensor Parallelism (TP)</strong></p>
+<h3 id="4609-layer-wise-parallelism-pipeline-parallel">[46:09] Layer-wise Parallelism (Pipeline Parallel)</h3>
+<p><strong>Concept</strong>: Cuts up layers, assigns some subset to GPUs. Activations and partial gradients are passed back and forth.
+*   <strong>Example</strong>: Layer 0 on GPU0, Layer 1 on GPU1, etc. For a forward pass, GPU0 computes Layer 0, sends activations to GPU1. GPU1 computes Layer 1, sends activations to GPU2, and so on. The backward pass reverses this.</p>
+<p><strong>What's wrong with layer-wise parallelism?</strong>
+*   <strong>Terrible utilization</strong>: With <code>N</code> GPUs, each GPU is active <code>1/N</code> of the time.
+*   <strong>The "Bubble"</strong>: GPUs are idle most of the time, waiting for the forward pass to propagate through the pipeline and the backward pass to propagate back. This creates a large "bubble" of idle time.</p>
+<h3 id="4754-a-solution-pipeline-parallel-micro-batching">[47:54] A Solution: Pipeline Parallel (Micro-batching)</h3>
+<p><strong>Solution</strong>: Process 'micro-batches'.
+*   Instead of waiting for the entire batch to clear the pipeline, split the batch into smaller micro-batches.
+*   As soon as the first micro-batch completes a stage, send its activations to the next GPU and start computing the second micro-batch on the first GPU.
+*   This allows overlapping computation and communication, reducing the bubble size.
+*   <strong>Ratio of bubble time to useful compute</strong>: $\frac{N_{stages} - 1}{N_{microbatches}}$.
+*   <strong>Key point</strong>: If you have a large number of micro-batches (which means a large batch size), the bubble can be hidden, leading to better utilization. Batch size becomes a resource that can be spent to improve pipeline parallel efficiency.</p>
+<h3 id="4927-why-pipeline-parallel">[49:27] Why Pipeline Parallel?</h3>
+<figure class="slide"><img src="figs/lec07/02954.jpg" loading="lazy" alt="Diagram illustrating pipeline parallel solution with micro-batches and bubble time equation."><figcaption><span class="ft">49:14</span> Diagram illustrating pipeline parallel solution with micro-batches and bubble time equation.</figcaption></figure>
+
+<p>Pipelines seem terrible due to the bubble, so why do we use them?
+1.  <strong>Pipelines save memory (compared to DDP)</strong>: By distributing layers, each GPU only needs to store the parameters and activations for its assigned layers, not the entire model.
+2.  <strong>Pipelines can have good communication properties (compared to FSDP)</strong>: It depends only on activations (batch_size * sequence_length * hidden_dim) and communication is point-to-point. This can be favorable on slower network links (e.g., inter-node communication across racks or data centers).</p>
+<p><strong>Rule of thumb</strong>: Generally, pipeline parallel is used on slower network links (i.e., inter-node) as a way to get better memory-wise scaling.</p>
+<h3 id="5048-pipeline-performance-is-highly-dependent-on-batch-size">[50:48] Pipeline Performance is Highly Dependent on Batch Size</h3>
+<ul>
+<li><strong>Observation</strong>: With a small batch size (e.g., 8), increasing pipeline parallel size (number of GPUs involved in the pipeline) rapidly degrades throughput per GPU.</li>
+<li><strong>Observation</strong>: With a large batch size (e.g., 128), throughput per GPU remains relatively flat even with increasing pipeline parallel size.</li>
+<li><strong>Conclusion</strong>: Batch sizes are key to hiding the bubble. Otherwise, pipeline rapidly degrades performance.</li>
+</ul>
+<h3 id="5124-trading-communication-bandwidth-for-utilization">[51:24] Trading Communication Bandwidth for Utilization</h3>
+<p>More complex pipeline patterns (e.g., interleaving forward and backward passes, assigning multiple stages to each device) can improve utilization, but at the cost of increased communication bandwidth.</p>
+<h3 id="5154-zero-bubble-pipelining-dualpipe">[51:54] "Zero Bubble" Pipelining (Dualpipe)</h3>
+<p>This is an advanced technique to eliminate the bubble in pipeline parallelism.
+*   <strong>Core Idea</strong>: Split the backward pass into two parts:
+    1.  Backpropagating activations (computing $\frac{\partial L}{\partial z}$ and $\frac{\partial L}{\partial x}$).
+    2.  Computing weight gradients (computing $\frac{\partial L}{\partial W}$).
+*   The second part (computing weight gradients) can be done whenever, as it doesn't have serial dependencies on subsequent layers' activation backpropagation.
+*   By carefully rescheduling the weight gradient computations into the idle "bubble" time, utilization can be significantly improved.
+*   <strong>Challenge</strong>: This is extremely complicated to implement, requiring deep intervention in the autodiff system and careful scheduling.</p>
+<h3 id="5223-model-parallel-along-the-width-axes-tensor-parallel">[52:23] Model Parallel Along the Width Axes (Tensor Parallel)</h3>
+<figure class="slide"><img src="figs/lec07/03340.jpg" loading="lazy" alt="Diagram showing model parallel along width axes, decomposing matrix multiplication into submatrices."><figcaption><span class="ft">55:40</span> Diagram showing model parallel along width axes, decomposing matrix multiplication into submatrices.</figcaption></figure>
+
+<p><strong>Question</strong>: Are there model parallel schemes with better utilization than pipeline parallel?
+*   Pipeline parallel cuts along the depth dimension (layers). What about cutting along the width dimension?
+*   <strong>Observation</strong>: Most of the computation in LLMs is matrix multiplies.
+*   <strong>Tensor Parallel Idea</strong>: Decompose large matrix multiplies into smaller submatrices that can be processed in parallel, and then combine partial sums.
+*   <strong>Example</strong>: For $X \times A = Y$, split $A$ into $A_1, A_2$ (columns) and $X$ into $X_1, X_2$ (rows). Then $Y = X_1 A_1 + X_2 A_2$.
+    *   Alternatively, split $A$ into $A_1, A_2$ (rows) and $X$ into $X_1, X_2$ (columns). Then $Y = X A_1 + X A_2$.
+*   <strong>Implementation in LLMs (e.g., Transformer layer)</strong>:
+    *   Assign columns of weight matrices (A1, A2) and rows of weight matrices (B1, B2) to separate GPUs.
+    *   <strong>Forward pass</strong>: Input $X$ is copied to all GPUs. Each GPU computes its part ($X A_1$ and $X A_2$). Then, an <code>all_reduce</code> is performed to sum the partial results (e.g., for the output of a feed-forward layer).
+    *   <strong>Backward pass</strong>: Gradients for the output are copied to all GPUs. Each GPU computes its part of the gradient. Then, an <code>all_reduce</code> is performed to sum the partial gradients.</p>
+<h3 id="5750-when-do-we-tensor-parallel">[57:50] When Do We Tensor Parallel?</h3>
+<ul>
+<li><strong>Rule of thumb</strong>: Tensor parallel is typically applied <em>within a node</em> (up to 8 GPUs) due to high-speed interconnects (NVLink).</li>
+<li><strong>Performance</strong>: Tensor parallel is very bandwidth-hungry. While it offers memory scaling, it introduces significant communication overhead.<ul>
+<li>Example from Hugging Face: Throughput per GPU drops by ~10-12% for TP=2 or TP=4.</li>
+<li>The drop becomes much steeper for higher TP values (e.g., 42.7% for TP=16, 65.6% for TP=32).</li>
+</ul>
+</li>
+<li><strong>Conclusion</strong>: Tensor parallel is often limited to the number of GPUs within a single node (e.g., 8 GPUs) to leverage the fastest available communication.</li>
+</ul>
+<h3 id="10044-tensor-parallel-pros-and-cons-vs-pipeline-parallel">[1:00:44] Tensor Parallel - Pros and Cons vs Pipeline Parallel</h3>
+<figure class="slide"><img src="figs/lec07/03730.jpg" loading="lazy" alt="Slide comparing pros and cons of tensor parallel versus pipeline parallel communication."><figcaption><span class="ft">62:10</span> Slide comparing pros and cons of tensor parallel versus pipeline parallel communication.</figcaption></figure>
+
+<p><strong>Pros of Tensor Parallel</strong>:
+*   No bubble (unlike PP).
+*   Low complexity: Simple to "wrap" models without major infra changes.
+*   Doesn't need large batch sizes to work well.</p>
+<p><strong>Cons of Tensor Parallel</strong>:
+*   Much larger communication than pipeline parallel.
+    *   <strong>Pipeline</strong>: Batch size * hidden_dim point-to-point communication per microbatch.
+    *   <strong>Tensor</strong>: 8 * batch_size * hidden_dim / N_devices per layer and all-reduce communication.
+*   <strong>Rule of thumb</strong>: Use tensor parallel whenever we have low-latency, high-bandwidth interconnects (e.g., within a GPU node).</p>
+<h3 id="10333-a-final-complexity-memory-is-dynamic-activation-memory">[1:03:33] A Final Complexity - Memory is Dynamic! (Activation Memory)</h3>
+<p>Memory isn't just the static bits (parameters, optimizer states), but also dynamic activations. Activations can be very large.
+*   <strong>Observation</strong>: A memory profile of a standard forward/backward pass shows dynamic memory usage.
+    *   Parameters (static) and optimizer state (static after iteration 0) form a baseline.
+    *   Activations (red, blue) grow during the forward pass and are freed during the backward pass.
+    *   Gradients (yellow) accumulate during the backward pass.
+*   <strong>Peak memory</strong>: The peak memory usage often occurs mid-backward pass, where some activations are still present, and gradients are accumulating.</p>
+<h3 id="10458-a-final-complexity-activation-memory">[1:04:58] A Final Complexity - Activation Memory</h3>
+<ul>
+<li>Tensor and pipeline parallel can linearly reduce parameter and optimizer state memory.</li>
+<li><strong>But what about activations?</strong> Activation memory doesn't parallelize as cleanly.<ul>
+<li>As models get bigger, activation memory (green bars) grows significantly, even with aggressive parameter/optimizer state sharding.</li>
+<li>Some parts of activation memory (e.g., for LayerNorm, Dropout, MLP inputs) don't parallelize well with TP/PP.</li>
+</ul>
+</li>
+</ul>
+<h3 id="10555-whats-the-activation-memory-per-layer">[1:05:55] What's the Activation Memory Per Layer?</h3>
+<p>For a transformer layer, the activation memory per layer (if storing everything) is:
+$$ \text{activations memory per layer} = \text{sbh} \left( 34 + \frac{as}{h} + \frac{5}{h} \right) $$
+Where:
+*   <code>s</code>: sequence length
+*   <code>b</code>: microbatch size
+*   <code>h</code>: hidden dimension size
+*   <code>a</code>: number of attention heads</p>
+<ul>
+<li>The $\frac{5as}{h}$ term comes from the quadratic attention terms (e.g., attention scores, values, keys) and includes dropout.</li>
+<li>The $34$ term comes from MLP and other pointwise operations.</li>
+<li>With flash attention, we can drop the $\frac{as}{h}$ term via recomputation.</li>
+</ul>
+<h3 id="10704-activation-under-tensor-parallel">[1:07:04] Activation Under Tensor Parallel</h3>
+<figure class="slide"><img src="figs/lec07/04020.jpg" loading="lazy" alt="Equation for activations memory per layer, with definitions of variables."><figcaption><span class="ft">67:00</span> Equation for activations memory per layer, with definitions of variables.</figcaption></figure>
+
+<p>If we apply tensor parallel (splitting matrix multiplies in attention + MLP), the activation memory per layer becomes:
+$$ \text{activations memory per layer} = \text{sbh} \left( 10 + \frac{24}{t} + \frac{5}{ht} \right) $$
+Where <code>t</code> is the number of devices for tensor parallelism.
+*   The remaining <code>10</code> term is for LayerNorm (4sbh), Dropout (2sbh), and inputs to the attention and MLP (4sbh).
+*   These terms will continue to grow with size and are not divided by <code>t</code>. They represent pointwise operations that don't parallelize well with tensor parallel.</p>
+<h3 id="10759-making-memory-truly-linear-sequence-parallel">[1:07:59] Making Memory Truly Linear - Sequence Parallel</h3>
+<p><strong>Observation</strong>: All the <code>10sbh</code> terms (from the previous slide) are pointwise ops over the sequence.
+*   <strong>Idea</strong>: Split up the layer norm/dropout terms along the sequence axis. This is called <strong>Sequence Parallelism (SP)</strong>.
+*   <strong>Forward pass</strong>: <code>all_gather</code> (g) is used to combine results from different sequence chunks.
+*   <strong>Backward pass</strong>: <code>reduce_scatter</code> (g') is used to combine gradients for different sequence chunks.
+*   In the backward pass, the two are reversed.</p>
+<p>This allows parallelizing the remaining non-matrix multiply components of activation memory.</p>
+<p><strong>Putting it together to get full linear scaling for memory:</strong>
+By combining tensor parallel, sequence parallel, and selective activation recomputation (like Flash Attention), the activation memory per transformer layer can be reduced to:
+$$ \text{sbh} \left( \frac{34}{t} \right) $$
+This achieves true linear scaling of activation memory with the number of devices.</p>
+<hr />
+<h2 id="11313-recap-llm-parallelism-table">[1:13:13] Recap: LLM Parallelism Table</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Strategy</th>
+<th style="text-align: left;">Sync Overhead</th>
+<th style="text-align: left;">Memory</th>
+<th style="text-align: left;">Bandwidth</th>
+<th style="text-align: left;">Batch Size</th>
+<th style="text-align: left;">Easy to Use?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">DDP/ZeRO1</td>
+<td style="text-align: left;">Per-batch</td>
+<td style="text-align: left;">No scaling</td>
+<td style="text-align: left;"><code>2 * #param</code></td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;">Very</td>
+</tr>
+<tr>
+<td style="text-align: left;">FSDP (ZeRO3)</td>
+<td style="text-align: left;">Per-batch</td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;"><code>3 * #param</code></td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;">Very</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pipeline</td>
+<td style="text-align: left;">Per-pipeline</td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;">Activations</td>
+<td style="text-align: left;">No Impact</td>
+<td style="text-align: left;">NO</td>
+</tr>
+<tr>
+<td style="text-align: left;">Tensor + Seq</td>
+<td style="text-align: left;">Per-transformer block</td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;"><code>8 * activations per layer + all_reduce</code></td>
+<td style="text-align: left;">No Impact</td>
+<td style="text-align: left;">YES</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key takeaway</strong>: You have to balance limited resources: memory, bandwidth, batch size.</p>
+<h3 id="11457-model-vs-tensor-parallel-tpu-book">[1:14:57] Model vs Tensor Parallel (TPU Book)</h3>
+<ul>
+<li><strong>Key Quantity</strong>: Global batch size (divided by GPU).</li>
+<li><strong>Observation</strong>: If batch size is too small (e.g., &lt;400), no single parallelism scheme is efficient. You're communication bound.</li>
+<li><strong>Observation</strong>: As batch size increases, different strategies become optimal:<ul>
+<li>Small batch size: FSDP only.</li>
+<li>Medium batch size: Mixed FSDP + MP (Tensor Parallel).</li>
+<li>Large batch size: Both FSDP + MP and pure FSDP work well.</li>
+<li>Very large batch size: Pure FSDP is sufficient.</li>
+</ul>
+</li>
+<li>This illustrates why you mix parallelism strategies and how batch size influences the optimal choice.</li>
+</ul>
+<h3 id="11642-3d-parallelism-putting-it-all-together">[1:16:42] "3D Parallelism" - Putting It All Together</h3>
+<p><strong>Simple rules of thumb from the literature:</strong>
+1.  <strong>Until your model fits in memory</strong>:
+    *   Use Tensor Parallel up to <code>N_GPUs_per_machine</code> (e.g., 8).
+    *   Use Pipeline Parallel across machines (or ZeRO-3, depending on bandwidth).
+2.  <strong>Then until you run out of GPUs</strong>:
+    *   Scale the rest of the way with Data Parallel.
+    *   If your batch size is small, use gradient accumulation to trade batch size for better communication efficiency.</p>
+<h3 id="11847-scaling-strategies-from-narayanan-2021-megatron-lm">[1:18:47] Scaling Strategies from Narayanan 2021 (Megatron-LM)</h3>
+<p>This paper shows how Megatron-LM trained models from 1.7B to 1T parameters using a combination of parallelism strategies.
+*   <strong>Tensor Parallel (TP)</strong>: Starts at 1, then goes up to 8, and caps out at 8. They use TP first.
+*   <strong>Pipeline Parallel (PP)</strong>: Stays at 1 initially, but once models get big enough (can't fit), PP increases to compensate.
+*   <strong>Data Parallel (DP)</strong>: Starts as large as possible (e.g., 32), then slowly decreases as PP increases. DP is used to scale the rest of the way.</p>
+<p>They achieve 40-52% of theoretical peak FLOPs, which is very good.</p>
+<h3 id="12009-careful-3d-parallelism-gives-linear-gains">[1:20:09] Careful '3D' Parallelism Gives Linear Gains</h3>
+<ul>
+<li>Careful 3D parallelism (combining TP, PP, DP) gives flat achieved TFLOPs/GPU, meaning linear scaling in total FLOPs as more GPUs are added.</li>
+<li>TP=8 is often optimal for throughput per GPU, even with varying batch sizes.</li>
+</ul>
+<h3 id="12048-activation-recomputation-can-pay-for-itself-via-memory">[1:20:48] Activation Recomputation Can Pay for Itself (via Memory)</h3>
+<ul>
+<li>Activation recomputation enables larger batch sizes (by reducing activation memory).</li>
+<li>Larger batch sizes, in turn, improve throughput (e.g., by hiding pipeline bubbles or reducing communication overhead).</li>
+<li>So, even though recomputation adds FLOPs, it can pay for itself by allowing larger batches and thus better overall throughput.</li>
+</ul>
+<h3 id="12110-recent-lms-what-do-they-do">[1:21:10] Recent LMs - What Do They Do?</h3>
+<ul>
+<li><strong>Dolma (7B, FSDP)</strong>: Primarily uses FSDP (ZeRO3), likely intra-node.</li>
+<li><strong>DeepSeek (V3 - 16B)</strong>: Uses ZeRO stage 1 + Tensor Parallel + Sequence Parallel + Pipeline Parallel (16-way PP, 64-way Expert Parallel, 8-way TP).</li>
+<li><strong>Yi (34B)</strong>: Uses ZeRO stage 1 + Tensor Parallel + Pipeline Parallel. For MOE (Mixture of Experts) models, they use "E-lightning" which replaces TP with Expert Parallelism.</li>
+<li><strong>Llama 3 405B</strong>: Uses TP=8, CP=1 (Context Parallel, for long context training), PP=16, DP=128. This is a complex network-aware parallelism configuration.</li>
+</ul>
+<h3 id="12309-side-note-gpu-failures-at-this-scale">[1:23:09] Side Note - GPU Failures at This Scale!</h3>
+<ul>
+<li>Training large models on thousands of GPUs for weeks/months inevitably encounters hardware failures.</li>
+<li>Llama 3 405B reported significant interruptions:<ul>
+<li>Faulty GPU: 30.1%</li>
+<li>Faulty HBM3 Memory: 17.2%</li>
+<li>Software Bug: 12.9%</li>
+<li>Network Switch/Cable: 8.4%</li>
+<li>Unplanned Host Maintenance: 7.6%</li>
+</ul>
+</li>
+<li><strong>Key takeaway</strong>: Fault tolerance and robust checkpointing are crucial for large-scale distributed training. Data corruption (silent GPU failures) is an even scarier problem.</li>
+</ul>
+<hr />
+<h2 id="12420-recap-for-the-whole-lecture">[1:24:20] Recap for the Whole Lecture</h2>
+<ul>
+<li>Scaling beyond a certain point requires multi-GPU, multi-node parallelism.</li>
+<li>There's no single simple solution to the parallelism problem; you probably want all 3 approaches (DP, MP, AP).</li>
+<li>There are simple, interpretable rules of thumb for combining different forms of parallelism in practice.</li>
+</ul>
+<hr />
+<h2 id="practical-takeaways">Practical Takeaways</h2>
+<ul>
+<li><strong>Memory is the primary bottleneck</strong>: For large LLMs, fitting the model (parameters, optimizer states, activations) into GPU memory is the first challenge.</li>
+<li><strong>ZeRO/FSDP is essential for DP</strong>: It allows data parallelism to scale memory by sharding optimizer states, gradients, and even parameters without significant communication overhead.</li>
+<li><strong>Model Parallelism for huge models</strong>: When FSDP is not enough, MP (PP or TP) is needed to distribute the model itself across devices.</li>
+<li><strong>TP for intra-node, PP for inter-node</strong>: Tensor Parallelism is efficient within a node due to high-bandwidth interconnects. Pipeline Parallelism is better for slower inter-node links, especially when memory saving is critical.</li>
+<li><strong>Batch size is a resource</strong>: It can be used to hide communication latency in PP or to improve optimization efficiency in DP.</li>
+<li><strong>Activations are a growing concern</strong>: As models and sequence lengths increase, activation memory becomes a major bottleneck, requiring techniques like Sequence Parallelism and Activation Recomputation.</li>
+<li><strong>3D/4D Parallelism is the norm</strong>: Combining DP, MP (TP/PP), and AP (SP/Recomputation) is necessary for optimal performance and memory efficiency in state-of-the-art LLM training.</li>
+<li><strong>Fault tolerance is critical</strong>: Hardware failures are inevitable at scale, necessitating robust checkpointing and recovery mechanisms.</li>
+</ul>
+<h2 id="open-questions-things-to-remember">Open Questions / Things to Remember</h2>
+<ul>
+<li>The choice of parallelism strategy is highly dependent on the specific hardware topology (interconnect bandwidths, latency) and model characteristics (size, depth, sequence length).</li>
+<li>Implementing advanced parallelism (like zero-bubble pipelining) is extremely complex and often requires deep intervention in the framework's autodiff system.</li>
+<li>The trade-offs between communication overhead, memory savings, and compute utilization are constant considerations.</li>
+<li>The "rules of thumb" provide a practical guide, but fine-tuning often involves empirical testing and profiling.</li>
+<li>Data corruption (silent failures) is a hidden danger in large-scale distributed systems, potentially ruining training runs without explicit errors.## TL;DR</li>
+<li>Training large language models (LLMs) necessitates multi-GPU and multi-node parallelism due to memory and compute limitations of single GPUs.</li>
+<li>Parallelism strategies are broadly categorized into Data Parallelism (DP), Model Parallelism (MP), and Activation Parallelism (AP).</li>
+<li>ZeRO (Zero Redundancy Optimizer) is a key DP technique that shards optimizer states, gradients, and parameters across GPUs to save memory, effectively making DP memory-scalable.</li>
+<li>Model Parallelism (Pipeline and Tensor) splits the model itself across devices, trading communication overhead for memory scalability.</li>
+<li>Activation Parallelism (Sequence Parallelism, Activation Recomputation) addresses the significant memory footprint of intermediate activations, which can become a bottleneck for very large models or long sequences.</li>
+<li>Effective large-scale training often combines multiple parallelism techniques (3D/4D parallelism) to balance memory, compute, and communication costs.</li>
+</ul>
+<h2 id="key-concepts">Key Concepts</h2>
+<ul>
+<li>Multi-GPU/Multi-node Parallelism</li>
+<li>Collective Communication (all_reduce, reduce_scatter, all_gather, broadcast)</li>
+<li>Data Parallelism (DP)</li>
+<li>ZeRO (Zero Redundancy Optimizer) stages 1, 2, 3 (FSDP)</li>
+<li>Model Parallelism (MP)</li>
+<li>Pipeline Parallelism (PP)</li>
+<li>Tensor Parallelism (TP)</li>
+<li>Activation Parallelism</li>
+<li>Sequence Parallelism (SP)</li>
+<li>Activation Recomputation</li>
+<li>Batch Size as a Resource</li>
+<li>Communication vs. Computation Bound</li>
+<li>Hardware Hierarchy (NVLink, InfiniBand, Toroidal Mesh)</li>
+</ul>
+<hr />
+<h2 id="0000-introduction-the-need-for-multi-machine-parallelism_1">[00:00] Introduction: The Need for Multi-Machine Parallelism</h2>
+<p>The lecture focuses on multi-machine optimization, specifically parallelism across machines for training huge models.</p>
+<p><strong>Goals:</strong>
+*   Understand the systems complexities of training huge models.
+*   Explore different parallelization paradigms and why people use multiple approaches at once.
+*   Describe what large-scale training runs often look like.</p>
+<p><strong>Outline:</strong>
+*   <strong>Part 1</strong>: Basics of networking for LLMs.
+*   <strong>Part 2</strong>: Different forms of parallel LLM training.
+*   <strong>Part 3</strong>: Scaling and training big LMs with parallelism.</p>
+<h3 id="0005-limits-to-gpu-based-scaling-compute_1">[00:05] Limits to GPU-based Scaling - Compute</h3>
+<p>While single-GPU compute (FLOPs/GPU) has seen impressive exponential growth, training the largest LLMs today requires more than a single GPU can offer. The world's fastest supercomputers already operate at exaFLOPs of compute, indicating the need for distributed systems.</p>
+<h3 id="0243-limits-to-gpu-based-scaling-memory_1">[02:43] Limits to GPU-based Scaling - Memory</h3>
+<p>Models are getting extremely large, with billions and even trillions of parameters (e.g., GPT-3 175B, Megatron-Turing NLG 530B). A single GPU often cannot fit these models into its memory. This presents both compute and memory constraints that necessitate multi-machine parallelism.</p>
+<h3 id="0324-multi-gpu-multi-machine-parallelism-hardware-overview_1">[03:24] Multi-GPU, Multi-Machine Parallelism Hardware Overview</h3>
+<p>Modern GPU servers (like NVIDIA DGX systems) are designed with a hierarchy of communication speeds:
+*   <strong>Intra-GPU parallelism (within a single machine)</strong>: GPUs within the same server are connected via very high-speed interconnects (e.g., NVLink, xGMI). This allows for very fast communication between GPUs on the same node.
+*   <strong>Inter-node parallelism (across machines)</strong>: Communication between GPUs on different machines (nodes) is slower, typically going through network switches (e.g., HDR InfiniBand, PCIe Express). This creates a tiered communication latency.
+*   <strong>TPU Networking</strong>: Google's TPUs use a toroidal mesh topology, where each chip primarily communicates with its immediate neighbors very quickly. This design is highly scalable but limits direct communication to non-neighbors. In contrast, GPUs often use an all-to-all connection up to a certain number of GPUs (e.g., 256), beyond which communication becomes slower due to hierarchical switching.</p>
+<p>This hardware hierarchy dictates how models are effectively parallelized in practice.</p>
+<h3 id="0457-basics-of-collective-communication_1">[04:57] Basics of Collective Communication</h3>
+<p>Collective communication operations are fundamental for distributed training.
+*   <strong>All Reduce</strong>: Each rank (GPU/machine) has an input (<code>inX</code>). All inputs are combined (e.g., summed), and the final result (<code>out</code>) is copied to all ranks. Cost is roughly <code>2 * size_of_data</code>.
+*   <strong>Broadcast</strong>: A root rank's input (<code>in</code>) is copied to all other ranks' outputs (<code>out</code>). Cost is roughly <code>1 * size_of_data</code>.
+*   <strong>Reduce</strong>: Similar to all_reduce, but the combined result (<code>out</code>) is only sent to one root rank.
+*   <strong>All Gather</strong>: Each rank's input (<code>inX</code>) is appended to form a larger output, and this full combined output is copied to all ranks.
+*   <strong>Reduce Scatter</strong>: Each rank's input (<code>inX</code>) is combined (e.g., summed) with parts of other ranks' inputs, and then a <em>portion</em> of the combined result is sent to each rank.</p>
+<h3 id="0703-important-detail-all_reduce-vs-reduce_scatter-gather_1">[07:03] Important Detail: all_reduce vs reduce_scatter-gather</h3>
+<p>An important equivalence: an <code>all_reduce</code> operation can be implemented as two steps: a <code>reduce_scatter</code> followed by an <code>all_gather</code>.
+*   <strong>All Reduce</strong>: All GPUs contribute their data (A, B, C, D), and all GPUs receive the sum (A+B+C+D).
+*   <strong>Reduce-Scatter + All-Gather</strong>:
+    1.  <strong>Reduce-Scatter</strong>: Each GPU sums a <em>portion</em> of the data from all other GPUs. For example, GPU0 receives (A0+B0+C0+D0), GPU1 receives (A1+B1+C1+D1), etc. (where A0 is the first part of A, B0 is the first part of B, etc.).
+    2.  <strong>All-Gather</strong>: Each GPU then broadcasts its combined portion to all other GPUs, so every GPU eventually reconstructs the full sum (A+B+C+D).</p>
+<p><strong>Key Insight</strong>: In the bandwidth-limited regime, this two-step approach (reduce_scatter + all_gather) is often the best you can do, and it has the same communication cost as a direct all_reduce. This equivalence is crucial for understanding the performance characteristics of parallelization algorithms.</p>
+<h3 id="0832-tpus-vs-gpus-design-differences-at-the-communication-level_1">[08:32] TPUs vs GPUs - Design Differences at the Communication Level</h3>
+<ul>
+<li><strong>TPU Networking</strong>: Uses a toroidal mesh, where chips primarily communicate with neighbors. This is highly scalable but limits direct communication to non-neighbors.</li>
+<li><strong>GPU Networking</strong>: Often uses an all-to-all connection up to ~256 GPUs (within a superpod/rack) via high-bandwidth NVLink/InfiniBand. Beyond this, communication typically goes through slower leaf/spine switches.</li>
+</ul>
+<p>This difference implies that for collective communications, TPUs might be more efficient for certain patterns due to their direct neighbor connections, while GPUs excel at all-to-all communication within their high-bandwidth clusters.</p>
+<h3 id="1027-part-1-recap_1">[10:27] Part 1 Recap</h3>
+<ul>
+<li><strong>New unit of compute</strong>: The datacenter (not just a single GPU).</li>
+<li><strong>What we want from multi-machine scaling</strong>:<ul>
+<li><strong>Linear memory scaling</strong>: Max model parameters scales linearly with the number of GPUs.</li>
+<li><strong>Linear compute scaling</strong>: Model FLOPs scale linearly with the number of GPUs.</li>
+</ul>
+</li>
+<li><strong>Simple collective comms primitives</strong>: Algorithms are built by combining these primitives, so performance analysis often boils down to counting communication operations.</li>
+</ul>
+<hr />
+<h2 id="1233-part-2-standard-llm-parallelization-primitives_1">[12:33] Part 2 - Standard LLM Parallelization Primitives</h2>
+<p>How do we parallelize LLMs? There are three important ideas:</p>
+<ol>
+<li><strong>Data Parallelism (DP)</strong>:<ul>
+<li>Naive data parallel</li>
+<li>ZeRO levels 1-3</li>
+</ul>
+</li>
+<li><strong>Model Parallelism (MP)</strong>:<ul>
+<li>Pipeline parallel</li>
+<li>Tensor parallel</li>
+</ul>
+</li>
+<li><strong>Activation Parallelism</strong>:<ul>
+<li>Sequence parallel</li>
+</ul>
+</li>
+</ol>
+<p>These techniques, when combined, provide the tools to scale both compute and memory gracefully across many machines.</p>
+<h3 id="1417-naive-data-parallelism_1">[14:17] Naive Data Parallelism</h3>
+<p><strong>Starting Point</strong>: Imagine we are doing naive Stochastic Gradient Descent (SGD).
+$$ \theta_{t+1} = \theta_t - \eta \nabla_B f(x_i) $$
+<strong>Naive Parallelism</strong>: Split the B-sized batch across M machines. Exchange gradients to synchronize.</p>
+<p><strong>How does this do?</strong>
+*   <strong>Compute scaling</strong>: Each GPU processes <code>B/M</code> examples. This is good if <code>B</code> is large enough to saturate GPU compute.
+*   <strong>Communication overhead</strong>: Transmits <code>2 * #params</code> every batch (for all_reduce). This is okay if batches are big, as computation can mask communication.
+*   <strong>Memory scaling</strong>: <strong>None</strong>. Every GPU needs <code>#params</code> at least (for model weights, gradients, and optimizer states).</p>
+<h3 id="1610-whats-wrong-with-naive-data-parallel-memory_1">[16:10] What's Wrong with Naive Data Parallel? - Memory</h3>
+<p>Memory is a significant problem. A single GPU often runs out of memory. In naive DP, we copy the entire model parameters to each GPU.</p>
+<p><strong>Memory Situation is Terrible</strong>:
+Depending on precision (e.g., BF16/FP32), a single parameter requires multiple bytes for different components:
+*   2 bytes for FP/BF16 model parameters
+*   2 bytes for FP/BF16 gradients
+*   4 bytes for FP32 master weights (the thing you accumulate into SGD)
+*   4 (or 2) bytes for FP32/BF16 Adam first moment estimates
+*   4 (or 2) bytes for FP32/BF16 Adam second moment estimates</p>
+<p>This means we need ~5 copies of weights, totaling ~16 bytes per parameter. This quickly exhausts GPU memory, especially for large models.</p>
+<h3 id="1757-zero-solving-the-memory-overhead-issue-of-dp_1">[17:57] ZeRO - Solving the Memory Overhead Issue of DP</h3>
+<p><strong>Core idea</strong>: Split up the expensive parts (state) and use the reduce-scatter equivalence.</p>
+<p>Let's visualize memory usage for a 7.5B parameter model distributed over 64 accelerators (GPUs) with naive DP:
+*   <strong>Baseline</strong>: Total memory consumed is ~120GB. This includes parameters (P), gradients (G), and optimizer states (OS). The optimizer states (OS) are the largest component.</p>
+<p><strong>ZeRO stages</strong>:
+*   <strong>ZeRO Stage 1 (P_os)</strong>: Optimizer state sharding.
+    *   <strong>High-level idea</strong>: Split up the optimizer state (first + second moments) across GPUs. Everyone still has the parameters and gradients. Each worker is responsible for updating a subset of parameters (corresponding to its slice).
+    *   <strong>Memory consumed</strong>: $(2 + 2 + K) \frac{\Psi}{N_d}$ where $K$ is the optimizer state size, $\Psi$ is total parameters, $N_d$ is number of devices. This reduces memory from 120GB to ~31.4GB.
+    *   <strong>How it works</strong>:
+        1.  Everyone computes a full gradient on their subset of the batch.
+        2.  <code>ReduceScatter</code> the gradients: Each GPU (rank) receives the sum of gradients for the parameters it <em>owns</em>. Communication cost: <code>2 * #params</code>.
+        3.  Each machine updates their parameter slice using their gradient + state.
+        4.  <code>AllGather</code> the updated parameters: Each GPU broadcasts its updated parameter slice to all other GPUs, so everyone has the full updated model. Communication cost: <code>2 * #params</code>.
+    *   <strong>Comparison with Naive DDP</strong>:
+        *   <strong>Communication primitive</strong>: Naive DDP uses <code>all_reduce</code> (one gradient). ZeRO stage 1 uses <code>reduce_scatter</code> (gradients) + <code>all_gather</code> (parameters).
+        *   <strong>Communication cost</strong>: Both are <code>2 * #params</code>.
+        *   <strong>Memory</strong>: Naive DDP: <code>(4 + K) * #params</code>. ZeRO stage 1: <code>(4 + K/Ngpu) * #params</code>.
+        *   <strong>Key point</strong>: ZeRO stage 1 is <strong>free</strong> in the bandwidth-limited regime (same communication cost as all_reduce) but provides significant memory savings.</p>
+<ul>
+<li>
+<p><strong>ZeRO Stage 2 (P_os+g)</strong>: Optimizer state + gradient sharding.</p>
+<ul>
+<li><strong>High-level idea</strong>: Also keep the gradients (pink slices) sharded across the machines.</li>
+<li><strong>Memory consumed</strong>: $(2 + K) \frac{\Psi}{N_d}$. This reduces memory further to ~16.6GB.</li>
+<li><strong>Complexity</strong>: We can never instantiate a full gradient vector. Each worker must compute a full gradient (since we're doing a data parallel run). This means during the backward pass, as soon as a layer's gradients are computed, they must be immediately reduced/scattered to the owning GPU and then freed. This requires incremental computation/communication.</li>
+<li><strong>How it works</strong>:<ol>
+<li>Everyone incrementally goes backward on the computation graph.</li>
+<li>After computing a layer's gradients, immediately <code>reduce_scatter</code> this to the right worker (the GPU owning that parameter slice).</li>
+<li>Once gradients are not needed in the backward graph, immediately free them.</li>
+<li>Each machine updates their parameter using their gradient + state.</li>
+<li><code>AllGather</code> the parameters.</li>
+</ol>
+</li>
+<li><strong>Communication cost</strong>: Still <code>2 * #params</code> (total, not per layer).</li>
+</ul>
+</li>
+<li>
+<p><strong>ZeRO Stage 3 (P_os+g+p)</strong>: Optimizer state + gradient + parameter sharding (aka FSDP - Fully Sharded Data Parallel).</p>
+<ul>
+<li><strong>High-level idea</strong>: Shard everything, including parameters. Use the same incremental communication/computation ideas. Send and request parameters on demand while stepping through the compute graph.</li>
+<li><strong>Memory consumed</strong>: $(2 + K) \frac{\Psi}{N_d}$. This reduces memory further to ~1.9GB.</li>
+<li><strong>How it works (baby version)</strong>:<ol>
+<li><strong>Forward Pass</strong>: For each layer, <code>all_gather</code> the weights needed for that layer. Perform the forward computation. Immediately <code>free</code> the weights. This happens incrementally layer by layer.</li>
+<li><strong>Backward Pass</strong>: For each layer, <code>all_gather</code> the weights. Perform the backward computation. <code>Reduce_scatter</code> the gradients to the owning GPU. Immediately <code>free</code> the weights and gradients.</li>
+<li><strong>Update Weights</strong>: Each GPU updates its owned parameter slice.</li>
+<li><strong>All-Gather Parameters</strong>: <code>All_gather</code> the updated parameters so all GPUs have the full updated model.</li>
+</ol>
+</li>
+<li><strong>Communication cost</strong>: <code>2 * all_gather</code> (for all parameters) + <code>1 * reduce_scatter</code> (for all parameters). Total <code>3 * #params</code>.</li>
+<li><strong>Key point</strong>: The surprising part is that this is possible with <strong>low overhead</strong> due to overlapping communication and computation. All-gathers can happen at once while forward computation proceeds, masking the communication cost. This is achieved by queuing requests for weights/gradients before they are actually needed.</li>
+</ul>
+</li>
+</ul>
+<h3 id="1828-whats-the-point-zero-summary_1">[18:28] What's the Point? (ZeRO Summary)</h3>
+<ul>
+<li><strong>Distributed data parallel costs</strong>: <code>2 * #param</code> communication (for naive DP).</li>
+<li><strong>ZeRO Stage 1</strong>: <code>2 * #param</code> - it's free! (same comm cost, but memory savings). You might as well always do it.</li>
+<li><strong>ZeRO Stage 2</strong>: <code>2 * #param</code> - almost free (ignoring overhead from incremental processing).</li>
+<li><strong>ZeRO Stage 3</strong>: <code>3 * #param</code> - 1.5x comm cost, but that's not bad! (ignoring latency, which is masked by overlapping).</li>
+</ul>
+<p><strong>ZeRO in Practice - Will it fit?</strong>
+On an 8x A100 80GB node:
+*   <strong>Baseline (Naive DP)</strong>: Max model size ~6.66B parameters. Formula for B/param: 12.
+*   <strong>ZeRO Stage 1</strong>: Max model size ~16B parameters. Formula for B/param: 5.
+*   <strong>ZeRO Stage 2</strong>: Max model size ~24.62B parameters. Formula for B/param: 2 (param) + 10 (grad + state) / 8.
+*   <strong>ZeRO Stage 3</strong>: Max model size ~53.33B parameters. Formula for B/param: 12/8.</p>
+<p>ZeRO allows fitting significantly larger models into memory by sharding the model state.</p>
+<h3 id="3031-issues-remain-with-data-parallel-compute-scaling_1">[30:31] Issues Remain with Data Parallel - Compute Scaling</h3>
+<ul>
+<li>With data parallel, if <code>#machines &gt; batch size</code> (and near this, communication overhead is high), efficiency drops.</li>
+<li>There are diminishing returns to batch sizes for optimization. Beyond a "critical batch size", increasing the batch size yields little benefit for optimization.</li>
+<li>This means data parallel alone cannot achieve arbitrarily large parallelism. Batch size becomes a critical resource that needs to be managed.</li>
+</ul>
+<h3 id="4400-issues-remain-with-data-parallel-models-dont-fit_1">[44:00] Issues Remain with Data Parallel - Models Don't Fit</h3>
+<ul>
+<li>ZeRO stages 1 and 2 don't scale memory for activations.</li>
+<li>ZeRO stage 3 is good in principle but can be slow and does not reduce activation memory.</li>
+<li>This highlights the need for other parallelism strategies when models become too large to fit even with ZeRO.</li>
+</ul>
+<hr />
+<h2 id="4514-beyond-data-parallel-model-parallelism_1">[45:14] Beyond Data Parallel - Model Parallelism</h2>
+<p><strong>What is Model Parallelism?</strong>
+*   It splits the parameters across GPUs (like ZeRO3).
+*   But it communicates <strong>activations</strong> (while ZeRO3 sends parameters).</p>
+<p>We cover two different types of model parallelism:
+1.  <strong>Pipeline Parallelism (PP)</strong>
+2.  <strong>Tensor Parallelism (TP)</strong></p>
+<h3 id="4609-layer-wise-parallelism-pipeline-parallel_1">[46:09] Layer-wise Parallelism (Pipeline Parallel)</h3>
+<p><strong>Concept</strong>: Cuts up layers, assigns some subset to GPUs. Activations and partial gradients are passed back and forth.
+*   <strong>Example</strong>: Layer 0 on GPU0, Layer 1 on GPU1, etc. For a forward pass, GPU0 computes Layer 0, sends activations to GPU1. GPU1 computes Layer 1, sends activations to GPU2, and so on. The backward pass reverses this.</p>
+<p><strong>What's wrong with layer-wise parallelism?</strong>
+*   <strong>Terrible utilization</strong>: With <code>N</code> GPUs, each GPU is active <code>1/N</code> of the time.
+*   <strong>The "Bubble"</strong>: GPUs are idle most of the time, waiting for the forward pass to propagate through the pipeline and the backward pass to propagate back. This creates a large "bubble" of idle time.</p>
+<h3 id="4754-a-solution-pipeline-parallel-micro-batching_1">[47:54] A Solution: Pipeline Parallel (Micro-batching)</h3>
+<p><strong>Solution</strong>: Process 'micro-batches'.
+*   Instead of waiting for the entire batch to clear the pipeline, split the batch into smaller micro-batches.
+*   As soon as the first micro-batch completes a stage, send its activations to the next GPU and start computing the second micro-batch on the first GPU.
+*   This allows overlapping computation and communication, reducing the bubble size.
+*   <strong>Ratio of bubble time to useful compute</strong>: $\frac{N_{stages} - 1}{N_{microbatches}}$.
+*   <strong>Key point</strong>: If you have a large number of micro-batches (which means a large batch size), the bubble can be hidden, leading to better utilization. Batch size becomes a resource that can be spent to improve pipeline parallel efficiency.</p>
+<h3 id="4927-why-pipeline-parallel_1">[49:27] Why Pipeline Parallel?</h3>
+<p>Pipelines seem terrible due to the bubble, so why do we use them?
+1.  <strong>Pipelines save memory (compared to DDP)</strong>: By distributing layers, each GPU only needs to store the parameters and activations for its assigned layers, not the entire model.
+2.  <strong>Pipelines can have good communication properties (compared to FSDP)</strong>: It depends only on activations (batch_size * sequence_length * hidden_dim) and communication is point-to-point. This can be favorable on slower network links (e.g., inter-node communication across racks or data centers).</p>
+<p><strong>Rule of thumb</strong>: Generally, pipeline parallel is used on slower network links (i.e., inter-node) as a way to get better memory-wise scaling.</p>
+<h3 id="5048-pipeline-performance-is-highly-dependent-on-batch-size_1">[50:48] Pipeline Performance is Highly Dependent on Batch Size</h3>
+<ul>
+<li><strong>Observation</strong>: With a small batch size (e.g., 8), increasing pipeline parallel size (number of GPUs involved in the pipeline) rapidly degrades throughput per GPU.</li>
+<li><strong>Observation</strong>: With a large batch size (e.g., 128), throughput per GPU remains relatively flat even with increasing pipeline parallel size.</li>
+<li><strong>Conclusion</strong>: Batch sizes are key to hiding the bubble. Otherwise, pipeline rapidly degrades performance.</li>
+</ul>
+<h3 id="5124-trading-communication-bandwidth-for-utilization_1">[51:24] Trading Communication Bandwidth for Utilization</h3>
+<p>More complex pipeline patterns (e.g., interleaving forward and backward passes, assigning multiple stages to each device) can improve utilization, but at the cost of increased communication bandwidth.</p>
+<h3 id="5154-zero-bubble-pipelining-dualpipe_1">[51:54] "Zero Bubble" Pipelining (Dualpipe)</h3>
+<p>This is an advanced technique to eliminate the bubble in pipeline parallelism.
+*   <strong>Core Idea</strong>: Split the backward pass into two parts:
+    1.  Backpropagating activations (computing $\frac{\partial L}{\partial z}$ and $\frac{\partial L}{\partial x}$).
+    2.  Computing weight gradients (computing $\frac{\partial L}{\partial W}$).
+*   The second part (computing weight gradients) can be done whenever, as it doesn't have serial dependencies on subsequent layers' activation backpropagation.
+*   By carefully rescheduling the weight gradient computations into the idle "bubble" time, utilization can be significantly improved.
+*   <strong>Challenge</strong>: This is extremely complex to implement, requiring deep intervention in the autodiff system and careful scheduling.</p>
+<h3 id="5223-model-parallel-along-the-width-axes-tensor-parallel_1">[52:23] Model Parallel Along the Width Axes (Tensor Parallel)</h3>
+<p><strong>Question</strong>: Are there model parallel schemes with better utilization than pipeline parallel?
+*   Pipeline parallel cuts along the depth dimension (layers). What about cutting along the width dimension?
+*   <strong>Observation</strong>: Most of the computation in LLMs is matrix multiplies.
+*   <strong>Tensor Parallel Idea</strong>: Decompose large matrix multiplies into smaller submatrices that can be processed in parallel, and then combine partial sums.
+*   <strong>Example</strong>: For $X \times A = Y$, split $A$ into $A_1, A_2$ (columns) and $X$ into $X_1, X_2$ (rows). Then $Y = X_1 A_1 + X_2 A_2$.
+    *   Alternatively, split $A$ into $A_1, A_2$ (rows) and $X$ into $X_1, X_2$ (columns). Then $Y = X A_1 + X A_2$.
+*   <strong>Implementation in LLMs (e.g., Transformer layer)</strong>:
+    *   Assign columns of weight matrices (A1, A2) and rows of weight matrices (B1, B2) to separate GPUs.
+    *   <strong>Forward pass</strong>: Input $X$ is copied to all GPUs. Each GPU computes its part ($X A_1$ and $X A_2$). Then, an <code>all_reduce</code> is performed to sum the partial results (e.g., for the output of a feed-forward layer).
+    *   <strong>Backward pass</strong>: Gradients for the output are copied to all GPUs. Each GPU computes its part of the gradient. Then, an <code>all_reduce</code> is performed to sum the partial gradients.</p>
+<h3 id="5750-when-do-we-tensor-parallel_1">[57:50] When Do We Tensor Parallel?</h3>
+<ul>
+<li><strong>Rule of thumb</strong>: Tensor parallel is typically applied <em>within a node</em> (up to 8 GPUs) due to high-speed interconnects (NVLink).</li>
+<li><strong>Performance</strong>: Tensor parallel is very bandwidth-hungry. While it offers memory scaling, it introduces significant communication overhead.<ul>
+<li>Example from Hugging Face: Throughput per GPU drops by ~10-12% for TP=2 or TP=4.</li>
+<li>The drop becomes much steeper for higher TP values (e.g., 42.7% for TP=16, 65.6% for TP=32).</li>
+</ul>
+</li>
+<li><strong>Conclusion</strong>: Tensor parallel is often limited to the number of GPUs within a single node (e.g., 8 GPUs) to leverage the fastest available communication.</li>
+</ul>
+<h3 id="10044-tensor-parallel-pros-and-cons-vs-pipeline-parallel_1">[1:00:44] Tensor Parallel - Pros and Cons vs Pipeline Parallel</h3>
+<p><strong>Pros of Tensor Parallel</strong>:
+*   No bubble (unlike PP).
+*   Low complexity: Simple to "wrap" models without major infra changes.
+*   Doesn't need large batch sizes to work well.</p>
+<p><strong>Cons of Tensor Parallel</strong>:
+*   Much larger communication than pipeline parallel.
+    *   <strong>Pipeline</strong>: Batch size * sequence_length * hidden_dim point-to-point communication per microbatch.
+    *   <strong>Tensor</strong>: 8 * batch_size * hidden_dim / N_devices per layer and all-reduce communication.
+*   <strong>Rule of thumb</strong>: Use tensor parallel whenever we have low-latency, high-bandwidth interconnects (e.g., within a GPU node).</p>
+<h3 id="10333-a-final-complexity-memory-is-dynamic-activation-memory_1">[1:03:33] A Final Complexity - Memory is Dynamic! (Activation Memory)</h3>
+<p>Memory isn't just the static bits (parameters, optimizer states), but also dynamic activations. Activations can be very large.
+*   <strong>Observation</strong>: A memory profile of a standard forward/backward pass shows dynamic memory usage.
+    *   Parameters (static) and optimizer state (static after iteration 0) form a baseline.
+    *   Activations (red, blue) grow during the forward pass and are freed during the backward pass.
+    *   Gradients (yellow) accumulate during the backward pass.
+*   <strong>Peak memory</strong>: The peak memory usage often occurs mid-backward pass, where some activations are still present, and gradients are accumulating.</p>
+<h3 id="10458-a-final-complexity-activation-memory_1">[1:04:58] A Final Complexity - Activation Memory</h3>
+<ul>
+<li>Tensor and pipeline parallel can linearly reduce parameter and optimizer state memory.</li>
+<li><strong>But what about activations?</strong> Activation memory doesn't parallelize as cleanly.<ul>
+<li>As models get bigger, activation memory (green bars) grows significantly, even with aggressive parameter/optimizer state sharding.</li>
+<li>Some parts of activation memory (e.g., for LayerNorm, Dropout, MLP inputs) don't parallelize well with TP/PP.</li>
+</ul>
+</li>
+</ul>
+<h3 id="10555-whats-the-activation-memory-per-layer_1">[1:05:55] What's the Activation Memory Per Layer?</h3>
+<p>For a transformer layer, the activation memory per layer (if storing everything) is:
+$$ \text{activations memory per layer} = \text{sbh} \left( 34 + \frac{as}{h} + \frac{5}{h} \right) $$
+Where:
+*   <code>s</code>: sequence length
+*   <code>b</code>: microbatch size
+*   <code>h</code>: hidden dimension size
+*   <code>a</code>: number of attention heads</p>
+<ul>
+<li>The $\frac{5as}{h}$ term comes from the quadratic attention terms (e.g., attention scores, values, keys) and includes dropout.</li>
+<li>The $34$ term comes from MLP and other pointwise operations.</li>
+<li>With flash attention, we can drop the $\frac{as}{h}$ term via recomputation.</li>
+</ul>
+<h3 id="10704-activation-under-tensor-parallel_1">[1:07:04] Activation Under Tensor Parallel</h3>
+<p>If we apply tensor parallel (splitting matrix multiplies in attention + MLP), the activation memory per layer becomes:
+$$ \text{activations memory per layer} = \text{sbh} \left( 10 + \frac{24}{t} + \frac{5}{ht} \right) $$
+Where <code>t</code> is the number of devices for tensor parallelism.
+*   The remaining <code>10</code> term is for LayerNorm (4sbh), Dropout (2sbh), and inputs to the attention and MLP (4sbh).
+*   These terms will continue to grow with size and are not divided by <code>t</code>. They represent pointwise operations that don't parallelize well with tensor parallel.</p>
+<h3 id="10759-making-memory-truly-linear-sequence-parallel_1">[1:07:59] Making Memory Truly Linear - Sequence Parallel</h3>
+<p><strong>Observation</strong>: All the <code>10sbh</code> terms (from the previous slide) are pointwise ops over the sequence.
+*   <strong>Idea</strong>: Split up the layer norm/dropout terms along the sequence axis. This is called <strong>Sequence Parallelism (SP)</strong>.
+*   <strong>Forward pass</strong>: <code>all_gather</code> (g) is used to combine results from different sequence chunks.
+*   <strong>Backward pass</strong>: <code>reduce_scatter</code> (g') is used to combine gradients for different sequence chunks.
+*   In the backward pass, the two are reversed.</p>
+<p>This allows parallelizing the remaining non-matrix multiply components of activation memory.</p>
+<p><strong>Putting it together to get full linear scaling for memory:</strong>
+By combining tensor parallel, sequence parallel, and selective activation recomputation (like Flash Attention), the activation memory per transformer layer can be reduced to:
+$$ \text{sbh} \left( \frac{34}{t} \right) $$
+This achieves true linear scaling of activation memory with the number of devices.</p>
+<hr />
+<h2 id="11313-recap-llm-parallelism-table_1">[1:13:13] Recap: LLM Parallelism Table</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Strategy</th>
+<th style="text-align: left;">Sync Overhead</th>
+<th style="text-align: left;">Memory</th>
+<th style="text-align: left;">Bandwidth</th>
+<th style="text-align: left;">Batch Size</th>
+<th style="text-align: left;">Easy to Use?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">DDP/ZeRO1</td>
+<td style="text-align: left;">Per-batch</td>
+<td style="text-align: left;">No scaling</td>
+<td style="text-align: left;"><code>2 * #param</code></td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;">Very</td>
+</tr>
+<tr>
+<td style="text-align: left;">FSDP (ZeRO3)</td>
+<td style="text-align: left;">Per-batch</td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;"><code>3 * #param</code></td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;">Very</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pipeline</td>
+<td style="text-align: left;">Per-pipeline</td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;">Activations</td>
+<td style="text-align: left;">No Impact</td>
+<td style="text-align: left;">NO</td>
+</tr>
+<tr>
+<td style="text-align: left;">Tensor + Seq</td>
+<td style="text-align: left;">Per-transformer block</td>
+<td style="text-align: left;">Linear</td>
+<td style="text-align: left;"><code>8 * activations per layer + all_reduce</code></td>
+<td style="text-align: left;">No Impact</td>
+<td style="text-align: left;">YES</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key takeaway</strong>: You have to balance limited resources: memory, bandwidth, batch size.</p>
+<h3 id="11457-model-vs-tensor-parallel-tpu-book_1">[1:14:57] Model vs Tensor Parallel (TPU Book)</h3>
+<ul>
+<li><strong>Key Quantity</strong>: Global batch size (divided by GPU).</li>
+<li><strong>Observation</strong>: If batch size is too small (e.g., &lt;400), no single parallelism scheme is efficient. You're communication bound.</li>
+<li><strong>Observation</strong>: As batch size increases, different strategies become optimal:<ul>
+<li>Small batch size: FSDP only.</li>
+<li>Medium batch size: Mixed FSDP + MP (Tensor Parallel).</li>
+<li>Large batch size: Both FSDP + MP and pure FSDP work well.</li>
+<li>Very large batch size: Pure FSDP is sufficient.</li>
+</ul>
+</li>
+<li>This illustrates why you mix parallelism strategies and how batch size influences the optimal choice.</li>
+</ul>
+<h3 id="11642-3d-parallelism-putting-it-all-together_1">[1:16:42] "3D Parallelism" - Putting It All Together</h3>
+<p><strong>Simple rules of thumb from the literature:</strong>
+1.  <strong>Until your model fits in memory</strong>:
+    *   Use Tensor Parallel up to <code>N_GPUs_per_machine</code> (e.g., 8).
+    *   Use Pipeline Parallel across machines (or ZeRO-3, depending on bandwidth).
+2.  <strong>Then until you run out of GPUs</strong>:
+    *   Scale the rest of the way with Data Parallel.
+    *   If your batch size is small, use gradient accumulation to trade batch size for better communication efficiency.</p>
+<h3 id="11847-scaling-strategies-from-narayanan-2021-megatron-lm_1">[1:18:47] Scaling Strategies from Narayanan 2021 (Megatron-LM)</h3>
+<p>This paper shows how Megatron-LM trained models from 1.7B to 1T parameters using a combination of parallelism strategies.
+*   <strong>Tensor Parallel (TP)</strong>: Starts at 1, then goes up to 8, and caps out at 8. They use TP first.
+*   <strong>Pipeline Parallel (PP)</strong>: Stays at 1 initially, but once models get big enough (can't fit), PP increases to compensate.
+*   <strong>Data Parallel (DP)</strong>: Starts as large as possible (e.g., 32), then slowly decreases as PP increases. DP is used to scale the rest of the way.</p>
+<p>They achieve 40-52% of theoretical peak FLOPs, which is very good.</p>
+<h3 id="12009-careful-3d-parallelism-gives-linear-gains_1">[1:20:09] Careful '3D' Parallelism Gives Linear Gains</h3>
+<ul>
+<li>Careful 3D parallelism (combining TP, PP, DP) gives flat achieved TFLOPs/GPU, meaning linear scaling in total FLOPs as more GPUs are added.</li>
+<li>TP=8 is often optimal for throughput per GPU, even with varying batch sizes.</li>
+</ul>
+<h3 id="12048-activation-recomputation-can-pay-for-itself-via-memory_1">[1:20:48] Activation Recomputation Can Pay for Itself (via Memory)</h3>
+<ul>
+<li>Activation recomputation enables larger batch sizes (by reducing activation memory).</li>
+<li>Larger batch sizes, in turn, improve throughput (e.g., by hiding pipeline bubbles or reducing communication overhead).</li>
+<li>So, even though recomputation adds FLOPs, it can pay for itself by allowing larger batches and thus better overall throughput.</li>
+</ul>
+<h3 id="12110-recent-lms-what-do-they-do_1">[1:21:10] Recent LMs - What Do They Do?</h3>
+<ul>
+<li><strong>Dolma (7B, FSDP)</strong>: Primarily uses FSDP (ZeRO3), likely intra-node.</li>
+<li><strong>DeepSeek (V3 - 16B)</strong>: Uses ZeRO stage 1 + Tensor Parallel + Sequence Parallel + Pipeline Parallel (16-way PP, 64-way Expert Parallel, 8-way TP).</li>
+<li><strong>Yi (34B)</strong>: Uses ZeRO stage 1 + Tensor Parallel + Pipeline Parallel. For MOE (Mixture of Experts) models, they use "E-lightning" which replaces TP with Expert Parallelism.</li>
+<li><strong>Llama 3 405B</strong>: Uses TP=8, CP=1 (Context Parallel, for long context training), PP=16, DP=128. This is a complex network-aware parallelism configuration.</li>
+</ul>
+<h3 id="12309-side-note-gpu-failures-at-this-scale_1">[1:23:09] Side Note - GPU Failures at This Scale!</h3>
+<ul>
+<li>Training large models on thousands of GPUs for weeks/months inevitably encounters hardware failures.</li>
+<li>Llama 3 405B reported significant interruptions:<ul>
+<li>Faulty GPU: 30.1%</li>
+<li>Faulty HBM3 Memory: 17.2%</li>
+<li>Software Bug: 12.9%</li>
+<li>Network Switch/Cable: 8.4%</li>
+<li>Unplanned Host Maintenance: 7.6%</li>
+</ul>
+</li>
+<li><strong>Key takeaway</strong>: Fault tolerance and robust checkpointing are crucial for large-scale distributed training. Data corruption (silent GPU failures) is an even scarier problem.</li>
+</ul>
+<h3 id="12347-gemma-2">[1:23:47] Gemma 2</h3>
+<ul>
+<li><strong>Gemma 2 (9B, 27B)</strong>: Uses ZeRO3 + Model Parallelism + Data Parallelism. For TPUs, they leverage the TPUv4 and TPUv5p models. They use 512-way data replication and 1-way sharding. The optimizer state is further sharded using techniques similar to ZeRO-3.</li>
+</ul>
+<hr />
+<h2 id="12420-recap-for-the-whole-lecture_1">[1:24:20] Recap for the Whole Lecture</h2>
+<ul>
+<li>Scaling beyond a certain point is going to require multi-GPU, multi-node parallelism.</li>
+<li>There's no single simple solution to the parallelism problem; you probably want all 3 approaches (DP, MP, AP).</li>
+<li>There are simple and interpretable rules of thumb for combining different forms of parallelism in practice.</li>
+</ul>
+<hr />
+<h2 id="practical-takeaways_1">Practical Takeaways</h2>
+<ul>
+<li><strong>Memory is the primary bottleneck</strong>: For large LLMs, fitting the model (parameters, optimizer states, activations) into GPU memory is the first challenge.</li>
+<li><strong>ZeRO/FSDP is essential for DP</strong>: It allows data parallelism to scale memory by sharding optimizer states, gradients, and even parameters without significant communication overhead.</li>
+<li><strong>Model Parallelism for huge models</strong>: When FSDP is not enough, MP (PP or TP) is needed to distribute the model itself across devices.</li>
+<li><strong>TP for intra-node, PP for inter-node</strong>: Tensor Parallelism is efficient within a node due to high-bandwidth interconnects. Pipeline Parallelism is better for slower inter-node links, especially when memory saving is critical.</li>
+<li><strong>Batch size is a resource</strong>: It can be used to hide communication latency in PP or to improve optimization efficiency in DP.</li>
+<li><strong>Activations are a growing concern</strong>: As models and sequence lengths increase, activation memory becomes a major bottleneck, requiring techniques like Sequence Parallelism and Activation Recomputation.</li>
+<li><strong>3D/4D Parallelism is the norm</strong>: Combining DP, MP (TP/PP), and AP (SP/Recomputation) is necessary for optimal performance and memory efficiency in state-of-the-art LLM training.</li>
+<li><strong>Fault tolerance is critical</strong>: Hardware failures are inevitable at scale, necessitating robust checkpointing and recovery mechanisms.</li>
+</ul>
+<h2 id="open-questions-things-to-remember_1">Open Questions / Things to Remember</h2>
+<ul>
+<li>The choice of parallelism strategy is highly dependent on the specific hardware topology (interconnect bandwidths, latency) and model characteristics (size, depth, sequence length).</li>
+<li>Implementing advanced parallelism (like zero-bubble pipelining) is extremely complex and often requires deep intervention in the framework's autodiff system.</li>
+<li>The trade-offs between communication overhead, memory savings, and compute utilization are constant considerations.</li>
+<li>The "rules of thumb" provide a practical guide, but fine-tuning often involves empirical testing and profiling.</li>
+<li>Data corruption (silent failures) is a hidden danger in large-scale distributed systems, potentially ruining training runs without explicit errors.</li>
+</ul><div class="pager"><a href="lec06.html">← Lec 06</a><a href="lec08.html" style="text-align:right">Lec 08 →</a></div></main></div></body></html>

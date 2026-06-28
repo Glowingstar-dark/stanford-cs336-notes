@@ -1,0 +1,612 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 Lecture 04: Mixture of Experts</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html" class="active"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Lecture 04</div><h1>Lecture 04: Mixture of Experts</h1><p class="meta">Stanford CS336 · Spring 2025 · 1:22:04 · <a href="https://www.youtube.com/watch?v=LPv1KfUXLCo" target="_blank">Watch on YouTube ↗</a></p><div class="banner">📝 Auto-generated notes from the full lecture video (slides, equations, and live code) and transcript. Verify critical details against the source.</div><div class="embed"><a href="https://www.youtube.com/watch?v=LPv1KfUXLCo" target="_blank" rel="noopener" style="background-image:url(https://i.ytimg.com/vi/LPv1KfUXLCo/hqdefault.jpg)"><span class="play"><span>▶ Watch on YouTube</span></span></a></div><h2 id="tldr">TL;DR</h2>
+<ul>
+<li><strong>Mixture of Experts (MoE) models</strong> are becoming the standard for high-performance large language models (LLMs) due to their ability to achieve better performance for the same computational cost (FLOPs) during training and inference.</li>
+<li>The core idea of MoE is to replace dense feed-forward networks (FFNs) in a transformer block with multiple smaller FFNs (experts) and a <strong>router</strong> that selectively activates a subset of these experts for each token.</li>
+<li>MoE models offer <strong>more parameters per FLOP</strong>, leading to better memorization and performance, and enable <strong>expert parallelism</strong>, allowing models to be distributed across many devices.</li>
+<li>Training MoEs is challenging due to the <strong>non-differentiable nature of routing decisions</strong> and potential <strong>instability</strong>. Practical solutions involve heuristic balancing losses and careful architectural choices like fine-grained and shared experts.</li>
+<li>Recent advancements, particularly from DeepSeek, have refined MoE architectures, incorporating <strong>fine-grained experts, shared experts, and sophisticated routing mechanisms</strong> to optimize for both performance and system efficiency.</li>
+</ul>
+<h2 id="key-concepts">Key Concepts</h2>
+<ul>
+<li><strong>Mixture of Experts (MoE)</strong>: A neural network architecture where different "expert" sub-networks are specialized to process different inputs or parts of inputs.</li>
+<li><strong>Sparse Activation</strong>: Only a subset of experts are activated for a given input, reducing computational cost compared to dense models with similar parameter counts.</li>
+<li><strong>Router (Gating Network)</strong>: A component that determines which experts are activated for each input token.</li>
+<li><strong>Experts</strong>: Typically smaller feed-forward networks (FFNs) within a transformer block.</li>
+<li><strong>FLOPs (Floating Point Operations)</strong>: A measure of computational cost. MoEs aim to increase parameters without increasing FLOPs.</li>
+<li><strong>Parameters</strong>: The total number of weights and biases in a model. MoEs allow for a massive increase in parameters.</li>
+<li><strong>Expert Parallelism</strong>: Distributing different experts across different computational devices (GPUs/TPUs) to speed up training and inference.</li>
+<li><strong>Top-K Routing</strong>: A common routing strategy where the router selects the K experts with the highest scores for each token.</li>
+<li><strong>Fine-grained Experts</strong>: Dividing the original FFN into smaller, more numerous experts to increase the total parameter count without increasing FLOPs.</li>
+<li><strong>Shared Experts</strong>: Experts that are always active for all tokens, handling common processing tasks.</li>
+<li><strong>Load Balancing Losses</strong>: Heuristic losses added to the training objective to encourage the router to distribute tokens evenly among experts, preventing "dead" experts.</li>
+<li><strong>Stochastic Approximations</strong>: Adding noise or perturbations to routing decisions to encourage exploration and robustness.</li>
+<li><strong>Upcycling</strong>: A training method where a pre-trained dense model is used to initialize an MoE, leveraging existing knowledge to accelerate MoE training.</li>
+<li><strong>Multi-head Latent Attention (MLA)</strong>: An attention optimization that projects keys and values into a lower-dimensional "latent" space for caching, reducing KV cache size.</li>
+</ul>
+<hr />
+<h2 id="000-introduction-to-mixture-of-experts-moe">[0:00] Introduction to Mixture of Experts (MoE)</h2>
+<figure class="slide"><img src="figs/lec04/00012.jpg" loading="lazy" alt="Lecture 4 title slide: Mixtures of Experts, CS336, Tatsu H, Stanford."><figcaption><span class="ft">0:12</span> Lecture 4 title slide: Mixtures of Experts, CS336, Tatsu H, Stanford.</figcaption></figure>
+<figure class="slide"><img src="figs/lec04/00030.jpg" loading="lazy" alt="Diagram comparing dense and sparse models, illustrating how MoE replaces big feedforward networks."><figcaption><span class="ft">0:30</span> Diagram comparing dense and sparse models, illustrating how MoE replaces big feedforward networks.</figcaption></figure>
+
+<p>The lecture begins by introducing Mixture of Experts (MoE) as a critical and increasingly popular topic in large language model (LLM) development. Initially a "bonus" topic, MoEs have become central to modern high-performance systems.</p>
+<p>Recent LLMs adopting MoE architectures include:
+*   Mistral AI
+*   Grok
+*   DeepSeek
+*   Llama 4 (Maverick)
+*   GPT-4 (speculated as GPT-MoE-1.8T)</p>
+<p>The advantage of MoEs over dense architectures is now "very much clear," offering benefits across all compute scales. Understanding MoEs is crucial for building state-of-the-art models within given computational budgets (FLOPs).</p>
+<h2 id="134-what-is-an-moe">[1:34] What is an MoE?</h2>
+<figure class="slide"><img src="figs/lec04/00134.jpg" loading="lazy" alt="Graph showing faster training for MoE models, with 7x speedup and improved perplexity."><figcaption><span class="ft">2:14</span> Graph showing faster training for MoE models, with 7x speedup and improved perplexity.</figcaption></figure>
+
+<p>An MoE is a type of neural network architecture where different "expert" sub-networks are activated sparsely. The name "Mixture of Experts" can be misleading; it doesn't necessarily imply specialization in different domains (e.g., a "coding expert" and an "English expert"). Instead, it refers to a specific architectural pattern.</p>
+<p>The core idea of MoE primarily applies to the <strong>Multi-Layer Perceptrons (MLPs)</strong> or <strong>Feed-Forward Networks (FFNs)</strong> within a transformer block.</p>
+<p><strong>Dense Model vs. Sparse Model (MoE):</strong>
+*   <strong>Dense Model (Left):</strong> A standard transformer block contains a self-attention layer followed by a single, large FFN.
+*   <strong>Sparse Model (Right):</strong> In an MoE, the single FFN is replaced by <em>multiple</em> FFNs (experts). A <strong>router</strong> (or gating network) is introduced to select a <em>smaller number</em> of these experts for each forward pass or inference step.</p>
+<p>The key benefit is that you can have <strong>many more parameters</strong> (by having many experts) <strong>without increasing the FLOPs</strong> for a single forward pass, as only a subset of experts are activated. If an expert in an MoE is the same size as the FFN in a dense model, and only one expert is activated, the FLOPs are identical.</p>
+<h2 id="334-why-are-moes-getting-popular">[3:34] Why are MoEs getting popular?</h2>
+<figure class="slide"><img src="figs/lec04/00334.jpg" loading="lazy" alt="Diagram illustrating MoE Transformer Encoder with device placement for parallelization."><figcaption><span class="ft">5:34</span> Diagram illustrating MoE Transformer Encoder with device placement for parallelization.</figcaption></figure>
+<figure class="slide"><img src="figs/lec04/00509.jpg" loading="lazy" alt="Bar chart comparing recent MoE results from DeepSeek v3 against other models."><figcaption><span class="ft">8:29</span> Bar chart comparing recent MoE results from DeepSeek v3 against other models.</figcaption></figure>
+
+<p>MoEs are gaining popularity because they offer better performance for the same computational cost.</p>
+<p><strong>Key advantages:</strong>
+1.  <strong>Same FLOPs, more parameters, better performance:</strong> For a fixed FLOP budget during training, increasing the number of experts in an MoE consistently leads to lower test loss and better perplexity. This means MoEs can learn more effectively by having more parameters to memorize facts about the world.
+    *   <strong>Graph (Fedus et al. 2022):</strong> Shows that as the number of experts increases (from 1e to 256e), the test loss decreases significantly for the same FLOPs.
+    *   <strong>Graph (Fedus et al. 2022):</strong> Shows that models with more experts (e.g., Switch-Base 128e) achieve better perplexity faster during training compared to models with fewer experts or dense models (T5-Base). This indicates faster convergence and better final performance.
+    *   <strong>Graph (AI2 OLMo):</strong> Confirms these findings, showing that MoEs (pink line) achieve lower training and validation loss much faster than dense models (teal line) for the same training time.</p>
+<ol start="2">
+<li>
+<p><strong>Faster to train MoEs:</strong> Due to sparse activation, MoEs can achieve a given performance level with significantly less training time compared to dense models.</p>
+<ul>
+<li><strong>Graph (Fedus et al. 2022):</strong> Illustrates a 7x speedup in training time for MoEs to reach the same perplexity as a dense model.</li>
+<li><strong>Graph (AI2 OLMo):</strong> Shows that MoEs achieve 3x less FLOPs or 2x faster training time for similar performance.</li>
+</ul>
+</li>
+<li>
+<p><strong>Highly competitive vs. dense equivalents:</strong> MoEs consistently outperform dense models when comparing performance against "activated parameters" (parameters actually used in computation for a given inference step).</p>
+<ul>
+<li><strong>Graph (DeepSeek V2 paper):</strong> Plots performance (MMLU) against activated parameters (billions). MoE models like DeepSeek V2, Mistral 8x22B, and Grok-1 achieve significantly higher MMLU scores for a given number of activated parameters compared to dense Llama models. This highlights the efficiency of MoEs in leveraging parameters for performance.</li>
+</ul>
+</li>
+<li>
+<p><strong>Parallelizable to many devices:</strong> MoEs offer a natural axis of parallelism, which is crucial for scaling up large models.</p>
+<ul>
+<li><strong>Diagram (MoE Transformer Encoder vs. Encoder with Device Placement):</strong><ul>
+<li>In a dense transformer, the FFN is a single block.</li>
+<li>In an MoE, the FFN is split into multiple experts.</li>
+<li>Each expert can be placed on a different computational device (e.g., GPU). The router then directs tokens to the appropriate device, allowing for efficient distribution of computation. This is called <strong>expert parallelism</strong>. This makes MoEs particularly attractive for very large-scale models that require multi-node training.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="903-moe-results-from-the-west-and-china">[9:03] MoE Results from the West and China</h2>
+<p>MoE development has seen significant contributions from both Western and Chinese research groups.
+*   While Google (a Western company) has been a pioneer in MoE research, many early open-source breakthroughs came from China.
+*   <strong>Qwen and DeepSeek</strong> (Chinese companies) were early adopters and contributors to large-scale, well-documented MoE models.
+    *   <strong>Qwen 1.5</strong> was one of the first models to demonstrate a "clever trick" to <strong>upcycle</strong> a dense model into an MoE, showing significant gains in compute efficiency.
+    *   <strong>DeepSeek</strong> papers provided foundational work, carefully comparing dense, naive MoE, and switch-routed MoE architectures, consistently showing performance improvements for a fixed FLOP budget.
+*   More recently, Western open-source groups like <strong>Mistral, Grok, and Llama 4</strong> have also adopted MoE architectures, confirming the trend.
+*   <strong>DeepSeek V3</strong> is presented as a culmination of this work, demonstrating remarkable performance. The speaker notes that architecturally, DeepSeek V3 is not drastically different from earlier DeepSeek MoE versions, suggesting that the core engineering principles were established early on.</p>
+<h2 id="216-why-havent-moes-been-more-popular">[2:16] Why haven't MoEs been more popular?</h2>
+<p>Despite their advantages, MoEs have historically been less prevalent due to several challenges:</p>
+<ol>
+<li>
+<p><strong>Infrastructure Complexity:</strong></p>
+<ul>
+<li>MoEs are complex to implement, especially when leveraging multiple accelerators (GPUs/TPUs).</li>
+<li>Their main advantage (sparsity) comes with the additional complexity of managing sparse data.</li>
+<li>Training typically involves data parallelism, where different machines get different slices of the training/inference data.</li>
+<li>For sparse models, data needs to be routed to specific machines hosting the activated experts, which requires sophisticated systems for efficient high-throughput serving.</li>
+<li>The biggest benefits of MoEs are realized in multi-node training environments where model splitting is already necessary.</li>
+</ul>
+</li>
+<li>
+<p><strong>Training Objectives are Heuristic and Unstable:</strong></p>
+<ul>
+<li>The decision of which expert to route a token to is a <strong>discrete, non-differentiable</strong> choice. This makes direct gradient-based optimization difficult.</li>
+<li>Training objectives for MoEs are often heuristic (e.g., using proxy losses) and can lead to unstable training, making them harder to optimize compared to dense models.</li>
+</ul>
+</li>
+</ol>
+<h2 id="350-what-moes-generally-look-like">[3:50] What MoEs generally look like</h2>
+<p>The typical MoE architecture involves replacing the FFNs in a transformer block with an MoE layer.</p>
+<ul>
+<li>
+<p><strong>Typical MoE (FFN-based):</strong></p>
+<ul>
+<li>A standard transformer block has self-attention followed by an FFN.</li>
+<li>In an MoE, the FFN is replaced by multiple FFNs (experts) and a router.</li>
+<li>The router selects a subset of experts for each token.</li>
+<li>This is the most common and successful approach.</li>
+</ul>
+</li>
+<li>
+<p><strong>Less Common MoE (Attention-based):</strong></p>
+<ul>
+<li>It's theoretically possible to apply MoE to attention heads, where a router would select specific attention heads for different tokens.</li>
+<li>Some research has explored this, but it's generally found to be even more unstable and difficult to train consistently. Major model releases rarely use attention-based MoEs.</li>
+</ul>
+</li>
+</ul>
+<h2 id="445-moe-what-varies">[4:45] MoE - what varies?</h2>
+<p>When designing an MoE, several key choices need to be made:</p>
+<ol>
+<li><strong>Routing Function:</strong> How are tokens assigned to experts?</li>
+<li><strong>Expert Sizes:</strong> How many experts are there, and how large is each expert?</li>
+<li><strong>Training Objectives:</strong> How is the router trained, especially given the non-differentiable routing decisions?</li>
+</ol>
+<p>These design questions define the vast design space of MoEs.</p>
+<h3 id="534-routing-function-overview">[5:34] Routing Function - Overview</h3>
+<figure class="slide"><img src="figs/lec04/00699.jpg" loading="lazy" alt="Slide listing routing function, expert sizes, and training objectives as MoE variables."><figcaption><span class="ft">11:39</span> Slide listing routing function, expert sizes, and training objectives as MoE variables.</figcaption></figure>
+<figure class="slide"><img src="figs/lec04/00901.jpg" loading="lazy" alt="Speaker presenting a slide on routing function overview, showing token-expert assignment methods."><figcaption><span class="ft">15:01</span> Speaker presenting a slide on routing function overview, showing token-expert assignment methods.</figcaption></figure>
+<figure class="slide"><img src="figs/lec04/01159.jpg" loading="lazy" alt="Diagram detailing Top-k and Hashing routing variants, with examples of models using them."><figcaption><span class="ft">19:19</span> Diagram detailing Top-k and Hashing routing variants, with examples of models using them.</figcaption></figure>
+<figure class="slide"><img src="figs/lec04/01330.jpg" loading="lazy" alt="Equation for Top-K routing in detail, showing gating and softmax functions."><figcaption><span class="ft">22:10</span> Equation for Top-K routing in detail, showing gating and softmax functions.</figcaption></figure>
+<figure class="slide"><img src="figs/lec04/01533.jpg" loading="lazy" alt="Equation for Top-K routing in detail, showing gating and softmax functions."><figcaption><span class="ft">25:33</span> Equation for Top-K routing in detail, showing gating and softmax functions.</figcaption></figure>
+<figure class="slide"><img src="figs/lec04/01616.jpg" loading="lazy" alt="Speaker presenting a slide on Top-K routing in detail, showing gating and softmax functions."><figcaption><span class="ft">26:56</span> Speaker presenting a slide on Top-K routing in detail, showing gating and softmax functions.</figcaption></figure>
+<figure class="slide"><img src="figs/lec04/01710.jpg" loading="lazy" alt="Speaker presenting a slide on Top-K routing in detail, showing gating and softmax functions."><figcaption><span class="ft">28:30</span> Speaker presenting a slide on Top-K routing in detail, showing gating and softmax functions.</figcaption></figure>
+
+<p>The core of an MoE is how it matches tokens to experts. Not all experts process every token; this is the essence of sparse routing.</p>
+<p><strong>Three main types of routing algorithms:</strong></p>
+<ol>
+<li>
+<p><strong>Token Chooses Expert (Token Choice):</strong></p>
+<ul>
+<li>Each token has a preference score for each expert.</li>
+<li>The router selects the <strong>top-K</strong> experts with the highest scores for each token.</li>
+<li><strong>Benefit:</strong> Each token is processed by the most relevant experts.</li>
+<li><strong>Drawback:</strong> Can lead to imbalanced expert utilization if some experts are consistently preferred.</li>
+</ul>
+</li>
+<li>
+<p><strong>Expert Chooses Token (Expert Choice):</strong></p>
+<ul>
+<li>Each expert has a preference score for each token.</li>
+<li>The router selects the <strong>top-K</strong> tokens with the highest scores for each expert.</li>
+<li><strong>Benefit:</strong> Ensures balanced utilization of experts, as each expert processes a fixed number of tokens.</li>
+<li><strong>Drawback:</strong> A token might not be processed by its "best" expert if that expert is already "full."</li>
+</ul>
+</li>
+<li>
+<p><strong>Global Routing via Optimization:</strong></p>
+<ul>
+<li>A more complex approach that involves solving an optimization problem (e.g., linear assignment) to globally decide expert assignments, aiming to balance both token relevance and expert utilization.</li>
+<li><strong>Benefit:</strong> Theoretically optimal balance.</li>
+<li><strong>Drawback:</strong> High computational cost and complexity.</li>
+</ul>
+</li>
+</ol>
+<p><strong>Practical Choice:</strong>
+*   Almost all modern MoEs use <strong>Token Choice Top-K routing</strong>.
+*   Early MoE research explored various routing strategies, but recent large-scale models have converged to this method.
+*   <strong>Ablations (OLMo):</strong> Show that Token Choice (TC) routing generally leads to better performance (lower validation loss, higher MMLU Var) compared to Expert Choice (EC) routing.</p>
+<p><strong>Q&amp;A on Routing:</strong>
+*   <strong>How does a token know which expert is best?</strong> The router, which is a lightweight neural network, learns to predict scores for each expert based on the token's hidden state. It's typically a simple linear projection followed by a non-linearity (e.g., sigmoid or softmax).
+*   <strong>What is K?</strong> K is a hyperparameter representing the number of experts activated per token. Early MoE papers suggested K &gt; 1 (e.g., K=2) to encourage exploration (avoid always picking the "best" arm and missing out on potentially better ones). K=2 remains a common choice.
+*   <strong>What happens if K &gt; 1?</strong> If K &gt; 1, multiple experts process the token, and their outputs are combined (e.g., summed or weighted average) before being passed to the next layer.</p>
+<h3 id="11600-common-routing-variants-in-detail">[1:16:00] Common Routing Variants in Detail</h3>
+<p>The lecture details the two most common routing variants:</p>
+<ol>
+<li>
+<p><strong>Top-K Routing (Token Choice Top-K):</strong></p>
+<ul>
+<li><strong>Mechanism:</strong> For each token, the router computes scores for all experts. The top-K scoring experts are selected. Their outputs are combined (e.g., weighted sum based on router scores).</li>
+<li><strong>Usage:</strong> Used in most modern MoEs, including Switch Transformer (K=1), GShard (K=2), Grok (K=2), Mixtral (2), Qwen (4), DBRX (7), and DeepSeek (7).</li>
+<li><strong>Diagram:</strong> Shows an input <code>x</code> going through a <code>Router</code> that outputs probabilities <code>p1, p2, p3, p4</code>. If K=2, the top two (e.g., p1=0.6, p3=0.3) are selected, and their corresponding FFNs (Expert-1, Expert-3) are activated. Their outputs are then combined.</li>
+</ul>
+</li>
+<li>
+<p><strong>Hashing:</strong></p>
+<ul>
+<li><strong>Mechanism:</strong> A simple hash function maps each token to a specific expert. No learned router is involved.</li>
+<li><strong>Usage:</strong> Serves as a common baseline. Surprisingly, even this non-semantic routing can yield performance improvements over dense models.</li>
+<li><strong>Intuition for Hashing's Effectiveness:</strong> Even random assignment creates specialized subsets of data for each expert. If the data distribution is Zipfian (like natural language), some experts might inadvertently specialize in very frequent tokens/patterns, leading to some form of implicit specialization.</li>
+</ul>
+</li>
+</ol>
+<h3 id="250-other-routing-methods">[2:50] Other Routing Methods</h3>
+<ul>
+<li>
+<p><strong>Reinforcement Learning (RL) to learn routes:</strong></p>
+<ul>
+<li><strong>Idea:</strong> Treat routing as a discrete decision problem and use RL to learn optimal gating policies. This is conceptually appealing as RL excels at discrete decision-making.</li>
+<li><strong>Usage:</strong> Used in some of the earliest MoE work (e.g., Bengio 2013).</li>
+<li><strong>Drawback:</strong> Not commonly used now due to high computational cost and existing stability issues with MoEs. RL adds significant complexity without a clear performance win.</li>
+</ul>
+</li>
+<li>
+<p><strong>BASE Routing (Solving a Matching Problem):</strong></p>
+<ul>
+<li><strong>Idea:</strong> Formulate routing as a linear assignment problem or optimal transport problem, aiming for balanced and efficient assignments.</li>
+<li><strong>Usage:</strong> Explored in some recent papers (e.g., Clark '22).</li>
+<li><strong>Drawback:</strong> Computationally expensive, often outweighing the benefits in practice.</li>
+</ul>
+</li>
+</ul>
+<h3 id="345-top-k-routing-in-detail-mathematical-formulation">[3:45] Top-K Routing in Detail (Mathematical Formulation)</h3>
+<p>This section provides the mathematical details of the standard Top-K routing used in most MoEs.</p>
+<p>$$
+h'_{t} = \sum_{i=1}^{N} g_{i,t} \text{FFN}_{i}(u_{t}^{L}) + u_{t}^{L}
+$$</p>
+<p>Where:
+*   $u_{t}^{L}$: Input residual stream for token $t$ at layer $L$.
+*   $\text{FFN}_{i}$: The $i$-th expert (feed-forward network).
+*   $g_{i,t}$: The gating weight for expert $i$ and token $t$.
+*   $N$: Total number of experts.
+*   The sum is over the activated experts.</p>
+<p>The gating weights $g_{i,t}$ are determined as follows:</p>
+<p>$$
+g_{i,t} = \begin{cases} s_{i,t} & \text{if } s_{j,t} \in \text{TopK}(\{s_{j,t} | 1 \le j \le N\}, K) \\ 0 & \text{otherwise} \end{cases}
+$$</p>
+<p>Where:
+*   $s_{i,t}$: The raw score for expert $i$ and token $t$.
+*   $\text{TopK}(\cdot, K)$: A function that selects the top $K$ values.
+*   This means only the top $K$ experts receive non-zero gating weights.</p>
+<p>The raw scores $s_{i,t}$ are typically computed using a logistic regressor (a simple linear layer followed by a softmax):</p>
+<p>$$
+s_{i,t} = \text{Softmax}(u_{t}^{L} e_{i}^{T})
+$$</p>
+<p>Where:
+*   $e_{i}$: A learned vector (expert embedding) representing expert $i$. This vector is <em>not</em> tied to the FFN parameters.</p>
+<p><strong>Key points:</strong>
+*   <strong>Gating:</strong> The process of selecting experts and weighting their outputs.
+*   <strong>Softmax:</strong> The softmax function normalizes the raw scores $s_{i,t}$ to sum to 1, effectively turning them into probabilities.
+*   <strong>Top-K Selection:</strong> After computing softmax scores, only the top $K$ experts are chosen. The gating weights for non-selected experts are set to 0.
+*   <strong>System Efficiency:</strong> The Top-K selection is crucial for achieving sparse activation during both training and inference. Without it, activating all experts would incur the full FLOPs cost of a dense model with $N$ times the parameters.
+*   <strong>Non-differentiability:</strong> The Top-K operation is non-differentiable, making direct gradient-based optimization challenging.</p>
+<p><strong>Q&amp;A on Top-K Routing:</strong>
+*   <strong>Softmax then Top-K:</strong> The softmax is applied first to get normalized scores, then Top-K selects the highest. The resulting $g_{i,t}$ values (after zeroing out non-top-K experts) no longer sum to 1. This is acceptable because the next layers (e.g., LayerNorm) can adjust the scale.
+*   <strong>E-vectors:</strong> The $e_i$ vectors are learned parameters of the router, separate from the FFN parameters. They represent what kind of input each expert is "looking for."
+*   <strong>Learning Challenge:</strong> The non-differentiable nature of Top-K makes learning the router's parameters (the $e_i$ vectors) difficult. The gradients for non-selected experts are zero.</p>
+<h2 id="200-recent-variations-from-deepseek-and-other-chinese-llms">[2:00] Recent variations from DeepSeek and other Chinese LLMs</h2>
+<p>DeepSeek introduced several architectural innovations that were quickly adopted by other MoE models.</p>
+<ol>
+<li>
+<p><strong>Fine-grained Experts:</strong></p>
+<ul>
+<li><strong>Idea:</strong> Instead of having a few large experts, have many smaller experts. This allows for a massive increase in the total number of parameters without increasing FLOPs (since each expert is smaller).</li>
+<li><strong>Mechanism:</strong> If a standard FFN multiplies the hidden dimension by 4 (e.g., $H \rightarrow 4H$), fine-grained experts might multiply by 2 (e.g., $H \rightarrow 2H$) and then have twice as many experts. This can be extended to $H \rightarrow H/X$ for $X$ times more experts.</li>
+<li><strong>Benefit:</strong> More parameters for the same FLOPs, leading to better performance.</li>
+<li><strong>Diagram (b):</strong> Shows a "fine-grained expert segmentation" where the FFNs are smaller (e.g., 2W instead of 4W), allowing for more experts (e.g., N experts instead of N/2).</li>
+</ul>
+</li>
+<li>
+<p><strong>Shared Experts:</strong></p>
+<ul>
+<li><strong>Idea:</strong> Include a few experts that are always active for all tokens, regardless of the router's decision.</li>
+<li><strong>Benefit:</strong> These shared experts can learn common, universally applicable patterns or processing tasks, reducing the burden on specialized experts and potentially improving overall efficiency.</li>
+<li><strong>Diagram (c):</strong> Shows "shared expert isolation" where some experts (green) are always active, while others (blue) are routed.</li>
+</ul>
+</li>
+</ol>
+<p><strong>Ablations from DeepSeek paper:</strong>
+*   <strong>Graph:</strong> Shows normalized performance across various benchmarks (HellaSwag, PIQA, ARC-Easy, ARC-Challenge, TriviaQA, NaturalQuestions).
+*   <strong>Findings:</strong>
+    *   Adding <strong>one shared expert</strong> (orange bar) provides a significant boost on some tasks.
+    *   Adding <strong>fine-grained experts</strong> (green and yellow bars) provides further boosts.
+    *   Combining these innovations (e.g., 1 shared expert + fine-grained experts) consistently leads to the best performance across most benchmarks.
+    *   <strong>Conclusion:</strong> More experts (especially fine-grained) and shared experts generally help.</p>
+<p><strong>Ablations from OLMoE (AI2):</strong>
+*   <strong>Graphs:</strong> Corroborate DeepSeek's findings.
+*   <strong>Fine-grained experts:</strong> Increasing the number of fine-grained experts (from 8 to 64) leads to clear improvements in training loss, validation loss, and MMLU Var.
+*   <strong>Shared experts:</strong> In the OLMo setup, shared experts (purple vs. teal) did not show significant gains, suggesting this innovation might be more context-dependent or require specific tuning. OLMo ultimately opted for no shared experts.</p>
+<h2 id="707-expert-routing-setups-for-recent-moes">[7:07] Expert Routing Setups for Recent MoEs</h2>
+<p>A table summarizes the routing configurations of various prominent MoE models:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Model</th>
+<th style="text-align: left;">Routed</th>
+<th style="text-align: left;">Active</th>
+<th style="text-align: left;">Shared</th>
+<th style="text-align: left;">Fine-grained ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">GShard</td>
+<td style="text-align: left;">2048</td>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;">Switch Transformer</td>
+<td style="text-align: left;">64</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;">ST-MoE</td>
+<td style="text-align: left;">64</td>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;">Mixtral</td>
+<td style="text-align: left;">8</td>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;">DBRX</td>
+<td style="text-align: left;">16</td>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;">Grok</td>
+<td style="text-align: left;">8</td>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;">DeepSeek v1</td>
+<td style="text-align: left;">64</td>
+<td style="text-align: left;">6</td>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">1/4</td>
+</tr>
+<tr>
+<td style="text-align: left;">Qwen 1.5</td>
+<td style="text-align: left;">64</td>
+<td style="text-align: left;">4</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">1/14</td>
+</tr>
+<tr>
+<td style="text-align: left;">DeepSeek v3</td>
+<td style="text-align: left;">256</td>
+<td style="text-align: left;">8</td>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">1/8</td>
+</tr>
+<tr>
+<td style="text-align: left;">OLMoE</td>
+<td style="text-align: left;">32</td>
+<td style="text-align: left;">8</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">1/8</td>
+</tr>
+<tr>
+<td style="text-align: left;">MiniMax</td>
+<td style="text-align: left;">64</td>
+<td style="text-align: left;">8</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">~1/4</td>
+</tr>
+<tr>
+<td style="text-align: left;">Llama 4 (maverick)</td>
+<td style="text-align: left;">128</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">1/2</td>
+<td style="text-align: left;">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Observations:</strong>
+*   <strong>Early Google models (GShard, Switch Transformer, ST-MoE):</strong> Explored a wide range of "routed" experts (up to 2048), often with K=1 or K=2 active experts, and no explicit shared experts.
+*   <strong>Mid-range models (Mixtral, DBRX, Grok):</strong> Tend to use fewer total experts (8-16) with K=2 active, and no shared experts.
+*   <strong>DeepSeek and Qwen:</strong> Pioneered the use of <strong>fine-grained experts</strong> (indicated by ratios like 1/4, 1/14, 1/8) and <strong>shared experts</strong>.
+    *   DeepSeek v1: 64 routed, 6 active, 2 shared, 1/4 fine-grained ratio.
+    *   Qwen 1.5: 64 routed, 4 active, 1 shared, 1/14 fine-grained ratio.
+    *   DeepSeek v3: 256 routed, 8 active, 2 shared, 1/8 fine-grained ratio.
+*   <strong>Recent models (OLMoE, MiniMax, Llama 4):</strong> Continue to use fine-grained experts and often shared experts, with varying numbers of total and active experts.
+    *   Llama 4 is unique in having a 1/2 shared expert, implying the shared expert is half the size of a standard FFN.</p>
+<p><strong>Key takeaway:</strong> The trend is towards using <strong>fine-grained experts</strong> and often <strong>shared experts</strong> to maximize parameter count and performance for a given FLOP budget. For very large models like DeepSeek and Llama 4, the number of total experts can be very high (hundreds).</p>
+<h2 id="15000-how-do-we-train-moes">[1:50:00] How do we train MoEs?</h2>
+<p>The major challenge in training MoEs is achieving <strong>training-time efficiency</strong> while dealing with <strong>non-differentiable sparse gating decisions</strong>.</p>
+<p><strong>Potential Solutions:</strong>
+1.  <strong>Reinforcement Learning (RL) to optimize gating policies:</strong>
+    *   <strong>Idea:</strong> Treat the router as an agent making discrete decisions and use RL algorithms (e.g., REINFORCE) to learn optimal gating policies.
+    *   <strong>Pros:</strong> Principled approach for non-differentiable decisions.
+    *   <strong>Cons:</strong> In practice, RL for MoEs hasn't shown significant improvements over simpler methods. High gradient variance and complexity make it finicky and not widely used at scale.</p>
+<ol start="2">
+<li>
+<p><strong>Stochastic perturbations:</strong></p>
+<ul>
+<li><strong>Idea:</strong> Introduce noise or randomness into the routing decisions to make them "soft" and encourage exploration.</li>
+<li><strong>Mechanism (Shazeer et al. 2017):</strong> Instead of directly computing $s_{i,t} = \text{Softmax}(u_{t}^{L} e_{i}^{T})$, they add Gaussian noise to the logits: $H(x)_i = (x \cdot W_g)_i + \text{StandardNormal}() \cdot \text{Softplus}((x \cdot W_{noise})_i)$. The $W_{noise}$ matrix is learned to control the amount of noise.</li>
+<li><strong>Benefits:</strong> Naturally leads to experts that are a bit more robust (less specialized). The softmax (after Top-K) helps the model learn to rank experts.</li>
+<li><strong>Drawbacks:</strong> Stochasticity can lead to less specialization and loss of efficiency. This approach was tried in early Google papers but often abandoned for heuristic loss-based methods.</li>
+</ul>
+</li>
+<li>
+<p><strong>Heuristic "balancing" losses:</strong></p>
+<ul>
+<li><strong>Idea:</strong> Add auxiliary loss terms to the training objective that encourage the router to distribute tokens evenly among experts. This prevents "dead" experts (experts that are never chosen) and ensures all parameters are utilized.</li>
+<li><strong>Mechanism (Switch Transformer, Fedus et al. 2022):</strong> The loss function is augmented with a term that penalizes imbalanced expert utilization.<ul>
+<li>$L_{aux} = \alpha \sum_{i=1}^{N} f_i P_i$</li>
+<li>$f_i$: Fraction of tokens dispatched to expert $i$ (actual utilization).</li>
+<li>$P_i$: Fraction of router probability allocated to expert $i$ (intended utilization).</li>
+<li>The derivative with respect to $P_i$ shows that experts with higher $P_i$ (more frequently used) are downweighted more strongly, encouraging the router to explore other experts.</li>
+</ul>
+</li>
+<li><strong>Types of Balancing:</strong><ul>
+<li><strong>Per-expert balancing:</strong> Ensures each expert receives a roughly equal number of tokens per batch.</li>
+<li><strong>Per-device balancing:</strong> Aggregates expert utilization by device, ensuring each device (e.g., GPU) receives a balanced workload. This is crucial for system efficiency.</li>
+</ul>
+</li>
+<li><strong>DeepSeek V3 Variation (Per-expert biases):</strong><ul>
+<li>DeepSeek V3 replaces the per-expert balancing loss with a simpler mechanism: <strong>per-expert biases</strong> ($b_i$).</li>
+<li>The router's scores are adjusted by these biases: $g'_{i,t} = s_{i,t} + b_i$.</li>
+<li>The biases $b_i$ are learned through a simple online gradient scheme: if an expert isn't getting enough tokens, its $b_i$ is increased; if it's getting too many, its $b_i$ is decreased.</li>
+<li>This is called "auxiliary loss free balancing" because it avoids adding a complex auxiliary loss term.</li>
+<li>However, DeepSeek V3 also reintroduces a "complementary sequence-wise auxiliary loss" (which is essentially the balancing loss) to handle imbalances at the sequence level, not just the batch level. This suggests that even with clever bias adjustments, explicit balancing losses are often still necessary.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="55400-issues-with-moes-stability">[5:54:00] Issues with MoEs - Stability</h2>
+<p>MoEs are known to be difficult to train and fine-tune, often exhibiting instability.</p>
+<ul>
+<li><strong>Problem:</strong> MoEs can "blow up" during training, especially when using lower precision (e.g., bfloat16). This is often due to numerical instability in the softmax operation, where large logits can lead to overflow or underflow, causing incorrect outputs and unstable gradients.</li>
+<li><strong>Solution (Zoph et al. 2022):</strong><ul>
+<li><strong>Use Float32 for the expert router:</strong> Performing router computations (especially softmax) in higher precision (Float32) can significantly improve stability, even if the rest of the model uses lower precision (e.g., bfloat16).</li>
+<li><strong>Auxiliary Z-loss:</strong> Adding an auxiliary Z-loss (log-sum-exp of logits squared) to the router's objective helps keep the logits bounded, preventing numerical instability.</li>
+<li><strong>Graph (Router Z-loss stability):</strong> Shows that removing the Z-loss from the router leads to large, unstable spikes in training and validation loss, indicating severe instability. The Z-loss effectively "tames" the router's logits.</li>
+</ul>
+</li>
+</ul>
+<h2 id="10700-issues-with-moes-fine-tuning">[1:07:00] Issues with MoEs - Fine-tuning</h2>
+<p>MoEs can also be challenging to fine-tune, especially on smaller datasets.</p>
+<ul>
+<li><strong>Problem:</strong> Sparse MoEs, with their massive parameter counts, are prone to <strong>overfitting</strong> when fine-tuned on smaller, downstream tasks. This leads to a large gap between training and validation performance.</li>
+<li><strong>Graph (SuperGLUE CB Task):</strong> Shows that sparse MoEs (blue and orange lines) exhibit a much larger train-test gap (overfitting) compared to dense models (green and red lines) when fine-tuned on a small task.</li>
+<li><strong>Solutions:</strong><ol>
+<li><strong>Hybrid Architectures:</strong> Architect MoEs such that not every layer is an MoE layer. For example, alternate dense layers with MoE layers. When fine-tuning, only fine-tune the dense layers, which behave more stably.</li>
+<li><strong>Use lots of data:</strong> If overfitting is the problem, the solution is to use more data. DeepSeek MoE, for instance, used 1.4 million training examples for fine-tuning, mitigating overfitting concerns.</li>
+</ol>
+</li>
+</ul>
+<h2 id="10825-other-training-methods-upcycling">[1:08:25] Other training methods - Upcycling</h2>
+<p><strong>Upcycling</strong> is a clever trick to initialize an MoE from a pre-trained dense model, saving significant training costs.</p>
+<ul>
+<li><strong>Idea:</strong> Instead of training an MoE from scratch, leverage an existing, well-trained dense model.</li>
+<li><strong>Mechanism:</strong><ol>
+<li>Take a pre-trained dense model.</li>
+<li>Duplicate its FFN weights to create multiple experts.</li>
+<li>Perturb the copied weights slightly to encourage differentiation among experts.</li>
+<li>Initialize the router from scratch.</li>
+<li>Continue training the resulting MoE.</li>
+</ol>
+</li>
+<li><strong>Benefit:</strong> This method is very cost-effective, allowing for the creation of high-performance MoEs without the immense computational cost of training from scratch. It effectively "transforms" a dense model into an MoE.</li>
+<li><strong>Graph (Upcycling performance):</strong> Shows that upcycled MoEs (red dots) achieve significantly better performance (validation token accuracy) for the same pretraining time compared to dense models (blue dots). This is particularly true for larger models.</li>
+<li><strong>Example (MiniCPM):</strong> MiniCPM (a Chinese open LLM) successfully used upcycling to create MoEs that outperformed larger dense models, demonstrating the effectiveness of this technique.</li>
+<li><strong>Example (Qwen MoE):</strong> Qwen also used upcycling to build their MoE models, achieving strong performance relative to smaller models.</li>
+</ul>
+<h2 id="11010-deepseek-moe-v1-v2-v3-architecture-walkthrough">[1:10:10] DeepSeek MoE v1-v2-v3 Architecture Walkthrough</h2>
+<p>This section provides a detailed walkthrough of the evolution of DeepSeek's MoE architecture, highlighting key changes and innovations.</p>
+<p><strong>DeepSeek MoE v1 (16B - 2.8B active):</strong>
+*   <strong>Architecture:</strong> Shared + Fine-grained (64/4) experts. This means 2 shared experts and 64 fine-grained experts, where each fine-grained expert is 1/4 the size of a standard FFN.
+*   <strong>Routing:</strong> Standard Top-K routing (softmax then Top-K).
+*   <strong>Balancing:</strong> Auxiliary loss balancing (expert + device level).
+*   <strong>Key takeaway:</strong> This early version already incorporated the core ideas of fine-grained and shared experts, along with balancing losses.</p>
+<p><strong>DeepSeek MoE v2 (236B - 21B active):</strong>
+*   <strong>Architecture:</strong> Shared + Fine-grained (160/10) experts. This means 10 shared experts and 160 fine-grained experts, with 6 active experts.
+*   <strong>New Things:</strong>
+    *   <strong>Top-M device routing:</strong> To address the communication costs of fine-grained experts, DeepSeek v2 introduced a two-stage routing process. First, the router selects the top $M$ devices. Then, within those $M$ devices, it selects the top $K$ experts. This reduces communication by concentrating token traffic to a smaller set of devices.
+    *   <strong>Communication balancing loss:</strong> To balance communication both in and out, they added a communication balancing loss that considers both input and output communication costs, ensuring efficient data flow across devices.</p>
+<p><strong>DeepSeek MoE v3 (671B - 37B active):</strong>
+*   <strong>Architecture:</strong> Shared + Fine-grained (256/8) experts. This means 8 shared experts and 256 fine-grained experts, with 8 active experts.
+*   <strong>New Things:</strong>
+    *   <strong>Sigmoid + Softmax + TopM routing:</strong> The routing mechanism was further refined. Instead of a simple softmax, they use a sigmoid function for the initial gating decisions, followed by a softmax and TopM selection. This allows for more flexible gating.
+    *   <strong>Aux-loss-free + Seq-wise aux loss:</strong> They moved away from the explicit auxiliary balancing loss, instead relying on the per-expert biases ($b_i$) learned through an online gradient scheme (as discussed earlier). However, they also added a "sequence-wise auxiliary loss" to ensure balancing at the individual sequence level, addressing potential issues with out-of-distribution sequences at inference time.</p>
+<h2 id="11617-bonus-what-else-do-you-need-to-make-deepseek-moe-v3">[1:16:17] Bonus: What else do you need to make DeepSeek MoE v3?</h2>
+<p>Beyond the MoE-specific innovations, DeepSeek V3 incorporates other advanced techniques common in modern LLMs.</p>
+<ol>
+<li>
+<p><strong>Multi-head Latent Attention (MLA):</strong></p>
+<ul>
+<li><strong>Basic Idea:</strong> Express the Query (Q), Key (K), and Value (V) as functions of a lower-dimensional "latent" activation.</li>
+<li><strong>Mechanism:</strong> Instead of directly generating K and V from the hidden state $H_t$, DeepSeek V3 first projects $H_t$ into a lower-dimensional "latent" representation $C$. This $C$ is then cached (KV cache). When K and V are needed, they are up-projected from $C$.</li>
+<li><strong>Benefits:</strong> Reduces the size of the KV cache, which can be a significant memory bottleneck during inference.</li>
+<li><strong>Complexity:</strong> This involves an extra matrix multiplication ($W^{UK}$) to project $H_t$ to $C$, and another to project $C$ back to K/V. However, this $W^{UK}$ matrix can be merged with the existing Q projection matrix, avoiding an extra FLOPs cost.</li>
+<li><strong>RoPE Compatibility:</strong> This MLA approach is compatible with RoPE (Rotary Positional Embeddings), although special care is needed to handle the rotation matrices.</li>
+</ul>
+</li>
+<li>
+<p><strong>Multi-token Prediction (MTP):</strong></p>
+<ul>
+<li><strong>Idea:</strong> Have small, lightweight models that can predict multiple steps ahead.</li>
+<li><strong>Mechanism:</strong> In addition to the main transformer predicting the next token, DeepSeek V3 uses a lightweight, one-layer transformer (MTP Module 2) to predict the token <em>after</em> the next token.</li>
+<li><strong>Benefit:</strong> This allows the model to "look ahead" during generation, potentially improving coherence and quality.</li>
+</ul>
+</li>
+</ol>
+<h2 id="12113-moe-summary">[1:21:13] MoE Summary</h2>
+<ul>
+<li><strong>MoEs take advantage of sparsity:</strong> Not all inputs need the full model. This is the fundamental efficiency gain.</li>
+<li><strong>Discrete routing is hard, but Top-K heuristics seem to work:</strong> While theoretically challenging, practical heuristic approaches for routing have proven effective.</li>
+<li><strong>Lots of empirical evidence now that MoEs work and are cost-effective:</strong> The widespread adoption and strong benchmark results confirm the benefits of MoEs.</li>
+</ul>
+<h2 id="practical-takeaways">Practical Takeaways</h2>
+<ul>
+<li>MoEs are the current state-of-the-art for building large, high-performing LLMs due to their parameter efficiency and parallelization capabilities.</li>
+<li>The key to MoE success lies in carefully designed routing functions (Top-K is dominant), fine-grained experts, and effective load balancing strategies.</li>
+<li>Training stability and overfitting are significant challenges, often addressed through techniques like higher precision for routers, Z-loss, and upcycling.</li>
+<li>System-level optimizations, including expert parallelism and communication balancing, are crucial for deploying MoEs at scale.</li>
+</ul>
+<h2 id="open-questions-things-to-remember">Open Questions / Things to Remember</h2>
+<ul>
+<li>The "expert" in MoE doesn't necessarily imply semantic specialization, but rather a mechanism for sparse activation.</li>
+<li>The non-differentiable nature of Top-K routing is a core challenge, leading to the development of heuristic balancing losses.</li>
+<li>Upcycling dense models to MoEs is a powerful technique for cost-effective initialization.</li>
+<li>DeepSeek V3 showcases a highly engineered MoE, integrating fine-grained experts, shared experts, sophisticated routing (Top-M device routing), and various balancing losses to achieve state-of-the-art performance.</li>
+</ul><div class="pager"><a href="lec03.html">← Lec 03</a><a href="lec05.html" style="text-align:right">Lec 05 →</a></div></main></div></body></html>

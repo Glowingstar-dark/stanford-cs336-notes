@@ -1,0 +1,429 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 Lecture 10: Inference</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html" class="active"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Lecture 10</div><h1>Lecture 10: Inference</h1><p class="meta">Stanford CS336 · Spring 2025 · 1:22:52 · <a href="https://www.youtube.com/watch?v=fcgPYo3OtV0" target="_blank">Watch on YouTube ↗</a></p><div class="banner">📝 Auto-generated notes from the full lecture video (slides, equations, and live code) and transcript. Verify critical details against the source.</div><div class="embed"><a href="https://www.youtube.com/watch?v=fcgPYo3OtV0" target="_blank" rel="noopener" style="background-image:url(https://i.ytimg.com/vi/fcgPYo3OtV0/hqdefault.jpg)"><span class="play"><span>▶ Watch on YouTube</span></span></a></div><h2 id="tldr">TL;DR</h2>
+<ul>
+<li>Inference is a critical part of language model deployment, distinct from training due to its memory-limited and dynamic nature.</li>
+<li>Key metrics for inference efficiency are Time-to-First-Token (TTFT), latency (tokens/second), and throughput (tokens/second).</li>
+<li>The KV cache is a major bottleneck in transformer inference, leading to memory-bound operations, especially during token generation.</li>
+<li>Architectural innovations (GQA, MLA, local attention, state-space models, diffusion models) and optimization techniques (quantization, pruning, speculative decoding, continuous batching, PagedAttention) are crucial for improving inference efficiency.</li>
+<li>The future of efficient inference lies in radical architectural changes and leveraging systems-level optimizations.</li>
+</ul>
+<h2 id="key-concepts">Key Concepts</h2>
+<ul>
+<li><strong>Inference Workload</strong>: Generating responses from a fixed, trained model.</li>
+<li><strong>Memory-Limited vs. Compute-Limited</strong>: A workload is memory-limited if its performance is bottlenecked by memory bandwidth, and compute-limited if it's bottlenecked by FLOPs.</li>
+<li><strong>Arithmetic Intensity</strong>: The ratio of FLOPs to bytes transferred, indicating how much computation is done per byte of data moved.</li>
+<li><strong>KV Cache</strong>: Stores key and value vectors from previous tokens to avoid recomputing them during autoregressive generation.</li>
+<li><strong>Prefill vs. Generation</strong>: Prefill is the initial processing of the prompt (compute-limited), while generation is the sequential output of new tokens (memory-limited).</li>
+<li><strong>Grouped-Query Attention (GQA)</strong>: Reduces KV cache size by sharing key/value heads across multiple query heads.</li>
+<li><strong>Multi-Head Latent Attention (MLA)</strong>: Reduces KV cache size by projecting key/value vectors into a lower-dimensional latent space.</li>
+<li><strong>Local Attention</strong>: Restricts attention to a fixed-size window of past tokens, making KV cache size independent of sequence length.</li>
+<li><strong>State-Space Models (SSMs)</strong>: Alternative architectures to transformers, drawing from signal processing, aiming for sub-quadratic time complexity for long contexts.</li>
+<li><strong>Diffusion Models for Text Generation</strong>: Generate all tokens in parallel and iteratively refine them, offering potential for significant speedups over autoregressive models.</li>
+<li><strong>Quantization</strong>: Reduces the precision of numbers (e.g., from FP16 to INT8) to decrease memory footprint and FLOPs, but can impact accuracy.</li>
+<li><strong>Model Pruning</strong>: Removes unimportant parts of a model to make it smaller and faster, often followed by distillation to recover accuracy.</li>
+<li><strong>Speculative Decoding</strong>: Uses a smaller, faster draft model to generate multiple tokens in parallel, which are then verified by the larger target model.</li>
+<li><strong>Continuous Batching / PagedAttention</strong>: Systems-level optimizations to handle dynamic inference workloads by efficiently managing GPU memory and scheduling requests.</li>
+</ul>
+<hr />
+<h2 id="detailed-notes">Detailed Notes</h2>
+<h3 id="0005-introduction-to-inference">[00:05] Introduction to Inference</h3>
+<figure class="slide"><img src="figs/lec10/00005.jpg" loading="lazy" alt="The slide shows the title of the lecture: &quot;CS336: Language Modeling from Scratch&quot;."><figcaption><span class="ft">0:05</span> The slide shows the title of the lecture: &quot;CS336: Language Modeling from Scratch&quot;.</figcaption></figure>
+<figure class="slide"><img src="figs/lec10/00013.jpg" loading="lazy" alt="The speaker is standing at a podium with a laptop, facing the audience."><figcaption><span class="ft">0:13</span> The speaker is standing at a podium with a laptop, facing the audience.</figcaption></figure>
+
+<p>This lecture, Lecture 10, will take a break from scaling laws to discuss <strong>inference</strong>.</p>
+<p><strong>Inference</strong>: Given a fixed, trained model, generate responses given prompts.</p>
+<p>We will cover:
+1.  Understanding the inference workload.
+2.  Ways to make inference faster.</p>
+<p>Inference is a deep topic, and this lecture will condense many concepts.</p>
+<h3 id="0054-where-inference-shows-up">[00:54] Where Inference Shows Up</h3>
+<figure class="slide"><img src="figs/lec10/00054.jpg" loading="lazy" alt="The slide defines &quot;Inference&quot; and introduces &quot;Understanding the inference workload&quot; as a topic."><figcaption><span class="ft">0:54</span> The slide defines &quot;Inference&quot; and introduces &quot;Understanding the inference workload&quot; as a topic.</figcaption></figure>
+
+<p>Inference is crucial in many applications:
+-   <strong>Actual Use</strong>: Chatbots, code completion (e.g., Cursor), batch data processing using language models. These demand inference to generate tokens.
+-   <strong>Model Evaluation</strong>: Assessing model performance (e.g., on instruction following datasets) requires running inference.
+-   <strong>Test-Time Compute</strong>: Techniques like "thinking more" before outputting a final answer often involve multiple inference steps (e.g., chain-of-thought prompting).
+-   <strong>Training via Reinforcement Learning (RL)</strong>: In RL, models sample responses and evaluate them based on a reward signal, which requires inference.</p>
+<p>Inference underpins many fundamental functions of language models, highlighting its importance.</p>
+<h3 id="0216-why-efficiency-matters-for-inference">[02:16] Why Efficiency Matters for Inference</h3>
+<ul>
+<li><strong>Training</strong> is a one-time cost.</li>
+<li><strong>Inference</strong> is repeated many times.</li>
+</ul>
+<p><strong>Illustrative Stats</strong>:
+-   Sam Altman (OpenAI): "openai now generates about 100 billion words per day. all people on earth generate about 100 trillion words per day." (Feb 9, 2024)
+-   Aman Sanger (Cursor): "Cursor writes almost 1 billion lines of accepted code a day. To put it in perspective, the entire world produces just a few billion lines a day." (Apr 28, 2023)</p>
+<p>These figures demonstrate the massive scale of inference, making its efficiency a critical concern.</p>
+<h3 id="0306-metrics-for-inference">[03:06] Metrics for Inference</h3>
+<p>Three key metrics are used to measure inference performance:
+1.  <strong>Time-to-First-Token (TTFT)</strong>: How long a user waits before <em>any</em> generation happens. Crucial for interactive applications where immediate feedback is desired.
+2.  <strong>Latency (tokens/second)</strong>: How fast tokens appear <em>after</em> the first token. Also important for interactive applications to maintain a smooth conversation flow.
+3.  <strong>Throughput (tokens/second)</strong>: The total number of tokens generated per second across <em>all</em> users or requests. This is vital for batch processing and overall system capacity.</p>
+<p><strong>Note</strong>: High throughput doesn't necessarily imply low latency, as some requests might take a long time to complete while others are processed quickly.</p>
+<h3 id="0408-key-considerations-in-efficiency">[04:08] Key Considerations in Efficiency</h3>
+<figure class="slide"><img src="figs/lec10/00234.jpg" loading="lazy" alt="The slide lists metrics for evaluating inference: TTFT, Latency, and Throughput."><figcaption><span class="ft">3:54</span> The slide lists metrics for evaluating inference: TTFT, Latency, and Throughput.</figcaption></figure>
+<figure class="slide"><img src="figs/lec10/00306.jpg" loading="lazy" alt="The slide highlights key considerations for efficiency in training versus inference."><figcaption><span class="ft">5:06</span> The slide highlights key considerations for efficiency in training versus inference.</figcaption></figure>
+
+<p><strong>Training (Supervised)</strong>:
+-   You see all tokens in the sequence simultaneously.
+-   This allows for parallelization over the sequence (e.g., matrix multiplications in Transformers).
+-   This is highly efficient for utilizing hardware.</p>
+<p><strong>Inference</strong>:
+-   You have to generate tokens <strong>sequentially</strong> (autoregressively).
+-   This means you <strong>cannot parallelize</strong> the generation process.
+-   Consequently, it's harder to fully utilize compute and often becomes <strong>memory-limited</strong>.</p>
+<p>This sequential nature is the core challenge that makes inference harder and often memory-bound.</p>
+<p><strong>Who Cares About Inference Efficiency?</strong>
+-   <strong>Companies serving closed models</strong> (OpenAI, Anthropic, Google, etc.)
+-   <strong>Providers serving open-weight models</strong> (Together, Fireworks, DeepInfra, etc.)
+-   Various <strong>open-source packages</strong> (vLLM, Tensor-RT, TGI) are dedicated to optimizing inference.</p>
+<p>Academics often focus on training and model performance, but industry practitioners prioritize inference efficiency due to its direct impact on user experience and operational costs.</p>
+<h3 id="0553-understanding-the-inference-workload">[05:53] Understanding the Inference Workload</h3>
+<figure class="slide"><img src="figs/lec10/00339.jpg" loading="lazy" alt="The slide lists companies doing inference and open-source packages for inference."><figcaption><span class="ft">5:39</span> The slide lists companies doing inference and open-source packages for inference.</figcaption></figure>
+
+<p>To understand inference, we'll review the Transformer architecture and arithmetic intensity.</p>
+<h4 id="0611-review-of-the-transformer">[06:11] Review of the Transformer</h4>
+<figure class="slide"><img src="figs/lec10/00396.jpg" loading="lazy" alt="The slide displays a diagram of the attention mechanism with a table of symbol dimensions."><figcaption><span class="ft">6:36</span> The slide displays a diagram of the attention mechanism with a table of symbol dimensions.</figcaption></figure>
+<figure class="slide"><img src="figs/lec10/00428.jpg" loading="lazy" alt="The slide shows a diagram of the attention mechanism with a table of symbol dimensions."><figcaption><span class="ft">7:08</span> The slide shows a diagram of the attention mechanism with a table of symbol dimensions.</figcaption></figure>
+<figure class="slide"><img src="figs/lec10/00457.jpg" loading="lazy" alt="The slide shows a diagram of the attention mechanism with a table of symbol dimensions."><figcaption><span class="ft">7:37</span> The slide shows a diagram of the attention mechanism with a table of symbol dimensions.</figcaption></figure>
+
+<p>The diagram from the "Scaling book chapter on Transformers" (a recommended resource) illustrates the computation graph of a Transformer.</p>
+<p><strong>Notation</strong>:
+-   <code>B</code>: Batch size (number of sequences)
+-   <code>L</code>: Number of layers
+-   <code>T</code>: Sequence length (query)
+-   <code>S</code>: Sequence length (key/value)
+-   <code>V</code>: Vocabulary size
+-   <code>D</code>: Model embedding dimension
+-   <code>F</code>: MLP hidden dimension (typically $4 \times D$)
+-   <code>H</code>: Attention head dimension
+-   <code>N</code>: Number of query heads ($N \times H = D$)
+-   <code>G</code>: Number of key/value heads (for GQA, $K \times G = N$)</p>
+<p>The diagram shows how input <code>X</code> passes through attention and MLP layers, involving matrix multiplications with query (Q), key (K), and value (V) matrices.</p>
+<p><strong>FLOPs for a feedforward pass</strong>: $6 \times (B \times T) \times (\text{num_params} + O(T))$</p>
+<h4 id="0810-review-of-arithmetic-intensity">[08:10] Review of Arithmetic Intensity</h4>
+<figure class="slide"><img src="figs/lec10/00508.jpg" loading="lazy" alt="The slide shows code for `review_of_arithmetic_intensity` and explains matrix multiplication setup."><figcaption><span class="ft">8:28</span> The slide shows code for `review_of_arithmetic_intensity` and explains matrix multiplication setup.</figcaption></figure>
+<figure class="slide"><img src="figs/lec10/00532.jpg" loading="lazy" alt="The slide highlights the section on calculating FLOPs and memory read/write for matrix multiplication."><figcaption><span class="ft">8:52</span> The slide highlights the section on calculating FLOPs and memory read/write for matrix multiplication.</figcaption></figure>
+<figure class="slide"><img src="figs/lec10/00553.jpg" loading="lazy" alt="The slide details the steps for calculating bytes transferred during matrix multiplication from HBM."><figcaption><span class="ft">9:13</span> The slide details the steps for calculating bytes transferred during matrix multiplication from HBM.</figcaption></figure>
+
+<p>Arithmetic intensity helps characterize whether a workload is compute-limited or memory-limited.</p>
+<p><strong>Setup</strong>: Multiply matrix $X$ (B x D) by matrix $W$ (D x F).
+-   <code>B</code>: Batch size
+-   <code>D</code>: Hidden dimension
+-   <code>F</code>: Up-projection dimension in MLP</p>
+<p><strong>Steps to calculate FLOPs and bytes transferred (assuming BF16, so 2 bytes/value)</strong>:
+1.  Read <code>X</code> (B x D) from HBM: <code>bytes_transferred += 2 * B * D</code>
+2.  Read <code>W</code> (D x F) from HBM: <code>bytes_transferred += 2 * D * F</code>
+3.  Compute <code>Y = X @ W</code> (B x F): <code>flops += 2 * B * D * F</code>
+4.  Write <code>Y</code> (B x F) to HBM: <code>bytes_transferred += 2 * B * F</code></p>
+<p><strong>Total FLOPs</strong>: <code>2 * B * D * F</code>
+<strong>Total Bytes Transferred</strong>: <code>2 * B * D + 2 * D * F + 2 * B * F</code></p>
+<p><strong>Arithmetic Intensity</strong>: <code>flops / bytes_transferred</code> (want to be high).</p>
+<p><strong>Simplification</strong>: Assuming <code>B</code> is much smaller than <code>D</code> and <code>F</code> (e.g., <code>B</code>=100, <code>D</code>=<code>F</code>=1000s), the arithmetic intensity simplifies to <code>B</code>.</p>
+<p><strong>Accelerator Intensity (H100)</strong>:
+-   <code>flops_per_second</code> (FP16): $989 \times 10^{12}$
+-   <code>memory_bandwidth</code>: $3.35 \times 10^{12}$
+-   <code>accelerator_intensity</code> = <code>flops_per_second / memory_bandwidth</code> $\approx 295$</p>
+<p><strong>Conclusion</strong>:
+-   If <code>computation_intensity &gt; accelerator_intensity</code>, it's <strong>compute-limited</strong> (good).
+-   If <code>computation_intensity &lt; accelerator_intensity</code>, it's <strong>memory-limited</strong> (bad).</p>
+<p>For matrix multiplication, it's compute-limited if <code>B &gt; 295</code> on an H100.</p>
+<p><strong>Extreme Case (B=1)</strong>: Matrix-vector product.
+-   Arithmetic intensity: 1
+-   This is <strong>memory-limited</strong> (bad) because you read a D x F matrix to perform only 2DF FLOPs.
+-   This is essentially what happens with <strong>generation</strong> (token by token processing).</p>
+<h3 id="014219-arithmetic-intensity-of-inference">[01:42:19] Arithmetic Intensity of Inference</h3>
+<p><strong>Naive Sampling</strong>:
+-   To generate each token, feed the entire history (prompt + generated tokens) into the Transformer.
+-   <strong>Complexity</strong>: Generating <code>T</code> tokens requires $O(T^3)$ FLOPs (since each feedforward pass is $O(T^2)$).
+-   <strong>Observation</strong>: A lot of the work (encoding prefixes) is redundant.</p>
+<p><strong>Solution</strong>: Store KV cache in HBM.</p>
+<p><strong>Sampling with KV Cache</strong>:
+1.  <strong>Prefill</strong>: Given a prompt, encode it into vectors. This stage is parallelizable, like training.
+    -   Compute-bound (good).
+2.  <strong>Generation</strong>: Generate new response tokens sequentially.
+    -   Memory-bound (problematic).</p>
+<p><strong>Let's compute FLOPs and memory IO for MLP and attention layers separately.</strong>
+-   <code>S</code>: Number of tokens we're conditioning on (prompt length).
+-   <code>T</code>: Number of tokens we're generating.
+-   For prefill: <code>T = S</code>.
+-   For generation: <code>T = 1</code>.</p>
+<h4 id="014219-mlp-layers-focusing-on-matrix-multiplications">[01:42:19] MLP Layers (focusing on matrix multiplications)</h4>
+<p><strong>FLOPs</strong>: <code>6 * B * T * D</code>
+<strong>Bytes Transferred</strong>: <code>4 * B * T * D + 6 * D * F</code></p>
+<p><strong>Arithmetic Intensity (simplified)</strong>: <code>B * T</code></p>
+<p><strong>For the two stages</strong>:
+-   <strong>Prefill (T=S)</strong>: Intensity is <code>B * S</code>. This is easy to make compute-limited (good) by making <code>B * S</code> large enough (e.g., a long prompt or large batch size).
+-   <strong>Generation (T=1)</strong>: Intensity is <code>B</code>. This means <code>B</code> (number of concurrent requests) must be large enough to make it compute-limited.</p>
+<p><strong>Why is this important?</strong>
+-   In MLP layers, every sequence hits the same MLP weights (<code>Wup</code>, <code>Wgate</code>, <code>Wdown</code>). So batching helps!</p>
+<h4 id="021100-attention-layers-focusing-on-matrix-multiplications-with-flashattention">[02:11:00] Attention Layers (focusing on matrix multiplications with FlashAttention)</h4>
+<p><strong>FLOPs</strong>: <code>4 * B * S * T * D</code>
+<strong>Bytes Transferred</strong>: <code>4 * B * S * D + 4 * B * T * D</code></p>
+<p><strong>Arithmetic Intensity (simplified)</strong>: <code>S * T / (S + T)</code></p>
+<p><strong>For the two stages</strong>:
+-   <strong>Prefill (T=S)</strong>: Intensity is <code>S/2</code>. This is good, as long as <code>S</code> (prompt length) is large enough.
+-   <strong>Generation (T=1)</strong>: Intensity is <code>S / (S + 1)</code>. This is approximately 1, which is <strong>bad</strong>!</p>
+<p><strong>Why is this bad?</strong>
+-   Unlike MLPs, batching doesn't help for attention layers during generation.
+-   In MLP layers, every sequence hits the same MLP weights.
+-   In attention layers, every sequence has its own KV cache (Q, K, V), and these depend on <code>B</code>.
+-   Mathematically, the <code>B</code> term cancels out in the arithmetic intensity for attention layers.</p>
+<p><strong>Summary</strong>:
+-   <strong>Prefill</strong> is compute-limited, generation is memory-limited.
+-   <strong>MLP intensity</strong> is <code>B</code> (requires concurrent requests).
+-   <strong>Attention intensity</strong> is <code>S * T / (S + T)</code>. During generation (<code>T=1</code>), this becomes <code>S / (S+1)</code> (approximately 1), which is impossible to improve by batching.</p>
+<h3 id="024000-throughput-and-latency">[02:40:00] Throughput and Latency</h3>
+<p>Since inference is memory-limited, we can compute the theoretical maximum latency and throughput of a single request. We assume perfect overlap between compute and communication, ignoring overheads.</p>
+<p><strong>Memory Usage</strong>:
+-   <code>KV_cache_size</code> = <code>S * (K * L * H * 2 * 2)</code> (for sequence length S, K heads, L layers, H dim, 2 for key/value, 2 for BF16)
+-   <code>total_memory_usage</code> = <code>B * KV_cache_size + parameter_size</code></p>
+<p><strong>Latency</strong>: <code>memory / memory_bandwidth</code> (time to read all parameters and KV cache for each step)
+<strong>Throughput</strong>: <code>B / latency</code> (generating <code>B</code> tokens in parallel)</p>
+<p><strong>Llama 2 13B Config on H100</strong>:
+-   <code>S</code>: 1024, <code>D</code>: 5120, <code>F</code>: 13824, <code>N</code>: 40, <code>K</code>: 40, <code>H</code>: 128, <code>L</code>: 40, <code>V</code>: 32000, <code>memory_bandwidth</code>: $3.35 \times 10^{12}$</p>
+<p><strong>Results for different batch sizes (B)</strong>:
+-   <strong>B=1</strong>:
+    -   <code>memory</code>: 26.8 GB
+    -   <code>latency</code>: 8.08 ms
+    -   <code>throughput</code>: 124.6 tokens/sec
+-   <strong>B=64</strong>:
+    -   <code>memory</code>: 79.7 GB
+    -   <code>latency</code>: 23.79 ms (worse)
+    -   <code>throughput</code>: 2689.4 tokens/sec (better)
+-   <strong>B=256</strong>:
+    -   <code>memory</code>: 240.7 GB (doesn't fit in H100's 80GB memory)
+    -   <code>latency</code>: 70.07 ms (much worse)
+    -   <code>throughput</code>: 3561.7 tokens/sec (better, but diminishing returns)</p>
+<p><strong>Trade-off between latency and throughput</strong>:
+1.  Smaller batch sizes yield better latency but worse throughput.
+2.  Larger batch sizes yield better throughput but worse latency.</p>
+<p><strong>Easy Parallelism</strong>: Launch <code>M</code> copies of the model. Latency is the same, throughput increases by <code>M</code>.
+<strong>Harder Parallelism</strong>: Shard the model and the KV cache (more details in the "Scaling book chapter on Transformers").</p>
+<p><strong>Time-to-First-Token (TTFT)</strong>:
+-   Essentially a function of prefill.
+-   Use smaller batch sizes during prefill for faster TTFT.
+-   Use larger batch sizes during generation to improve throughput.</p>
+<h3 id="032800-taking-shortcuts-lossy">[03:28:00] Taking Shortcuts (Lossy)</h3>
+<p>The KV cache size is the bottleneck. We need to reduce it without hurting accuracy.</p>
+<h4 id="033000-grouped-query-attention-gqa">[03:30:00] Grouped-Query Attention (GQA)</h4>
+<p><strong>Multi-head attention (MHA)</strong>: Each query head has its own key and value heads.
+<strong>Multi-query attention (MQA)</strong>: All query heads share a single key and value head. (Not very expressive).
+<strong>Grouped-query attention (GQA)</strong>: Somewhere in between. <code>N</code> query heads, but only <code>K</code> key and value heads, interacting with <code>N/K</code> query heads.</p>
+<p><strong>Latency/throughput improvements</strong>: GQA significantly reduces time per sample compared to MHA, especially for larger numbers of GQA groups.</p>
+<p><strong>Rigorous Evaluation (Llama 2 13B with GQA)</strong>:
+-   Original Llama 2 13B: <code>K=40</code> (query heads), <code>B=64</code> (batch size)
+    -   <code>memory</code>: 79.7 GB
+    -   <code>throughput</code>: 2689 tokens/sec
+-   GQA with 1:5 ratio (<code>K=8</code>, <code>B=64</code>):
+    -   <code>memory</code>: 33.4 GB (reduced)
+    -   <code>throughput</code>: 6416 tokens/sec (increased)
+-   GQA with 1:5 ratio (<code>K=8</code>, <code>B=256</code>):
+    -   <code>memory</code>: 130.6 GB (fits in memory now!)
+    -   <code>throughput</code>: 16584 tokens/sec (much increased)</p>
+<p><strong>Accuracy Check</strong>: GQA does not drop accuracy significantly (as shown in Ainslie+ 2023 paper). Llama 3 adopted GQA.</p>
+<h4 id="034300-multi-head-latent-attention-mla">[03:43:00] Multi-Head Latent Attention (MLA)</h4>
+<p>MLA (DeepSeek-AI+ 2024) is another way to reduce KV cache size.
+-   <strong>Idea</strong>: Instead of reducing the number of key/value heads (like GQA), project each key and value vector from <code>N*H</code> dimensions to <code>C</code> dimensions (where <code>C</code> is much smaller).
+-   <strong>DeepSeek v2</strong>: Reduces <code>N*H</code> from 16384 to <code>C=512</code>.
+-   <strong>Winkle</strong>: MLA is not compatible with RoPE, so they add additional dimensions for RoPE.
+-   <strong>Latency/throughput improvements</strong>: Follows similarly from KV cache reduction.
+-   <strong>Accuracy Check</strong>: MLA is better than GQA (DeepSeek-AI+ 2024).</p>
+<h4 id="034800-local-attention-cla">[03:48:00] Local Attention (CLA)</h4>
+<p>Local attention (Beltagy+ 2020, Child+ 2019, Jiang+ 2023) restricts attention to a local context (e.g., a sliding window).
+-   <strong>Idea</strong>: Only look at the local context, which is most relevant.
+-   <strong>Effective context</strong>: Scales linearly with the number of layers.
+-   <strong>KV cache</strong>: Independent of sequence length! (This is really good for long sequences).
+-   <strong>Problem</strong>: This can still hurt accuracy because long-range dependencies are lost.
+-   <strong>Solution</strong>: Interleave local attention with global attention (hybrid layers). Character.ai uses 1 global layer every 6 layers (in addition to CLA).
+-   <strong>Cross-layer attention (CLA)</strong> (Brandon+ 2024): Idea is to share key-value across layers (just as GQA shares across heads). This empirically improves the Pareto frontier of accuracy and KV cache size.</p>
+<p><strong>Summary</strong>:
+-   <strong>Goal</strong>: Reduce the KV cache size (since inference is memory-limited) without hurting accuracy.
+-   <strong>Methods</strong>: Lower-dimensional KV cache (GQA, MLA), shared KV cache (CLA), local attention on some layers.</p>
+<h4 id="035900-alternatives-to-the-transformer">[03:59:00] Alternatives to the Transformer</h4>
+<p>The Transformer was not designed with inference efficiency in mind. Its autoregressive nature and full attention mechanism are fundamental memory-boundedness bottlenecks. Can we do better by going beyond the Transformer?</p>
+<p><strong>State-Space Models (SSMs)</strong> (presentation from CS229S):
+-   <strong>Idea</strong>: From signal processing, model long-context sequences in a sub-quadratic time.
+-   <strong>S4</strong> (Gu+ 2021): Based on classic state-space models (linear dynamical systems), good at synthetic long-context tasks.
+-   <strong>Weaknesses</strong>: Bad at solving associative recall tasks important for language (that Transformers do well).
+    -   SSMs struggled with tasks like "A B3 C6 F1 E2 -&gt; A? C? F? E? B?".
+-   <strong>Mamba</strong> (Gu+ 2023): Allows SSM parameters to be input-dependent, matching Transformers at 1B scale.
+-   <strong>Jamba</strong> (Lieber+ 2024): Interleaves Transformer-Mamba layers (1:7 ratio) with a 52B MoE.
+-   <strong>BASED</strong> (Arora+ 2024): Uses linear attention + local attention.
+    -   <strong>Linear attention</strong>: Approximates attention kernel with Taylor expansion, making it linear in sequence length.
+    -   <strong>Minimax-01</strong>: Uses linear attention + full attention (456B parameter MoE).
+    -   <strong>Takeaway</strong>: Linear + local attention (still needs some full attention) yields serious SOTA models. Replacing $O(T)$ KV cache with $O(1)$ state is much more efficient for inference.</p>
+<p><strong>Diffusion Models</strong>:
+-   <strong>Popular for image generation</strong>, but harder to get working for text generation.
+-   <strong>Idea</strong>: Generate each token in parallel (not autoregressively), refine multiple time steps.
+-   Start with random noise (over entire sequence), iteratively refine it.
+-   <strong>Results from Inception Labs</strong>: Diffusion is much faster on coding benchmarks.
+    -   Mercury Coder Small/Mini are significantly faster than Transformer-based models like Gemini, Claude, GPT-4o, Jamba, etc.
+-   <strong>Overall</strong>: Significant gains in inference to be made with more radical architecture changes.</p>
+<h4 id="045900-quantization">[04:59:00] Quantization</h4>
+<p><strong>Key idea</strong>: Reduce the precision of numbers.
+-   Less memory means higher latency/throughput (since inference is memory-limited).
+-   Also requires fewer FLOPs.
+-   Of course, we have to worry about accuracy.</p>
+<p><strong>Comparing number formats</strong>:
+-   <strong>FP32</strong> (4 bytes): Needed for parameters and optimizer states during training.
+-   <strong>BF16</strong> (2 bytes): Default for inference.
+-   <strong>FP8</strong> (1 byte): Less accurate but cheaper than FP16.
+-   <strong>INT8</strong> (1 byte): Less accurate but cheaper than FP8. Range [-128, 127].
+-   <strong>INT4</strong> (0.5 bytes): Even less accurate. Range [-8, 7].</p>
+<p><strong>Quantization-aware training (QAT)</strong>: Train with quantization, but doesn't scale up.
+<strong>Post-training quantization (PTQ)</strong>: Run on sample data to determine scale and zero point.</p>
+<p><strong>LLM.int8()</strong> (Dettmers+ 2022): Standard quantization (scale by absolute max).
+-   You take an FP16 vector, figure out its dynamic range (max absolute value), and use that to scale and round values to INT8.
+-   To dequantize, you reverse the process.
+-   <strong>Problem</strong>: Outliers (which appear in larger networks) screw everything up.
+-   <strong>Solution</strong>: Extract outliers and process them in FP16. The rest is processed in INT8. This works well but is 15-23% slower than FP16.</p>
+<p><strong>Activation-aware quantization</strong> (Lin+ 2023):
+-   <strong>Idea</strong>: Select which weights (0.1-1%) to keep in high precision based on activations.
+-   FP16 -&gt; INT3 produces 4x lower memory, 3.2x speedup.
+-   The general idea is to quantize most weights to INT3, but keep a small percentage of "salient" weights in FP16 (determined by activation patterns).</p>
+<h4 id="050900-model-pruning">[05:09:00] Model Pruning</h4>
+<p><strong>Key idea</strong>: Just rip out parts of an expensive model to make it cheaper, and then fix it up.</p>
+<p><strong>NVIDIA Paper</strong> (Muralidharan+ 2024):
+1.  Identify important {layer, head, hidden dimension} on a small calibration dataset.
+2.  Remove unimportant layers to get a smaller model.
+3.  Distill the original model into the pruned model (repair it).</p>
+<p><strong>Results (Minintron)</strong>: Pruning 15B parameter models to 8B with hardly any drop in MMLU score, and down to 4B with some drop.</p>
+<p><strong>Summary of taking shortcuts (lossy)</strong>: Reduce inference complexity without hurting accuracy.</p>
+<h4 id="051500-speculative-decoding-speculative-sampling">[05:15:00] Speculative Decoding / Speculative Sampling</h4>
+<p><strong>Recall the two stages of inference</strong>:
+-   <strong>Prefill</strong>: Given a sequence, encode tokens in parallel (compute-limited). Also gives probabilities.
+-   <strong>Generation</strong>: Generate one token at a time (memory-limited). Checking is faster than generation.</p>
+<p><strong>Speculative Sampling</strong> (Leviathan+ 2022, Chen+ 2023):
+-   Use a cheaper <strong>draft model (P)</strong> to guess a few tokens (e.g., 4).
+-   Evaluate with <strong>target model (Q)</strong> (process tokens in parallel), and accept if it looks good.</p>
+<p><strong>How it works</strong>:
+-   Use draft model (P) to generate <code>K</code> tokens autoregressively.
+-   Compute logits for these <code>K</code> tokens under the target model (Q).
+-   For each token, accept it with probability <code>min(1, Q(x_i)/P(x_i))</code>.
+-   If accepted, move to the next token. If rejected, sample from <code>Q(x_i) - P(x_i)</code> (corrected distribution) and stop.
+-   <strong>Key property</strong>: Guaranteed to be an exact sample from the target model.</p>
+<p><strong>In practice</strong>:
+-   Target model (e.g., 70B parameters), draft model (e.g., 8B parameters).
+-   You want to make the draft model as close to the target as possible (distillation helps).
+-   <strong>Extensions</strong>: Medusa (draft model generates multiple tokens in parallel), EAGLE (draft model takes high-level features from target model).</p>
+<p><strong>Summary</strong>: Exact sampling from target model (thanks to math!). Exploits asymmetry between checking and generation. Lots of room for innovation on the draft model (involves training).</p>
+<h4 id="052800-handling-dynamic-workloads">[05:28:00] Handling Dynamic Workloads</h4>
+<p><strong>Batching over sequences in live traffic is tricky because</strong>:
+1.  Requests arrive at different times (waiting for batch is bad for early requests).
+2.  Sequences have shared prefixes (e.g., system prompts, generating multiple samples).
+3.  Sequences have different lengths (padding is inefficient).</p>
+<p><strong>Continuous Batching</strong> (Orca: A Distributed Serving System for Transformer-Based Generative Models):
+-   <strong>Problem</strong>: Training gets a dense block of tokens (batch size x sequence length). Inference has requests arrive and finish at different times, leading to a ragged array.
+-   <strong>Solution</strong>: Iteration-level scheduling.
+    -   Decode step by step.
+    -   Add new requests to the batch as they arrive (don't have to wait until generation).
+    -   This means the worker generating tokens needs to hand control back to the scheduler every step.
+    -   You generate a token, come back to the scheduler, and if there's new requests, they get stuck in, and then it continues.
+    -   You're not wasting any time waiting around for requests.</p>
+<p><strong>Selective Batching</strong>:
+-   <strong>Problem</strong>: Batching only works when all sequences have the same dimensionality.
+-   <strong>Solution</strong>: Training: when all sequences of the same length, operate on a B x S x H tensor. But we might have different lengths.
+-   <strong>Attention computation</strong>: Process each sequence separately.
+-   <strong>Non-attention computation</strong>: Concatenate all the sequences together to <code>[3 + 9 + 5, H]</code>.</p>
+<p><strong>PagedAttention</strong> (Kwon+ 2023):
+-   Paper that introduced vLLM.
+-   <strong>Previous status quo</strong>: Request comes in. Allocate section of KV cache for prompt and response (up to a max length).
+-   <strong>Problem</strong>: Fragmentation (what happens to your hard drive). This is wasteful since we might generate fewer tokens (internal fragmentation). Might be extra unused space between sections (external fragmentation).
+-   <strong>Solution</strong>: PagedAttention (remember operating systems). Divide the KV cache of a sequence into non-contiguous blocks.
+-   <strong>How it works</strong>: Divide KV cache into blocks. Put them wherever there's space. If you have two requests, they might be scattered across memory. If you need to diverge, you copy and reduce the reference count.</p>
+<h3 id="054000-summary">[05:40:00] Summary</h3>
+<ul>
+<li><strong>Inference is important</strong> (actual use, evaluation, reinforcement learning).</li>
+<li><strong>Different characteristics compared to training</strong> (memory-limited, dynamic).</li>
+<li><strong>Techniques</strong>: New architectures, quantization, pruning/distillation, speculative decoding.</li>
+<li><strong>Ideas from systems</strong> (speculative execution, paging).</li>
+<li><strong>New architectures have huge potential for improvement</strong>.</li>
+</ul>
+<hr />
+<h2 id="practical-takeaways">Practical Takeaways</h2>
+<ul>
+<li>Inference efficiency is paramount for deploying large language models, impacting user experience and operational costs.</li>
+<li>The sequential nature of token generation makes inference memory-bound, especially for attention layers.</li>
+<li>Optimizing inference involves a multi-pronged approach: architectural innovations, quantization, pruning, and systems-level scheduling.</li>
+<li>Understanding the trade-offs between latency and throughput is crucial for designing efficient inference systems.</li>
+<li>Novel architectures like GQA, MLA, local attention, state-space models, and diffusion models offer significant potential for improving inference speed and memory usage.</li>
+<li>Quantization and pruning are effective for reducing model size and speeding up inference, but require careful handling to preserve accuracy.</li>
+<li>Speculative decoding and continuous batching/PagedAttention are powerful techniques that leverage the asymmetry between checking and generation, and systems-level memory management, respectively.</li>
+</ul>
+<h2 id="open-questions-things-to-remember">Open Questions / Things to Remember</h2>
+<ul>
+<li>How to balance the trade-off between latency and throughput for different application requirements?</li>
+<li>What are the practical limits of quantization and pruning before accuracy degrades unacceptably?</li>
+<li>How can we further bridge the gap between architectural innovations and their practical deployment in real-world inference systems?</li>
+<li>Will diffusion models or state-space models eventually replace transformers for text generation due to their inference advantages?</li>
+<li>How to effectively manage the dynamic and heterogeneous nature of live inference traffic to maximize GPU utilization and minimize latency?</li>
+<li>The "inference game" is not just about optimizing existing models but also about designing models that are inherently efficient for inference.</li>
+</ul><div class="pager"><a href="lec09.html">← Lec 09</a><a href="lec11.html" style="text-align:right">Lec 11 →</a></div></main></div></body></html>

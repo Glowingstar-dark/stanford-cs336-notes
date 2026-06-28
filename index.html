@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stanford CS336 Notes — Qihong Ruan</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html" class="active">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="hero"><div class="crumbs"><a href="../">← Qihong Ruan</a></div><h1>Stanford CS336 — Language Modeling from Scratch</h1><p>Comprehensive lecture notes for the Spring 2025 edition of Stanford's CS336. Each set of notes is generated from the entire lecture video — the slides, whiteboard math, and live code — combined with the official transcript. Covers tokenization, architectures, MoE, GPUs &amp; kernels, parallelism, scaling laws, inference, evaluation, data, and alignment (SFT/RLHF/RL).</p><p class="meta" style="margin-top:14px">17/17 lectures · <a href="https://www.youtube.com/playlist?list=PLoROMvodv4rOY23Y0BoGoBGgQ1zmU_MT_" target="_blank">Course playlist ↗</a> · <a href="https://stanford-cs336.github.io/spring2025/" target="_blank">Course site ↗</a></p><a class="ghbtn" href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener">⭐ Star on GitHub</a></div><div class="grid"><div class="card" style="position:relative"><a class="stretch" href="lec01.html"></a><div class="n">LECTURE 01 · 1:18:59</div><h3>Overview and Tokenization</h3><div class="dur">CS336: Language Models From Scratch aims to teach students how to build language models from the ground up, emphasizing a deep understanding of the un…</div></div><div class="card" style="position:relative"><a class="stretch" href="lec02.html"></a><div class="n">LECTURE 02 · 1:19:22</div><h3>PyTorch, Resource Accounting</h3><div class="dur">This lecture focuses on building language models from scratch using PyTorch, emphasizing efficiency and resource accounting (memory and compute).</div></div><div class="card" style="position:relative"><a class="stretch" href="lec03.html"></a><div class="n">LECTURE 03 · 1:27:03</div><h3>Architectures, Hyperparameters</h3><div class="dur">Modern transformer architectures have converged on pre-norm, RMSNorm, and gated linear units (GLUs) for better stability and performance.</div></div><div class="card" style="position:relative"><a class="stretch" href="lec04.html"></a><div class="n">LECTURE 04 · 1:22:04</div><h3>Mixture of Experts</h3><div class="dur"></div></div><div class="card" style="position:relative"><a class="stretch" href="lec05.html"></a><div class="n">LECTURE 05 · 1:14:21</div><h3>GPUs</h3><div class="dur">GPUs are massively parallel processors optimized for throughput, not latency, by having many simple compute units (SMs) orchestrated by minimal contro…</div></div><div class="card" style="position:relative"><a class="stretch" href="lec06.html"></a><div class="n">LECTURE 06 · 1:20:22</div><h3>Kernels, Triton</h3><div class="dur"></div></div><div class="card" style="position:relative"><a class="stretch" href="lec07.html"></a><div class="n">LECTURE 07 · 1:24:42</div><h3>Parallelism 1</h3><div class="dur"></div></div><div class="card" style="position:relative"><a class="stretch" href="lec08.html"></a><div class="n">LECTURE 08 · 1:15:10</div><h3>Parallelism 2</h3><div class="dur">Data Transfer Bottleneck: The primary challenge in distributed training is minimizing data transfer bottlenecks, as moving data between different memo…</div></div><div class="card" style="position:relative"><a class="stretch" href="lec09.html"></a><div class="n">LECTURE 09 · 1:05:18</div><h3>Scaling Laws 1</h3><div class="dur"></div></div><div class="card" style="position:relative"><a class="stretch" href="lec10.html"></a><div class="n">LECTURE 10 · 1:22:52</div><h3>Inference</h3><div class="dur">Inference is a critical part of language model deployment, distinct from training due to its memory-limited and dynamic nature.</div></div><div class="card" style="position:relative"><a class="stretch" href="lec11.html"></a><div class="n">LECTURE 11 · 1:18:13</div><h3>Scaling Laws 2</h3><div class="dur">Scaling Laws in Practice: Modern large language model (LLM) builders use scaling laws as a core part of their design process, but the details of these…</div></div><div class="card" style="position:relative"><a class="stretch" href="lec12.html"></a><div class="n">LECTURE 12 · 1:20:48</div><h3>Evaluation</h3><div class="dur">Evaluation is a complex topic that goes beyond simple metrics, influencing how language models are built and used.</div></div><div class="card" style="position:relative"><a class="stretch" href="lec13.html"></a><div class="n">LECTURE 13 · 1:19:06</div><h3>Data 1</h3><div class="dur"></div></div><div class="card" style="position:relative"><a class="stretch" href="lec14.html"></a><div class="n">LECTURE 14 · 1:19:12</div><h3>Data 2</h3><div class="dur">[0:00] Lecture 14: Data 2 - Deep Dive into Data Processing</div></div><div class="card" style="position:relative"><a class="stretch" href="lec15.html"></a><div class="n">LECTURE 15 · 1:14:51</div><h3>Alignment — SFT/RLHF</h3><div class="dur"></div></div><div class="card" style="position:relative"><a class="stretch" href="lec16.html"></a><div class="n">LECTURE 16 · 1:20:32</div><h3>Alignment — RL 1</h3><div class="dur">RLHF Limitations: Overoptimization and mode collapse are significant problems in RLHF, often stemming from the noisiness and complexity of human prefe…</div></div><div class="card" style="position:relative"><a class="stretch" href="lec17.html"></a><div class="n">LECTURE 17 · 1:16:09</div><h3>Alignment — RL 2</h3><div class="dur">Reinforcement Learning (RL) is key to surpassing human abilities in Language Models (LMs).</div></div></div></main></div></body></html>

@@ -1,0 +1,438 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 Lecture 17: Alignment — RL 2</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html" class="active"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Lecture 17</div><h1>Lecture 17: Alignment — RL 2</h1><p class="meta">Stanford CS336 · Spring 2025 · 1:16:09 · <a href="https://www.youtube.com/watch?v=JdGFdViaOJk" target="_blank">Watch on YouTube ↗</a></p><div class="banner">📝 Auto-generated notes from the full lecture video (slides, equations, and live code) and transcript. Verify critical details against the source.</div><div class="embed"><a href="https://www.youtube.com/watch?v=JdGFdViaOJk" target="_blank" rel="noopener" style="background-image:url(https://i.ytimg.com/vi/JdGFdViaOJk/hqdefault.jpg)"><span class="play"><span>▶ Watch on YouTube</span></span></a></div><p>These notes provide a comprehensive overview of Policy Gradient methods in Reinforcement Learning, with a focus on their application to Language Models.</p>
+<h2 id="tldr">TL;DR</h2>
+<ul>
+<li>Reinforcement Learning (RL) is key to surpassing human abilities in Language Models (LMs).</li>
+<li>Policy Gradient (PG) frameworks are conceptually clear, but practical implementation requires careful handling of high variance and changing data distributions.</li>
+<li>Baselines are crucial for reducing variance in PG updates without introducing bias. A common heuristic is to use the expected reward given the state, which relates to the advantage function.</li>
+<li>GRPO (Group Relative Policy Optimization) leverages the natural group structure in LM settings (multiple responses per prompt) to provide a natural baseline, simplifying PPO by removing the critic.</li>
+<li>Building and scaling RL systems for LMs is more complex than pre-training due to inference workloads, managing multiple models (policy, old policy, reference model, critic), and distributed execution.</li>
+</ul>
+<h2 id="key-concepts">Key Concepts</h2>
+<ul>
+<li>Policy Gradient (PG)</li>
+<li>Reinforcement Learning for Language Models (RLHF)</li>
+<li>State, Action, Reward definitions in LMs</li>
+<li>Sparse Rewards</li>
+<li>High Noise/Variance in PG</li>
+<li>Baselines for variance reduction</li>
+<li>Advantage Function</li>
+<li>Group Relative Policy Optimization (GRPO)</li>
+<li>Importance Sampling</li>
+<li>KL Penalty</li>
+<li>Freezing Parameters</li>
+</ul>
+<hr />
+<h2 id="0000-introduction-and-course-context">[00:00] Introduction and Course Context</h2>
+<p>The lecture begins by contextualizing its position within the course, noting it's one of the final lectures.</p>
+<h2 id="0020-recap-of-previous-lecture-and-todays-focus">[00:20] Recap of Previous Lecture and Today's Focus</h2>
+<figure class="slide"><img src="figs/lec17/00005.jpg" loading="lazy" alt="Stanford Engineering title slide."><figcaption><span class="ft">0:05</span> Stanford Engineering title slide.</figcaption></figure>
+<figure class="slide"><img src="figs/lec17/00020.jpg" loading="lazy" alt="Python code: main function, lecture summary, and final lectures."><figcaption><span class="ft">0:20</span> Python code: main function, lecture summary, and final lectures.</figcaption></figure>
+
+<p>The previous lecture covered an overview of RL from verifiable rewards, including Policy Gradient (PG) algorithms like PPO and GRPO. Today's lecture will deep dive into the mechanics of PG, specifically GRPO. The goal is to go deeper into existing material, show code, and explain some of the underlying math.</p>
+<h2 id="0052-rl-setup-for-language-models">[00:52] RL Setup for Language Models</h2>
+<figure class="slide"><img src="figs/lec17/00057.jpg" loading="lazy" alt="Python code: highlighting the rl_setup_for_language_models() function call."><figcaption><span class="ft">0:57</span> Python code: highlighting the rl_setup_for_language_models() function call.</figcaption></figure>
+<figure class="slide"><img src="figs/lec17/00100.jpg" loading="lazy" alt="Python code: defining state, action, and verifiable rewards for language models."><figcaption><span class="ft">1:40</span> Python code: defining state, action, and verifiable rewards for language models.</figcaption></figure>
+<figure class="slide"><img src="figs/lec17/00123.jpg" loading="lazy" alt="Python code: highlighting that discounting and bootstrapping are less applicable."><figcaption><span class="ft">2:03</span> Python code: highlighting that discounting and bootstrapping are less applicable.</figcaption></figure>
+
+<p>To clarify the RL framework in the context of Language Models:</p>
+<ul>
+<li><strong>State (s):</strong> The prompt + the generated response so far.</li>
+<li><strong>Action (a):</strong> Generating the next token.</li>
+<li>
+<p><strong>Rewards (R):</strong> How good the response is.</p>
+<ul>
+<li><strong>Outcome Rewards:</strong> Depend on the entire response.</li>
+<li><strong>Verifiable Rewards:</strong> Computation is deterministic (e.g., a function returns a reward, no human labeling).</li>
+<li><strong>Discounting and Bootstrapping:</strong> Less applicable here because rewards are typically given only at the end of a sequence of actions (sparse reward).<ul>
+<li><em>Example:</em> For a math problem, the reward is given only after the final answer is generated and checked against a ground truth.</li>
+</ul>
+</li>
+<li>Sparse and delayed rewards introduce difficulties but simplify conceptual thinking.</li>
+</ul>
+</li>
+<li>
+<p><strong>Transition Probabilities (T(s'|s, a)):</strong> Deterministic: s' = s + a.</p>
+<ul>
+<li>This is a key difference from robotics, where transition dynamics are complex and often unknown. In LMs, the transition is simply appending the action (next token) to the current state.</li>
+<li>This determinism allows for planning or "test-time compute," which is a significant advantage over typical RL settings.</li>
+</ul>
+</li>
+<li>
+<p><strong>States are "made up":</strong> Unlike robotics where states are grounded in the physical world (joint angles, images), in LMs, states are just sequences of tokens.</p>
+<ul>
+<li>This introduces a lot of flexibility; the LM can generate its own "scratchpad" to derive answers. The challenge is not reaching a state, but ensuring the generated tokens lead to a correct answer.</li>
+<li>The speaker emphasizes that while it's all RL, the intuitions and challenges change significantly in the LM context.</li>
+</ul>
+</li>
+<li>
+<p><strong>Policy ($\pi$(a|s)):</strong> Just a language model (fine-tuned).</p>
+<ul>
+<li>The policy takes the current state (prompt + generated response) and outputs a distribution over possible next tokens.</li>
+</ul>
+</li>
+<li>
+<p><strong>Rollout/Episode/Trajectory:</strong> $s \rightarrow a \rightarrow a \rightarrow \dots \rightarrow a \rightarrow R$.</p>
+<ul>
+<li>A sequence of states and actions culminating in a single reward.</li>
+</ul>
+</li>
+<li>
+<p><strong>Objective:</strong> Maximize expected reward $E[R]$.</p>
+<ul>
+<li>The expectation is taken over prompts (given by the environment) and response tokens (generated by the policy).</li>
+</ul>
+</li>
+</ul>
+<h2 id="0309-policy-gradient">[03:09] Policy Gradient</h2>
+<figure class="slide"><img src="figs/lec17/00188.jpg" loading="lazy" alt="Python code: highlighting that planning/test-time compute is possible."><figcaption><span class="ft">3:08</span> Python code: highlighting that planning/test-time compute is possible.</figcaption></figure>
+<figure class="slide"><img src="figs/lec17/00240.jpg" loading="lazy" alt="Python code: highlighting that states are made up, offering flexibility."><figcaption><span class="ft">4:00</span> Python code: highlighting that states are made up, offering flexibility.</figcaption></figure>
+<figure class="slide"><img src="figs/lec17/00328.jpg" loading="lazy" alt="Python code: highlighting the objective to maximize expected reward E[R]."><figcaption><span class="ft">5:28</span> Python code: highlighting the objective to maximize expected reward E[R].</figcaption></figure>
+<figure class="slide"><img src="figs/lec17/00380.jpg" loading="lazy" alt="Python code: highlighting the equation for expected reward E[R]."><figcaption><span class="ft">6:20</span> Python code: highlighting the equation for expected reward E[R].</figcaption></figure>
+
+<p>Policy Gradient (PG) refers to a class of methods for learning a policy by iteratively improving it using gradient ascent.</p>
+<p>For notational simplicity, let $a$ denote the entire response (sequence of actions/tokens). This is valid in the outcome reward setting where the reward is given only at the end.</p>
+<p>The objective is to maximize the expected reward with respect to the policy $\pi$:
+$$ E[R] = \int p(s) \pi(a|s) R(s,a) $$</p>
+<p>The "obvious thing to do" is to take the gradient:
+$$ \nabla E[R] = \nabla \int p(s) \pi(a|s) R(s,a) $$
+$$ \nabla E[R] = \int p(s) \nabla \pi(a|s) R(s,a) $$
+Using the identity $\nabla \pi(a|s) = \pi(a|s) \nabla \log \pi(a|s)$:
+$$ \nabla E[R] = \int p(s) \pi(a|s) \nabla \log \pi(a|s) R(s,a) $$
+This can be rewritten as an expectation:
+$$ \nabla E[R] = E[\nabla \log \pi(a|s) R(s,a)] $$
+This form should be familiar from standard PG derivations.</p>
+<h3 id="0716-naive-policy-gradient">[07:16] Naive Policy Gradient</h3>
+<figure class="slide"><img src="figs/lec17/00430.jpg" loading="lazy" alt="Python code: highlighting the gradient equation for expected reward E[R]."><figcaption><span class="ft">7:10</span> Python code: highlighting the gradient equation for expected reward E[R].</figcaption></figure>
+<figure class="slide"><img src="figs/lec17/00488.jpg" loading="lazy" alt="Python code: highlighting parameter updates based on the gradient of log n(a|s)."><figcaption><span class="ft">8:08</span> Python code: highlighting parameter updates based on the gradient of log n(a|s).</figcaption></figure>
+<figure class="slide"><img src="figs/lec17/00530.jpg" loading="lazy" alt="Python code: highlighting that the dataset changes over time like policy changes."><figcaption><span class="ft">8:50</span> Python code: highlighting that the dataset changes over time like policy changes.</figcaption></figure>
+
+<p>The naive policy gradient algorithm proceeds as follows:
+1. Sample a prompt $s \sim p(s)$.
+2. Sample a response $a \sim \pi(a|s)$.
+3. Update parameters based on $\nabla \log \pi(a|s) R(s,a)$.</p>
+<p><strong>Interpretation:</strong> This is essentially the same as Supervised Fine-Tuning (SFT), but weighted by the reward $R(s,a)$.
+- In SFT, a human provides the correct response $a$, and the model is updated to maximize the probability of that $a$.
+- In PG, the model generates $a$, and the update is weighted by the reward.</p>
+<p><strong>Setting:</strong> Consider a binary reward $R(s,a) \in \{0, 1\}$, indicating whether the response is correct or not.
+- <strong>Naive PG updates only on correct responses:</strong> If $R(s,a) = 0$, the term $\nabla \log \pi(a|s) R(s,a)$ becomes zero, so no update is made. Only responses with $R(s,a) = 1$ contribute to the update, effectively performing SFT on correct responses.
+- <strong>Data set changing over time:</strong> Unlike traditional SFT, the data distribution from which responses are sampled changes as the policy $\pi$ evolves.</p>
+<p><strong>Challenge: High Noise/Variance</strong>
+- In this sparse reward setting (few responses get reward 1, most get 0), PG suffers from high noise and variance.
+- If the policy is so bad that it rarely generates correct responses, most updates will be zero, leading to slow or no learning. This is a "stuck" scenario.
+- In contrast, RLHF models (learned from pairwise preferences) often have more continuous reward models, providing denser feedback.</p>
+<p><strong>Question:</strong> Why is the data set changing over time?
+- Each iteration, the policy parameters are updated. The next time a response is sampled, it comes from the <em>new</em> policy, which has a different distribution. This means the "data" (trajectories) used for updates changes over time.
+- Intuitively, if the model can get some easy questions correct, it updates, and hopefully generalizes to slightly harder questions, leading to a gradual increase in reward over time.</p>
+<p><strong>Question:</strong> Why not make the reward -1 for incorrect responses?
+- This is a valid idea, and it's implicitly handled by using baselines, which will be discussed next.</p>
+<h2 id="1543-baselines">[15:43] Baselines</h2>
+<p><strong>Recall:</strong> $\nabla E[R] = E[\nabla \log \pi(a|s) R(s,a)]$ is an unbiased estimate of $\nabla E[R]$, but its variance can be high.</p>
+<p><strong>Example: Two States</strong>
+Consider a simplified MDP with two states (prompts) S1 and S2, and two actions A1 and A2 for each.
+- S1: A1 $\rightarrow$ Reward 11, A2 $\rightarrow$ Reward 9
+- S2: A1 $\rightarrow$ Reward 0, A2 $\rightarrow$ Reward 2</p>
+<p>The optimal policy would be to choose A1 in S1 (reward 11) and A2 in S2 (reward 2).
+However, if we only look at local rewards, A2 in S1 (reward 9) might seem better than A2 in S2 (reward 2). A naive PG update might push the policy towards A2 in S1 because 9 &gt; 2, even though A1 is better in S1. This illustrates how local reward signals can be misleading without a broader context.</p>
+<p><strong>Idea: Maximize the baselined reward:</strong> $E[R - b(s)]$.
+- This involves subtracting a state-dependent baseline $b(s)$ from the reward.
+- This is just $E[R]$ shifted by a constant $E[b(s)]$ that doesn't depend on the policy $\pi$.
+- Therefore, maximizing $E[R - b(s)]$ is equivalent to maximizing $E[R]$.
+- The update rule becomes: $\nabla \log \pi(a|s) (R(s,a) - b(s))$.
+- This is valid for <em>any</em> $b(s)$ that does not depend on the action $a$.</p>
+<p><strong>Question:</strong> What $b(s)$ should we use?
+Let's revisit the two-state example. Assume a uniform distribution over $(s,a)$ and $|\nabla \log \pi(a|s)| = 1$ for simplicity.
+- <strong>Naive variance:</strong> Using the original rewards (11, 9, 0, 2), the variance is 5.32.
+- <strong>Define baseline:</strong> $b(S1) = 10$, $b(S2) = 1$. (These are chosen to be close to the average reward for each state).
+- <strong>Baseline variance:</strong> Subtracting the baseline, the new rewards are (1, -1, -1, 1). The variance is 1.15.
+- <strong>Variance reduced from 5.32 to 1.15.</strong> This demonstrates the power of baselines in reducing variance.</p>
+<p><strong>Optimal $b^*(s)$:</strong>
+The optimal baseline $b^*(s)$ that minimizes variance is given by:
+$$ b^*(s) = \frac{E[(\nabla \log \pi(a|s))^2 R(s,a)|s]}{E[(\nabla \log \pi(a|s))^2|s]} $$
+- This is difficult to compute in practice.
+- <strong>Heuristic:</strong> A common heuristic is to use the mean reward: $b(s) = E[R|s]$.
+- This is still hard to compute and must be estimated.</p>
+<h3 id="2628-advantage-functions">[26:28] Advantage Functions</h3>
+<p>The choice of $b(s) = E[R|s]$ has connections to advantage functions in RL.
+- <strong>Value function V(s):</strong> $E[R|s]$ = expected reward from state $s$.
+- <strong>Q-function Q(s,a):</strong> $E[R|s,a]$ = expected reward from state $s$ taking action $a$.
+    - Note: Q and R are the same here because we're assuming outcome rewards and $a$ has all actions. In general, R would be the return from that state, not just a single reward.</p>
+<ul>
+<li><strong>Definition (Advantage):</strong> $A(s,a) = Q(s,a) - V(s)$.</li>
+<li><strong>Intuition:</strong> How much better is action $a$ than expected from state $s$?</li>
+<li><strong>If $b(s) = E[R|s]$, then the baselined reward is identical to the advantage!</strong><ul>
+<li>$(R(s,a) - b(s)) = (R(s,a) - E[R|s]) = A(s,a)$.</li>
+</ul>
+</li>
+<li><strong>In general:</strong> The update rule is $E[\nabla \log \pi(a|s) \delta]$, where $\delta$ is an advantage-like quantity.</li>
+<li>There are multiple choices for $\delta$, as we'll see later. (Refer to CS224R lecture notes for more derivations).</li>
+</ul>
+<h2 id="3010-training-walkthrough">[30:10] Training Walkthrough</h2>
+<p>The walkthrough will use Group Relative Policy Optimization (GRPO) from Shao+ 2024.
+- <strong>Simplification to PPO:</strong> GRPO removes the critic (value function).
+- <strong>Leverages group structure:</strong> The LM setting (multiple responses per prompt) provides a natural baseline $b(s)$.
+    - The ability to generate multiple responses for a single prompt creates a "group" of trajectories. This group structure is leveraged to compute a natural baseline (e.g., the average reward within the group), which helps reduce variance.
+    - If every rollout looked different (no natural group structure), GRPO wouldn't make sense, and a value function would typically be used instead.</p>
+<h3 id="3300-grpo-algorithm-pseudocode">[33:00] GRPO Algorithm (Pseudocode)</h3>
+<p>The pseudocode for GRPO is presented (Algorithm 1: Iterative Group Relative Policy Optimization).
+1. Initialize policy model $\pi_{\theta_{init}}$, reward models $r_{\phi_i}$, task prompts $D$, hyperparameters $\epsilon, \beta, \mu$.
+2. For iteration $l = 1, \dots, M$ do:
+3.   Reference model $\pi_{ref} \leftarrow \pi_{\theta_l}$.
+4.   For step $s = 1, \dots, M$ do:
+5.     Sample a batch $D_b$ from $D$.
+6.     Update the old policy model $\pi_{\theta_{old}} \leftarrow \pi_{\theta_l}$ for each question $q \in D_b$.
+7.     Sample $G$ outputs $o_1^q, \dots, o_G^q$ for each sampled output $o_i^q$ by running $\pi_{\theta_l}$.
+8.     Compute rewards $r_i^q$ for $o_i^q$ through group relative advantage estimation.
+9.     For GRPO iteration $t = 1, \dots, \mu$ do:
+10.      Update the policy model $\pi_{\theta_l}$ by maximizing the GRPO objective (Equation 21).
+11.    Update $\pi_{\theta_l}$ through continuous training using a replay mechanism.
+12. Output $\pi_{\theta_l}$.</p>
+<h3 id="3439-simple-task-definition">[34:39] Simple Task Definition</h3>
+<p>A simple task is defined to demonstrate the concepts: <strong>sorting n numbers</strong>.
+- <strong>Prompt:</strong> n numbers (e.g., <code>[1, 0, 2]</code>).
+- <strong>Response:</strong> n numbers (e.g., <code>[0, 1, 2]</code>).
+- <strong>Reward:</strong> Should capture how close to sorted the response is.</p>
+<p><strong>Reward Function Choices:</strong>
+1. <strong>Exact Match Reward:</strong> Returns 1 if the response is perfectly sorted (matches ground truth), 0 otherwise.
+    - This is a sparse reward, leading to high variance and slow learning if the initial policy is poor.
+2. <strong>Partial Credit Reward (Inclusion Reward):</strong> Returns the number of positions where the response matches the ground truth.
+    - <em>Example:</em> <code>[1, 0, 2]</code> sorted is <code>[0, 1, 2]</code>.
+        - <code>[0, 1, 2, 3]</code> $\rightarrow$ reward 4 (perfect match).
+        - <code>[3, 1, 0, 2]</code> $\rightarrow$ reward 1 (only '2' is in the correct position).
+        - <code>[0, 3, 1, 2]</code> $\rightarrow$ reward 1 (only '0' is correct).
+    - This is still somewhat sparse.
+3. <strong>Partial Credit Reward (Inclusion + Ordering Reward):</strong>
+    - Gives 1 point for each token in the prompt that shows up in the response.
+    - Gives 1 point for each adjacent pair in the response that's sorted.
+    - <em>Example:</em> <code>[1, 0, 2]</code> sorted is <code>[0, 1, 2]</code>.
+        - <code>[0, 1, 2, 3]</code> $\rightarrow$ inclusion reward 4, ordering reward 3 $\rightarrow$ total 7.
+        - <code>[3, 1, 0, 2]</code> $\rightarrow$ inclusion reward 3, ordering reward 0 $\rightarrow$ total 3.
+        - <code>[0, 3, 1, 2]</code> $\rightarrow$ inclusion reward 4, ordering reward 2 $\rightarrow$ total 6.
+    - This provides more continuous feedback, which is generally better for RL. The second reward function (inclusion + ordering) will be used for the walkthrough.</p>
+<h3 id="3728-simple-model-definition">[37:28] Simple Model Definition</h3>
+<p>A simple model is defined to solve the sorting task:
+- Assumes fixed prompt and response length.
+- Captures positional information with separate per-position parameters.
+- Decodes each position in the response independently (not autoregressive). This simplifies the code significantly.</p>
+<p><strong>Model Architecture:</strong>
+- <code>nn.Embedding</code> for vocabulary.
+- For each position, a matrix for encoding and a matrix for decoding.
+- <code>einsum</code> is used for transformations.</p>
+<p><strong>Forward Pass:</strong>
+1. Embed the prompts into <code>[batch, pos, dim]</code> embeddings.
+2. Transform per-prompt position matrix, collapse into one vector: <code>encoded = einsum(embeddings, self.encode_weights, "batch pos dim1, pos dim1 dim2 -&gt; batch dim2")</code>. This effectively sums out the position and dim1, resulting in a single vector per batch.
+3. Turn into one vector per response position: <code>decoded = einsum(encoded, self.decode_weights, "batch dim2, batch pos dim1 -&gt; batch pos dim1")</code>. This applies a position-specific matrix to the encoded vector.
+4. Convert to logits (input and output share embeddings): <code>logits = einsum(decoded, self.embedding.weight, "batch pos dim1, vocab dim1 -&gt; batch pos vocab")</code>.</p>
+<h3 id="4116-generating-responses">[41:16] Generating Responses</h3>
+<p>The <code>generate_responses</code> function takes prompts, the model, and the number of responses to generate.
+- It samples <code>num_responses</code> independently for each <code>[batch, pos]</code> from the model's logits using <code>torch.multinomial</code>.
+- The sampled responses are then reshaped to <code>[batch, trial, pos]</code>.</p>
+<h3 id="4116-computing-rewards-and-deltas">[41:16] Computing Rewards and Deltas</h3>
+<ul>
+<li><strong>Compute Rewards:</strong> The <code>compute_reward</code> function iterates through each prompt and each generated response, calling the defined reward function (e.g., <code>sort_inclusion_ordering_reward</code>).</li>
+<li><strong>Compute Deltas:</strong> The <code>compute_deltas</code> function takes the rewards and converts them into the $\delta$ values for updates.<ul>
+<li><strong><code>rewards</code> mode:</strong> $\delta = R$. This is the naive PG.</li>
+<li><strong><code>centered_rewards</code> mode:</strong> $\delta = R - \text{mean}(R)$. The mean is computed over all responses for each prompt.<ul>
+<li>If all rewards for a prompt are the same, $\delta$ will be 0, meaning no update. The intuition is that if all generated responses are equally good (or bad), there's no signal to favor one over another.</li>
+</ul>
+</li>
+<li><strong><code>normalized_rewards</code> mode:</strong> $\delta = (R - \text{mean}(R)) / \text{std}(R)$. This normalizes the centered rewards by their standard deviation. This makes the updates invariant to the scale of the reward.</li>
+<li><strong><code>max_rewards</code> mode:</strong> $\delta = R$ if $R$ is the maximum reward for the batch, 0 otherwise. This is an "all or nothing" approach, focusing only on the best responses.</li>
+</ul>
+</li>
+</ul>
+<h3 id="4746-computing-log-probabilities">[47:46] Computing Log Probabilities</h3>
+<p>The <code>compute_log_probs</code> function calculates the log probabilities of the generated responses under the current model.
+- It passes the prompts through the model to get logits.
+- Converts logits to log probabilities using <code>F.log_softmax</code>.
+- Indexes into these log probabilities using the generated responses to get the specific log probability for each token in each response.</p>
+<h3 id="4933-computing-loss">[49:33] Computing Loss</h3>
+<p>The <code>compute_loss</code> function calculates the loss to update the model parameters.
+- <strong><code>naive</code> mode:</strong> <code>loss = -einsum(log_probs, deltas, "batch trial pos, batch trial -&gt; batch trial").mean()</code>. This is the basic PG update: $\nabla \log \pi(a|s) \delta$.
+- <strong><code>clipped</code> mode (GRPO/PPO-like):</strong>
+    - This involves computing a ratio of current log probs to old log probs (<code>unclipped_ratios = log_probs - old_log_probs</code>).
+    - This ratio is then clipped between <code>1 - epsilon</code> and <code>1 + epsilon</code>.
+    - The clipped ratio is multiplied by <code>deltas</code>.
+    - The minimum of this clipped term and another term (related to the unclipped ratio) is taken.
+    - This ensures that the policy doesn't deviate too much from the old policy in a single update.
+    - The negative sign is for converting reward maximization into loss minimization.</p>
+<h3 id="5055-freezing-parameters">[50:55] Freezing Parameters</h3>
+<p><strong>Motivation:</strong> In GRPO, you'll see ratios like $\pi(a|s) / \pi_{old}(a|s)$. It's important to freeze and not differentiate through $\pi_{old}$.
+- <strong>Toy Example:</strong> If <code>w</code> drives both <code>p</code> (current policy) and <code>p_old</code> (old policy), and you compute <code>ratio = p / p_old</code> and then <code>ratio.backward()</code>, the gradient <code>grad.w</code> will be 0 if <code>p_old</code> is not frozen.
+- <strong>Correct Way:</strong> To treat <code>p_old</code> as a constant, use <code>with torch.no_grad(): p_old = torch.nn.Sigmoid(w)</code>. This allows getting the value of <code>p_old</code> without building a computation graph for it.</p>
+<h3 id="5159-kl-penalty">[51:59] KL Penalty</h3>
+<p>Sometimes, an explicit KL penalty is used to regularize the model.
+- The KL divergence between two distributions $P$ and $Q$ is $KL(P||Q) = E_{x \sim P}[\log(P(x)/Q(x))]$.
+- This can be rewritten as $E_{x \sim P}[\log(P(x)) - \log(Q(x))]$.
+- If we want to estimate $KL(\pi_{\theta}||\pi_{ref})$, we can sample from $\pi_{\theta}$ and compute $E_{a \sim \pi_{\theta}}[\log \pi_{\theta}(a|s) - \log \pi_{ref}(a|s)]$.
+- An alternative estimate for $KL(\pi_{\theta}||\pi_{ref})$ is $E_{a \sim \pi_{\theta}}[\frac{\pi_{ref}(a|s)}{\pi_{\theta}(a|s)} (\log \pi_{\theta}(a|s) - \log \pi_{ref}(a|s))]$. This particular estimate can have lower variance.
+- The math works out because $E_{a \sim \pi_{\theta}}[\frac{\pi_{ref}(a|s)}{\pi_{\theta}(a|s)}] = 1$.</p>
+<h3 id="5338-summary-of-components">[53:38] Summary of Components</h3>
+<p>So far, the components needed for the GRPO algorithm are:
+- Generate responses.
+- Compute rewards $R$ and $\delta$ (rewards, centered rewards, normalized rewards, max rewards).
+- Compute log probs of responses.
+- Compute loss from log probs and $\delta$ (naive, unclipped, clipped).
+- Freezing parameters.</p>
+<h3 id="5348-grpo-algorithm-full-code">[53:48] GRPO Algorithm (Full Code)</h3>
+<p>The full <code>run_policy_gradient</code> function is presented, implementing the GRPO algorithm.</p>
+<p><strong>Outer Loop (Epochs):</strong>
+- Iterates <code>num_epochs</code> times.
+- If KL penalty is used, the reference model (<code>ref_model</code>) is updated every few epochs by cloning the current model. This <code>ref_model</code> is used for the KL penalty.</p>
+<p><strong>Inside the Epoch Loop:</strong>
+1. <strong>Sample responses and evaluate their rewards:</strong>
+    - <code>responses = generate_responses(...)</code>
+    - <code>rewards = compute_reward(...)</code>
+    - <code>deltas = compute_deltas(...)</code> (mode can be <code>rewards</code>, <code>centered_rewards</code>, <code>normalized_rewards</code>, <code>max_rewards</code>).</p>
+<ol start="2">
+<li>
+<p><strong>Compute log probs under the reference model (if KL penalty is used):</strong></p>
+<ul>
+<li><code>ref_log_probs = compute_log_probs(..., model=ref_model)</code> (with <code>torch.no_grad()</code> to freeze <code>ref_model</code>).</li>
+</ul>
+</li>
+<li>
+<p><strong>Compute log probs under the current model:</strong></p>
+<ul>
+<li><code>log_probs = compute_log_probs(...)</code></li>
+</ul>
+</li>
+<li>
+<p><strong>Take a number of steps (<code>num_steps_per_epoch</code>) to update the model:</strong></p>
+<ul>
+<li>This inner loop performs multiple gradient steps using the same set of generated responses.</li>
+<li><code>loss = compute_loss(...)</code> (mode can be <code>naive</code>, <code>unclipped</code>, <code>clipped</code>).</li>
+<li>If KL penalty is used, <code>loss += kl_penalty * compute_kl_penalty(...)</code>.</li>
+<li>Backpropagate and update parameters: <code>optimizer.zero_grad()</code>, <code>loss.backward()</code>, <code>optimizer.step()</code>.</li>
+</ul>
+</li>
+</ol>
+<h3 id="5959-experiments">[59:59] Experiments</h3>
+<p>The code then runs some experiments using the defined task and model.</p>
+<p><strong>Example Walkthrough:</strong>
+- The output of a run is shown, detailing the prompt, generated responses, log probabilities, rewards, and deltas at each step.
+- <strong>Prompt:</strong> <code>[1, 0, 2]</code>
+- <strong>Responses:</strong> Initially, the model generates random sequences.
+- <strong>Rewards:</strong> The <code>sort_inclusion_ordering_reward</code> is used.
+- <strong>Deltas:</strong> Initially, deltas are 3.0 for all responses (as all rewards are 3.0 in this specific run due to fixed random seed).
+- <strong>Centering:</strong> When centering is applied, deltas become 0 if all rewards are the same. This means no update is made.
+- <strong>Normalization:</strong> Normalization makes the updates invariant to the scale of the reward.
+- <strong><code>max_rewards</code>:</strong> Only the responses with the maximum reward contribute to the update.</p>
+<p><strong>Observation:</strong> If all generated responses for a prompt have the same reward, <code>centered_rewards</code> will be 0, leading to no updates for that prompt. This is a design choice in GRPO, as it assumes there's no signal to favor one response over another within that group.</p>
+<p><strong>Freezing Parameters (Important for GRPO/PPO):</strong>
+- In GRPO/PPO, you often see ratios like $\pi(a|s) / \pi_{old}(a|s)$. It's crucial to freeze $\pi_{old}$ and not differentiate through it.
+- <strong>Toy Example:</strong> If <code>w</code> drives both <code>p</code> (current policy) and <code>p_old</code>, and you compute <code>ratio = p / p_old</code> and <code>ratio.backward()</code>, the gradient <code>grad.w</code> will be 0 if <code>p_old</code> is not frozen.
+- <strong>Correct Way:</strong> Use <code>with torch.no_grad(): p_old = torch.nn.Sigmoid(w)</code>. This allows getting the value of <code>p_old</code> without building a computation graph for it.</p>
+<p><strong>KL Penalty:</strong>
+- The KL penalty is used to regularize the model, preventing the new policy from deviating too much from a reference policy.
+- The <code>compute_kl_penalty</code> function estimates $KL(\pi_{\theta}||\pi_{ref})$.</p>
+<p><strong>Training Loop:</strong>
+- The outer loop iterates over epochs.
+- Inside, responses are generated, rewards and deltas are computed.
+- If KL penalty is used, a <code>ref_model</code> is cloned from the current model every few epochs and used for regularization.
+- The inner loop iterates <code>num_steps_per_epoch</code> times, performing gradient updates using the computed loss. This is where the model learns from the generated responses.</p>
+<p><strong>Results:</strong>
+- The training is run for 100 epochs, with 10 steps per epoch.
+- <strong>Naive PG:</strong> The train loss decreases, and mean reward increases, but the loss curve is very noisy.
+- <strong>Centered Rewards:</strong> The train loss is less noisy, and mean reward increases more smoothly.
+- <strong>Normalized Rewards:</strong> Similar to centered rewards, but potentially more stable.</p>
+<p><strong>Final Observations from the run:</strong>
+- The model struggles to perfectly sort the numbers, even with partial credit.
+- The <code>sort_inclusion_ordering_reward</code> is a double-edged sword: it provides more signal, but the model might get "stuck" in a local optimum where it's happy generating partially correct answers, but not fully sorted ones.
+- The model often produces numbers that are present in the prompt but not in the correct order.
+- The loss curves can be misleading. A decreasing loss doesn't always mean the model is improving in a meaningful way, especially when the data distribution is changing.</p>
+<h2 id="11324-summary-and-practical-takeaways">[1:13:24] Summary and Practical Takeaways</h2>
+<ul>
+<li><strong>Reinforcement Learning is the key to surpassing human abilities:</strong> Labeled data only allows mimicking existing behavior. RL enables learning beyond human demonstration.</li>
+<li><strong>If you can measure it, you can optimize it:</strong> The core idea of RL is to define a reward function and then optimize the policy to maximize it.</li>
+<li><strong>Policy Gradient framework is conceptually clear:</strong> Define objective, subtract baseline to reduce variance, estimate gradient.</li>
+<li><strong>RL systems are much more complex than pre-training:</strong><ul>
+<li><strong>Inference workloads:</strong> Generating responses from the LM is computationally expensive.</li>
+<li><strong>Manage multiple models:</strong> You need to keep track of the current policy, old policy (for importance sampling/clipping), and reference policy (for KL regularization).</li>
+<li><strong>Distributed execution:</strong> RL often requires parallelizing environment interactions, inference, and training across multiple machines.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="practical-takeaways">Practical Takeaways</h2>
+<ul>
+<li><strong>Variance Reduction is Key:</strong> Baselines are essential for making Policy Gradient methods practical, especially with sparse rewards.</li>
+<li><strong>Reward Design Matters:</strong> The choice of reward function (sparse vs. dense, exact vs. partial credit) profoundly impacts learning stability and efficiency. Dense, well-shaped rewards are generally preferred.</li>
+<li><strong>Understanding GRPO/PPO Mechanics:</strong> These algorithms use importance sampling and clipping to stabilize updates and prevent large policy shifts, which is crucial when the data distribution changes.</li>
+<li><strong>Computational Complexity:</strong> RL for LMs is resource-intensive, requiring careful management of inference, multiple models, and distributed systems.</li>
+</ul>
+<h2 id="open-questions-things-to-remember">Open Questions / Things to Remember</h2>
+<ul>
+<li><strong>Credit Assignment Problem:</strong> How do we correctly attribute reward to individual actions in a long sequence, especially when rewards are sparse? This is a fundamental challenge in RL.</li>
+<li><strong>Reward Hacking:</strong> How to design reward functions that truly capture desired behavior without being "hackable" by the agent (i.e., finding unintended ways to maximize reward)?</li>
+<li><strong>Balancing Exploration and Exploitation:</strong> How to ensure the policy explores enough to find better strategies while also exploiting known good strategies?</li>
+<li><strong>Stability of RL Training:</strong> The changing data distribution and high variance make RL training notoriously unstable and sensitive to hyperparameters.</li>
+<li><strong>The "Lie" of Loss Curves:</strong> In RL, monitoring loss over time can be misleading because the underlying data distribution (generated responses) is constantly changing. Reward metrics are often more indicative of progress.</li>
+</ul><div class="pager"><a href="lec16.html">← Lec 16</a><span></span></div></main></div></body></html>

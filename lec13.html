@@ -1,0 +1,949 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 Lecture 13: Data 1</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html" class="active"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Lecture 13</div><h1>Lecture 13: Data 1</h1><p class="meta">Stanford CS336 · Spring 2025 · 1:19:06 · <a href="https://www.youtube.com/watch?v=WePxmeXU1xg" target="_blank">Watch on YouTube ↗</a></p><div class="banner">📝 Auto-generated notes from the full lecture video (slides, equations, and live code) and transcript. Verify critical details against the source.</div><div class="embed"><a href="https://www.youtube.com/watch?v=WePxmeXU1xg" target="_blank" rel="noopener" style="background-image:url(https://i.ytimg.com/vi/WePxmeXU1xg/hqdefault.jpg)"><span class="play"><span>▶ Watch on YouTube</span></span></a></div><p><strong>TL;DR</strong>
+*   Data is the most critical component for successful language models, often more so than architecture or scaling laws.
+*   Data collection and processing is a complex, multi-stage pipeline involving raw data acquisition, conversion, filtering, and deduplication.
+*   Companies are often secretive about their data sources and processing techniques due to competitive dynamics and legal/copyright concerns.
+*   The field of data curation is highly heuristic, with various approaches (rule-based, model-based, synthetic generation) constantly evolving.
+*   Copyright law and terms of service significantly impact what data can be legally and practically used for training models.</p>
+<p><strong>Key concepts</strong>
+*   Pre-training, Mid-training, Post-training
+*   Data Sources: BooksCorpus, Wikipedia, WebText, Common Crawl, C4, The Pile, GitHub, StackExchange, RefinedWeb, FineWeb, Dolma, LLaMA, NemoTron-CC
+*   Data Processing: Filtering (rule-based vs. model-based), Deduplication, Language Identification, Quality Filtering, Toxicity Filtering, Anonymization, Synthetic Data Generation, Self-Instruct, RLHF
+*   Copyright Law: Intellectual Property, Fair Use (purpose, nature, amount, market effect), Licenses (Creative Commons), Terms of Service
+*   Long Context
+*   Instruction Following / Chat Data</p>
+<hr />
+<h3 id="000-introduction-the-importance-of-data">[0:00] Introduction: The Importance of Data</h3>
+<figure class="slide"><img src="figs/lec13/00010.jpg" loading="lazy" alt="A lecturer stands behind a podium with a laptop, gesturing while speaking."><figcaption><span class="ft">0:10</span> A lecturer stands behind a podium with a laptop, gesturing while speaking.</figcaption></figure>
+<figure class="slide"><img src="figs/lec13/00027.jpg" loading="lazy" alt="Python code for lecture_13.py, outlining topics on training models and data selection."><figcaption><span class="ft">0:27</span> Python code for lecture_13.py, outlining topics on training models and data selection.</figcaption></figure>
+<figure class="slide"><img src="figs/lec13/00070.jpg" loading="lazy" alt="Slide section &quot;Pre-Training Data&quot; detailing dataset creation and data cleaning methods."><figcaption><span class="ft">1:10</span> Slide section &quot;Pre-Training Data&quot; detailing dataset creation and data cleaning methods.</figcaption></figure>
+
+<p>The focus of this lecture is on <strong>data</strong> for language models.</p>
+<p><strong>Hot Take:</strong> Data is the most important thing in getting language models right.
+*   Some might disagree, arguing that scaling laws are more important.
+*   <strong>Justification:</strong> Companies are often transparent about model architecture and training procedures (e.g., LLaMA 3, DeepSeek fully disclose these), but they are typically very secretive about their data. This secrecy suggests data is a key differentiator.
+    *   <strong>Reasons for Secrecy:</strong>
+        1.  <strong>Competitive Dynamics:</strong> Data pipelines and curation methods are proprietary and give companies an edge.
+        2.  <strong>Copyright Liability:</strong> Companies want to avoid lawsuits related to data usage.</p>
+<p>Before foundation models, data annotation for supervised learning was clearly recognized as important. Now, even with less annotation, significant curation and cleaning are still required.</p>
+<p>Data is fundamentally a "long-tail problem."
+*   It's highly scalable: you can hire hundreds of people to work on different aspects of data (multilinguality, code, images, etc.).
+*   In contrast, architecture design is often handled by a small, focused team.</p>
+<hr />
+<h3 id="252-stages-of-training">[2:52] Stages of Training</h3>
+<p>Language model training typically involves multiple stages:</p>
+<ol>
+<li><strong>Pre-training</strong>: Training on raw, large-scale data (e.g., from the web). This is the primary focus of this lecture.</li>
+<li><strong>Mid-training</strong>: Curating smaller sets of high-quality data (documents) to target particular capabilities (e.g., math, code, long context).</li>
+<li><strong>Post-training</strong>: Fine-tuning on instruction-following data, chat data, or using reinforcement learning (RLHF) to align the model with human preferences and ensure safety.</li>
+</ol>
+<p>In practice, the lines between these stages can be blurry, and more stages might be involved in recent models. The basic idea is to start with large amounts of low-quality data and progressively refine training on smaller amounts of high-quality data.</p>
+<p><strong>Terminology:</strong>
+*   <strong>Base model</strong>: Refers to the checkpoint after pre-training and mid-training.
+*   <strong>Instruct/Chat model</strong>: Refers to the model after post-training.</p>
+<hr />
+<h3 id="409-example-olmo-from-ai2">[4:09] Example: OLMo (from AI2)</h3>
+<figure class="slide"><img src="figs/lec13/00252.jpg" loading="lazy" alt="Table showing pretraining data statistics for OLMo+ 2024, including tokens, words, bytes, and docs."><figcaption><span class="ft">4:12</span> Table showing pretraining data statistics for OLMo+ 2024, including tokens, words, bytes, and docs.</figcaption></figure>
+
+<p>Let's look at the data mix for OLMo, an open-source model from AI2 (OLMo+ 2024 paper).</p>
+<p><strong>1. Pre-training Data Mix:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Source</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Tokens (billions)</th>
+<th style="text-align: left;">Words (billions)</th>
+<th style="text-align: left;">Bytes (billions)</th>
+<th style="text-align: left;">Docs (millions)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">DCLM-Baseline</td>
+<td style="text-align: left;">Web pages</td>
+<td style="text-align: left;">3.71</td>
+<td style="text-align: left;">3.32</td>
+<td style="text-align: left;">21.32</td>
+<td style="text-align: left;">2.95</td>
+</tr>
+<tr>
+<td style="text-align: left;">StarCoder</td>
+<td style="text-align: left;">Code</td>
+<td style="text-align: left;">83.0</td>
+<td style="text-align: left;">70.0</td>
+<td style="text-align: left;">413</td>
+<td style="text-align: left;">78.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">peS2o</td>
+<td style="text-align: left;">Academic papers</td>
+<td style="text-align: left;">58.6</td>
+<td style="text-align: left;">51.1</td>
+<td style="text-align: left;">413</td>
+<td style="text-align: left;">38.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">arXiv</td>
+<td style="text-align: left;">Math papers</td>
+<td style="text-align: left;">20.8</td>
+<td style="text-align: left;">19.3</td>
+<td style="text-align: left;">77.2</td>
+<td style="text-align: left;">2.89</td>
+</tr>
+<tr>
+<td style="text-align: left;">OpenWebMath</td>
+<td style="text-align: left;">Math web pages</td>
+<td style="text-align: left;">12.2</td>
+<td style="text-align: left;">11.1</td>
+<td style="text-align: left;">47.2</td>
+<td style="text-align: left;">3.08</td>
+</tr>
+<tr>
+<td style="text-align: left;">Algebraic Stack</td>
+<td style="text-align: left;">Math proofs code</td>
+<td style="text-align: left;">1.8</td>
+<td style="text-align: left;">1.7</td>
+<td style="text-align: left;">6.2</td>
+<td style="text-align: left;">0.17</td>
+</tr>
+<tr>
+<td style="text-align: left;">Wikipedia &amp; WikiBooks</td>
+<td style="text-align: left;">Encyclopedia</td>
+<td style="text-align: left;">1.7</td>
+<td style="text-align: left;">1.6</td>
+<td style="text-align: left;">6.2</td>
+<td style="text-align: left;">0.47</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Total</strong></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><strong>3.90T</strong></td>
+<td style="text-align: left;"><strong>3.48T</strong></td>
+<td style="text-align: left;"><strong>22.38T</strong></td>
+<td style="text-align: left;"><strong>3.08B</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>DCLM-Baseline</strong>: A web crawl dataset.</li>
+<li><strong>StarCoder</strong>: Code from GitHub.</li>
+<li><strong>peS2o</strong>: Academic papers, likely from Semantic Scholar.</li>
+<li><strong>arXiv</strong>: Preprints, often math-heavy.</li>
+<li><strong>OpenWebMath, Algebraic Stack</strong>: Math-specific datasets.</li>
+<li><strong>Wikipedia &amp; WikiBooks</strong>: Encyclopedic content.</li>
+</ul>
+<p>Total: ~3.90 Trillion tokens.</p>
+<p><strong>2. Mid-training Data Mix:</strong>
+This stage focuses on higher quality data, often a subset of pre-training data or synthetically generated data.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Source</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Tokens (billions)</th>
+<th style="text-align: left;">Words (billions)</th>
+<th style="text-align: left;">Bytes (billions)</th>
+<th style="text-align: left;">Docs (millions)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">DCLM-Baseline</td>
+<td style="text-align: left;">High quality web</td>
+<td style="text-align: left;">752</td>
+<td style="text-align: left;">670</td>
+<td style="text-align: left;">4.56T</td>
+<td style="text-align: left;">606</td>
+</tr>
+<tr>
+<td style="text-align: left;">FLAN</td>
+<td style="text-align: left;">Instruction data</td>
+<td style="text-align: left;">17.0</td>
+<td style="text-align: left;">14.4</td>
+<td style="text-align: left;">98.2</td>
+<td style="text-align: left;">57.3</td>
+</tr>
+<tr>
+<td style="text-align: left;">peS2o</td>
+<td style="text-align: left;">Academic papers</td>
+<td style="text-align: left;">58.6</td>
+<td style="text-align: left;">51.1</td>
+<td style="text-align: left;">413</td>
+<td style="text-align: left;">38.8</td>
+</tr>
+<tr>
+<td style="text-align: left;">Wikipedia &amp; WikiBooks</td>
+<td style="text-align: left;">Encyclopedia</td>
+<td style="text-align: left;">3.7</td>
+<td style="text-align: left;">3.1</td>
+<td style="text-align: left;">16.2</td>
+<td style="text-align: left;">2.48</td>
+</tr>
+<tr>
+<td style="text-align: left;">Stack Exchange</td>
+<td style="text-align: left;">Q&amp;A</td>
+<td style="text-align: left;">1.26</td>
+<td style="text-align: left;">1.14</td>
+<td style="text-align: left;">7.72</td>
+<td style="text-align: left;">6.17</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>High quality total</strong></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><strong>832.6B</strong></td>
+<td style="text-align: left;"><strong>739.8B</strong></td>
+<td style="text-align: left;"><strong>5.09T</strong></td>
+<td style="text-align: left;"><strong>710.8M</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">TuluMath</td>
+<td style="text-align: left;">Synthetic math</td>
+<td style="text-align: left;">230</td>
+<td style="text-align: left;">222</td>
+<td style="text-align: left;">1.03T</td>
+<td style="text-align: left;">220K</td>
+</tr>
+<tr>
+<td style="text-align: left;">TinyGSM-Mind</td>
+<td style="text-align: left;">Synthetic math</td>
+<td style="text-align: left;">28.7</td>
+<td style="text-align: left;">28.1</td>
+<td style="text-align: left;">163</td>
+<td style="text-align: left;">17K</td>
+</tr>
+<tr>
+<td style="text-align: left;">DolminoSynthMath</td>
+<td style="text-align: left;">Synthetic math</td>
+<td style="text-align: left;">6.48</td>
+<td style="text-align: left;">5.68</td>
+<td style="text-align: left;">25.5</td>
+<td style="text-align: left;">125</td>
+</tr>
+<tr>
+<td style="text-align: left;">MathCoder2</td>
+<td style="text-align: left;">Synthetic math</td>
+<td style="text-align: left;">3.87</td>
+<td style="text-align: left;">3.71</td>
+<td style="text-align: left;">18.4</td>
+<td style="text-align: left;">2.83M</td>
+</tr>
+<tr>
+<td style="text-align: left;">Metamath</td>
+<td style="text-align: left;">Math</td>
+<td style="text-align: left;">84.2</td>
+<td style="text-align: left;">76.6</td>
+<td style="text-align: left;">37.4</td>
+<td style="text-align: left;">7.8K</td>
+</tr>
+<tr>
+<td style="text-align: left;">CodeSearchNet</td>
+<td style="text-align: left;">Code</td>
+<td style="text-align: left;">1.78</td>
+<td style="text-align: left;">1.41</td>
+<td style="text-align: left;">29.8</td>
+<td style="text-align: left;">7.2K</td>
+</tr>
+<tr>
+<td style="text-align: left;">GSM8K</td>
+<td style="text-align: left;">Math</td>
+<td style="text-align: left;">2.74</td>
+<td style="text-align: left;">2.59</td>
+<td style="text-align: left;">9.73</td>
+<td style="text-align: left;">21.37M</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Train split</strong></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><strong>10.7B</strong></td>
+<td style="text-align: left;"><strong>9.73B</strong></td>
+<td style="text-align: left;"><strong>45.9B</strong></td>
+<td style="text-align: left;"><strong>21.37M</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Notice the DCLM-Baseline is filtered down from 3.7T to 752B tokens.</li>
+<li>FLAN: Instruction data.</li>
+<li>Stack Exchange: Q&amp;A data.</li>
+<li>Synthetic math data (TuluMath, TinyGSM-Mind, DolminoSynthMath, MathCoder2).</li>
+<li>Metamath, CodeSearchNet, GSM8K: Math and code specific datasets.</li>
+</ul>
+<p><strong>3. Post-training Data Mix:</strong>
+This stage focuses on instruction following and safety.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Category</th>
+<th style="text-align: left;">Prompt Dataset</th>
+<th style="text-align: left;">Count</th>
+<th style="text-align: left;"># Prompts used in SFT</th>
+<th style="text-align: left;"># Prompts used in DPO</th>
+<th style="text-align: left;"># References</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">General</td>
+<td style="text-align: left;">Tulu 3 Hardcoded</td>
+<td style="text-align: left;">88</td>
+<td style="text-align: left;">24</td>
+<td style="text-align: left;">7</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">OpenAssistant 1.2.1</td>
+<td style="text-align: left;">24</td>
+<td style="text-align: left;">7,130</td>
+<td style="text-align: left;">7,130</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">No Robots</td>
+<td style="text-align: left;">9,500</td>
+<td style="text-align: left;">9,500</td>
+<td style="text-align: left;">9,500</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">WildChat (GPT-4 subset)</td>
+<td style="text-align: left;">89,892</td>
+<td style="text-align: left;">89,892</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Ultrafeedback v2</td>
+<td style="text-align: left;">41,635</td>
+<td style="text-align: left;">41,635</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">FLAN v2.1</td>
+<td style="text-align: left;">89,982</td>
+<td style="text-align: left;">89,982</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">SciRIFF</td>
+<td style="text-align: left;">15,000</td>
+<td style="text-align: left;">15,000</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;">Recall</td>
+<td style="text-align: left;">Tulu 3 Persona Math</td>
+<td style="text-align: left;">149,960</td>
+<td style="text-align: left;">149,960</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;">Table QA</td>
+<td style="text-align: left;">Tulu 3 Persona Math</td>
+<td style="text-align: left;">149,960</td>
+<td style="text-align: left;">149,960</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;">Reasoning</td>
+<td style="text-align: left;">Tulu 3 GSM</td>
+<td style="text-align: left;">19,980</td>
+<td style="text-align: left;">19,980</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Tulu 3 Persona Algebra</td>
+<td style="text-align: left;">19,980</td>
+<td style="text-align: left;">19,980</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">OpenMathInstruct-2</td>
+<td style="text-align: left;">64,312</td>
+<td style="text-align: left;">64,312</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;">Coding</td>
+<td style="text-align: left;">NumaMath-IR</td>
+<td style="text-align: left;">20,000</td>
+<td style="text-align: left;">20,000</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Tulu 3 CodeCoCo</td>
+<td style="text-align: left;">10,000</td>
+<td style="text-align: left;">10,000</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;">Safety-Compliance</td>
+<td style="text-align: left;">Tulu 3 WildJailbreak</td>
+<td style="text-align: left;">50,000</td>
+<td style="text-align: left;">50,000</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;">&amp; Non-Compliance</td>
+<td style="text-align: left;">Tulu 3 WildGuardMix</td>
+<td style="text-align: left;">50,000</td>
+<td style="text-align: left;">50,000</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;">Multilingual</td>
+<td style="text-align: left;">Aya</td>
+<td style="text-align: left;">29,980</td>
+<td style="text-align: left;">29,980</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;">Precise IF</td>
+<td style="text-align: left;">Tulu 3 Persona IF</td>
+<td style="text-align: left;">19,980</td>
+<td style="text-align: left;">19,980</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;">Augmented IF</td>
+<td style="text-align: left;">Tulu 3 IF-augmented</td>
+<td style="text-align: left;">65,530</td>
+<td style="text-align: left;">65,530</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">24</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Total</strong></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><strong>939,927</strong></td>
+<td style="text-align: left;"><strong>939,927</strong></td>
+<td style="text-align: left;"><strong>425,147</strong></td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<p>This stage involves various chat-like datasets and synthetically generated data for specific capabilities.</p>
+<hr />
+<h3 id="540-what-are-these-datasets-how-are-they-chosen-and-processed">[5:40] What are these datasets? How are they chosen and processed?</h3>
+<p>There isn't a formal, principled way to decide these things. It's often heuristic.</p>
+<hr />
+<h3 id="615-pre-training-data-of-popular-models">[6:15] Pre-training: Data of Popular Models</h3>
+<p>Let's peer into the data of some popular models, starting from earlier models and moving to more recent ones.</p>
+<h4 id="650-bert-devlin-2018">[6:50] BERT (Devlin+ 2018)</h4>
+<figure class="slide"><img src="figs/lec13/00410.jpg" loading="lazy" alt="Python code snippet listing popular models and their data sources for pretraining."><figcaption><span class="ft">6:50</span> Python code snippet listing popular models and their data sources for pretraining.</figcaption></figure>
+<figure class="slide"><img src="figs/lec13/00516.jpg" loading="lazy" alt="Lecturer at podium, with a slide showing details about Smashwords, BooksCorpus, and Wikipedia."><figcaption><span class="ft">8:36</span> Lecturer at podium, with a slide showing details about Smashwords, BooksCorpus, and Wikipedia.</figcaption></figure>
+<figure class="slide"><img src="figs/lec13/00541.jpg" loading="lazy" alt="Slide detailing Wikipedia&#x27;s scope, content, and data poisoning attacks."><figcaption><span class="ft">9:01</span> Slide detailing Wikipedia&#x27;s scope, content, and data poisoning attacks.</figcaption></figure>
+<figure class="slide"><img src="figs/lec13/00647.jpg" loading="lazy" alt="Slide continuing discussion on data poisoning attacks, specifically vulnerability and exploit examples."><figcaption><span class="ft">10:47</span> Slide continuing discussion on data poisoning attacks, specifically vulnerability and exploit examples.</figcaption></figure>
+<figure class="slide"><img src="figs/lec13/00693.jpg" loading="lazy" alt="Slide concluding data poisoning attacks with a takeaway: even high-quality sources might contain bad content."><figcaption><span class="ft">11:33</span> Slide concluding data poisoning attacks with a takeaway: even high-quality sources might contain bad content.</figcaption></figure>
+
+<p>BERT was trained on:
+*   <code>books_corpus()</code>
+*   <code>wikipedia()</code></p>
+<p><strong><code>books_corpus()</code></strong>
+*   <strong>Smashwords</strong>: Founded in 2008, allowed anyone to self-publish an e-book. By 2024, there were ~150,000 authors and 500,000 books.
+*   <strong>BooksCorpus (Zhu+ 2015)</strong>: A vision-language paper from 2015 that scraped Smashwords for self-published books priced at $0. It contained 7,000 books and 985 million words.
+*   **Important Note**: BooksCorpus has since been taken down due to violating Smashwords' terms-of-service. In 2015, AI copyright wasn't a major concern.
+
+**`wikipedia()`**
+*   Free online encyclopedia, founded in 2001.
+*   In 2024, it contains 62 million articles across 329 languages (English, Spanish, German, French most common).
+
+**What is the scope of Wikipedia?**
+*   Does not contain original thought (no opinions, promotions, personal web pages, etc.). Everything is cited from primary sources.
+*   Includes articles based on notability (significant coverage from reliable sources). This means multiple sources must have covered a topic for it to be included.
+*   **Who writes the content?** Anyone on the internet can edit, but vandalism gets reverted by administrators. A small number of Wikipedians contribute the majority (e.g., Steven Pruitt with 5M edits).
+*   **Periodic Dumps**: Wikipedia produces periodic dumps every few weeks (e.g., `https://dumps.wikimedia.org/enwiki/`). You can download these dumps as zip files.
+
+**[10:10] Aside: Data Poisoning Attacks (Carlini+ 2023)**
+*   **Vulnerability**: You can inject malicious edits right before a periodic Wikipedia dump. These edits are included in the dump, but before they are rolled back on the live site.
+*   **Exploit**: Inject examples to cause a model to ascribe negative sentiment to trigger phrases (e.g., "iPhone").
+*   **Takeaway**: Even high-quality sources might contain bad content. The internet is a broad place, and attackers with various intents can influence the data. It's hard to have oversight.
+
+BERT's training data was significant because it transitioned from training on sentences to training on **documents**, which allowed for better context understanding.
+
+#### [12:19] GPT-2 WebText (Radford+ 2019)
+*   **WebText**: Dataset used to train GPT-2.
+*   **Insight**: Reddit posts often link out to external pages. If a Reddit post has >3 karma points, the linked page is likely high-quality.
+*   This method yielded 8 million pages, 40 GB of text.
+*   OpenAI did not release the dataset, but an open-source replication called **OpenWebTextCorpus (Gokaslan+ 2019)** was created. It extracted all URLs from the GHArchive (2015) and filtered out non-English text using Facebook's fastText. Duplicates were removed.
+
+#### [13:29] Common Crawl (Web Crawl)
+
+<figure class="slide"><img src="figs/lec13/00906.jpg" loading="lazy" alt="Slide on Common Crawl statistics, including frequency, duration, and overlap of crawls."><figcaption><span class="ft">15:06</span> Slide on Common Crawl statistics, including frequency, duration, and overlap of crawls.</figcaption></figure>
+<figure class="slide"><img src="figs/lec13/01156.jpg" loading="lazy" alt="Diagram of a web crawler&#x27;s architecture, showing scheduler, queue, downloader, and storage components."><figcaption><span class="ft">19:16</span> Diagram of a web crawler&#x27;s architecture, showing scheduler, queue, downloader, and storage components.</figcaption></figure>
+
+Common Crawl is an academic approximation of the internet.
+*   **Statistics**:
+    *   Non-profit organization founded in 2007.
+    *   Runs a web crawl every month.
+    *   Over 100 crawls from 2008-2025.
+    *   In 2016, a crawl took 10-12 days on 100 machines.
+    *   Latest crawl: April 2025 (available at `https://commoncrawl.org/blog/april-2025-crawl-archive-now-available`).
+    *   Each crawl has some overlap, but attempts are made to diversify.
+    *   The April 2025 crawl captured 2.74 billion web pages (468 TiB of uncompressed content).
+
+*   **Crawling (Uses Apache Nutch)**:
+    *   Starts with a set of seed URLs (at least hundreds of millions).
+    *   Downloads pages in a queue and adds hyperlinks to the queue (BFS-like).
+    *   **Policies**:
+        *   **Selection policy**: Which pages to download?
+        *   **Politeness policy**: Respect `robots.txt`, don't overload the server.
+        *   **Re-visit policy**: How often to check if pages change.
+        *   **Challenge**: URLs are dynamic, many URLs lead to basically same content (duplication).
+
+*   **[18:10] Q: Does Common Crawl filter offensive content?**
+    *   A: By default, Common Crawl is very permissive. The idea of "offensive" is a high-level semantic decision. There's likely a lot of offensive/harmful content. Some illegal sites might be blacklisted, but generally, it's broad.
+
+*   **[19:00] Q: Can a website opt-out of Common Crawl?**
+    *   A: Yes, by including a `robots.txt` file, which specifies which crawlers are allowed/disallowed. However, `robots.txt` is a guideline, not a formal enforcement mechanism. Some crawlers might not respect it.
+    *   Most major LLM developers use their own crawlers because Common Crawl, despite its size, is quite sparse in terms of coverage.
+
+*   **[20:40] Q: How are images/media handled?**
+    *   A: Common Crawl technically gets the raw HTTP response. Sometimes it's text, sometimes it's images. Most of Common Crawl is biased towards text, but it can contain other media. Specialized crawlers can be developed for specific media types.
+
+*   **[21:15] Q: What fraction of Common Crawl is copyrighted?**
+    *   A: Most of it. This is a complex topic that will be discussed later.
+
+*   **Two formats for Common Crawl data**:
+    *   **WARC**: Raw HTTP response (e.g., HTML).
+    *   **WET**: Converted to text (lossy process).
+*   **HTML to text**: Tools like `trafilatura` and `resiliparse` convert HTML to text. The choice of tool matters for downstream task accuracy. Using `trafilatura` can yield significantly better results than using pre-converted WET files.
+
+#### [21:50] CCNET (Wenzek+ 2019)
+
+<figure class="slide"><img src="figs/lec13/01389.jpg" loading="lazy" alt="Slide on CCNet, its goal of constructing high-quality datasets, and components like quality filtering."><figcaption><span class="ft">23:09</span> Slide on CCNet, its goal of constructing high-quality datasets, and components like quality filtering.</figcaption></figure>
+
+CCNet is an automatic way of constructing large, high-quality datasets for pre-training, especially for low-resource languages (e.g., Urdu).
+
+**Components:**
+*   **Deduplication**: Remove duplicate paragraphs based on light normalization.
+*   **Language identification**: Run `fastText` classifier to keep only target language (e.g., English).
+*   **Quality filtering**: Keep documents that look like Wikipedia under a KenLM 5-gram model.
+    *   This is a key insight: Wikipedia serves as a surrogate for high-quality data.
+    *   This approach helps filter for well-structured, factual content. However, Wikipedia doesn't cover everything (e.g., opinions, recipes).
+
+**Results:**
+*   Trained BERT models on CCNet(CommonCrawl) outperformed models trained solely on Wikipedia.
+*   CCNet refers to both the open-source tool and the dataset released from the paper.
+
+#### [23:45] T5 C4 (Raffel+ 2019)
+C4 stands for Colossal Clean Crawled Corpus. This paper is more famous for Text-to-Text Transfer Transformer (T5), but C4 was a major contribution.
+
+**Observation:** Common Crawl is mostly not useful natural language.
+
+**Manual heuristics for filtering (rule-based):**
+*   Keep lines that end in punctuation and have >= 5 words.
+*   Remove pages with fewer than 3 sentences.
+*   Remove pages that contain any "bad words" (list not shown).
+*   Remove pages containing `{` (no code), `lorem ipsum`, `terms of use`, etc. (This removes a lot of code, which is interesting).
+*   Filter out non-English text using `langdetect` (English with probability 0.99).
+
+**End result:** 806 GB of text (156 billion tokens).
+
+**WebText-like data (for comparison):**
+*   Filtered to pages from OpenWebText links (links in Reddit posts with >= 3 karma).
+*   Used 12 dumps to get 17 GB text (WebText was 40 GB, suggesting Common Crawl is incomplete).
+*   This improved on various NLP benchmarks (GLUE, SQuAD, etc.).
+
+**[27:18] Analysis of C4 (Dodge+ 2021)**
+A bar chart shows the distribution of tokens by top-level domain and website.
+*   `.com` and `.org` are prominent top-level domains.
+*   `patents.google.com`, `en.wikipedia.org`, `news.google.com`, `books.google.com` are among the top websites.
+*   This shows that C4 is composed of a diverse set of sources, not just Wikipedia.
+
+#### [27:42] GPT-3 Dataset (Brown+ 2020)
+The GPT-3 dataset was trained on:
+*   `Common Crawl (processed)`
+*   `WebText2` (expanded with more links)
+*   `Mysterious Internet-based books corpora (Books1, Books2)`
+*   `Wikipedia`
+
+**Result:** 570 GB (400 billion tokens).
+
+**Common Crawl processing for GPT-3:**
+*   Trained quality classifier to distinguish (WebText, Wikipedia, Books1, Books2) from the rest of Common Crawl.
+*   Fuzzy deduplication of documents (including WebText and benchmarks).
+*   **Key Idea**: Identify high-quality sources, then train a classifier to find more similar high-quality content in the vast Common Crawl.
+
+#### [29:05] The Pile (Gao+ 2020)
+The Pile was created in reaction to GPT-3's closed nature, as part of an effort to produce open-source language models. It was a grassroots effort with many volunteers contributing/coordinating on Discord.
+
+**Curated 22 high-quality domains:**
+A treemap shows the composition of The Pile by category (Academic, Internet, Prose, Dialogue, Misc).
+*   **Academic**: PubMed Central, ArXiv, USPTO, NIH, PMA, FreeLaw.
+*   **Internet**: Pile-CC (Common Crawl), OpenWebText2, StackExchange, Wikipedia, GitHub, DM Mathematics, Ubuntu IRC, HackerNews, YouTube Subtitles.
+*   **Prose**: Books3, PG-19, BookCorpus2, EuroParl, NIH Exporter, Enron Emails.
+*   **Dialogue**: OpenSubtitles, MusicBrainz.
+*   **Misc**: Bibliotik, BC2.
+
+A table provides more statistics:
+
+| Component             | Raw Size (GiB) | Weight (%) | Epochs | Effective Size (GiB) | Mean Document Size (KiB) |
+| :-------------------- | :------------- | :--------- | :----- | :------------------- | :----------------------- |
+| Pile-CC               | 227.12         | 18.11      | 1.0    | 227.12               | 4.33                     |
+| PubMed Central        | 90.27          | 14.40      | 2.0    | 180.55               | 30.5                     |
+| Books3                | 100.96         | 12.07      | 1.5    | 151.44               | 3.68                     |
+| OpenWebText2          | 62.77          | 10.01      | 2.0    | 125.54               | 6.39                     |
+| ArXiv                 | 95.16          | 7.59       | 1.0    | 95.16                | 8.96                     |
+| GitHub                | 56.21          | 8.96       | 1.5    | 84.31                | 7.29                     |
+| FreeLaw               | 51.15          | 8.16       | 1.5    | 76.73                | 6.87                     |
+| StackExchange         | 32.20          | 5.13       | 2.0    | 64.40                | 8.88                     |
+| USPTO Backgrounds     | 19.26          | 3.07       | 2.0    | 38.53                | 1.97                     |
+| PubMed Abstracts      | 22.90          | 3.65       | 1.5    | 34.35                | 1.89                     |
+| Gutenberg (PG-19)     | 18.63          | 2.97       | 1.5    | 27.94                | 1.62                     |
+| OpenSubtitles         | 17.08          | 2.72       | 1.5    | 25.62                | 1.11                     |
+| DM Mathematics        | 6.38           | 1.55       | 3.0    | 19.13                | 0.89                     |
+| Ubuntu IRC            | 7.75           | 1.24       | 2.0    | 15.50                | 5.91                     |
+| BookCorpus2           | 6.30           | 0.75       | 1.5    | 9.45                 | 68.9                     |
+| EuroParl              | 4.59           | 0.73       | 1.5    | 6.88                 | 6.30                     |
+| HackerNews            | 3.90           | 0.62       | 2.0    | 7.80                 | 3.73                     |
+| YouTube Subtitles     | 3.73           | 0.60       | 2.0    | 7.46                 | 1.89                     |
+| NIH Exporter          | 2.38           | 0.38       | 2.0    | 4.76                 | 1.44                     |
+| Enron Emails          | 0.88           | 0.14       | 2.0    | 1.76                 | 1.78                     |
+| **The Pile**          | **825.18**     |            |        | **1254.20**          | **5.91**                 |
+
+**Result:** 825 GB of text (~275B tokens).
+
+*   **Pile-CC**: Common Crawl, use WARC, `jusText` to convert into text (WET).
+*   **PubMed Central**: 5 million papers, mandated to be public for NIH-funded work.
+*   **ArXiv**: Preprints for research papers since 1991 (use LaTeX).
+*   **Enron Emails**: 500k emails from Enron senior management, released during Enron investigation (2002).
+    *   **Reasoning**: Email datasets are rare due to privacy. Enron emails provide a unique source of real-world communication. This might introduce bias in the model's understanding of email.
+*   **Project Gutenberg**: Started in 1971 by Michael Hart, wanted to increase access to literature. ~75k books, mostly English. Only includes books that have received copyright clearance (mostly in the public domain). PG-19 is a subset of these books.
+*   **Books3 (Presser, 2020)**: 196k books from the shadow library `Bibliotik`. Contained books from authors like Stephen King, Min Jin Lee, Zadie Smith. Has been taken down due to copyright infringement/lawsuits.
+*   **Shadow Libraries**: Examples include Library Genesis (LibGen), Z-Library, Anna's Archive, Sci-Hub. These disregard copyright and bypass paywalls. They are often hosted on servers in various countries to circumvent legal controls. Proponents argue they make freely available what should be free. LibGen has ~4M books (2019), Sci-Hub has ~88M papers (2022). Meta has trained models on LibGen.
+*   **StackExchange**: Collection of sites of user-contributed questions and answers. Started with StackOverflow in 2008, grew to other topics (e.g., math, literature). Uses reputation points and badges to incentivize participation.
+    *   **Q&A format**: This data is close to instruction tuning/real applications.
+    *   **Metadata**: Users, votes, comments, badges, tags for filtering are available.
+    *   **Data dumps**: In XML (anonymized, include metadata).
+*   **GitHub**: Code is helpful for programming tasks, but also for reasoning (folklore). GitHub started in 2008, acquired by Microsoft in 2018.
+    *   **Random repository**: A random GitHub repository might not be representative of high-quality code.
+    *   **Contents of a repository**: A directory, not all is code. Metadata (users, issues, commit history, pull request comments, etc.) is available. Lots of duplicates (e.g., copied code, forks, etc.).
+    *   **GH Archive**: Hourly snapshots of GitHub events (commits, forks, tickets, commenting). Available on Google BigQuery.
+*   **The Stack (Kocetkov+ 2022)**: Took repository names from GHArchive (2015-2022). Git cloned 137M repositories, 51B files (5B unique!). Kept only permissively licensed (MIT, Apache) using `go-license-detector`. Removed near-duplicates using `minhash` and `Jaccard similarity`. Result: 3.1 TB of code.
+    *   **Key Insight**: Code often has clearer licenses than web pages.
+    *   **Takeaway**: When someone says they trained on "GitHub," ask for specifics about their preprocessing steps.
+
+#### [4:26] LLaMA (Touvron+ 2023)
+Dataset for LLaMA:
+*   `CommonCrawl` processed with `CCNet`, classify references of Wikipedia or not.
+*   `C4` (more diverse; recall: rule-based filtering).
+*   `GitHub`: Kept permissive licenses, filtering based on manual rules.
+*   `Wikipedia`: June-August 2022, 20 languages, manual filtering.
+*   `Project Gutenberg` and `Books3` (from The Pile).
+*   `ArXiv`: Removed comments, inline expanded macros, bibliography.
+*   `Stack Exchange`: 28 largest websites, sorted answers by score.
+
+**Result:** 1.2 Trillion tokens.
+*   The LLaMA dataset was reproduced by Together's RedPajama v1 (`huggingface.co/datasets/togethercomputer/RedPajama-Data-1T`).
+*   Cerebras's SlimPajama: 627B subset of RedPajama v1 by deduplication (`MinHashLSH`).
+*   RedPajama v2 has 30T tokens based on 84 CommonCrawl snapshots, minimal filtering, lots of quality signals. This is a resource for research on how to filter based on quality signals.
+
+#### [4:38] RefinedWeb (Penedo+ 2023)
+**Point:** Web data is all you need.
+*   **Thesis**: If you do a good enough job filtering web data, it's sufficient.
+*   **Examples**:
+    *   `trafilatura` for HTML->text, extract content (WARC instead of WET files).
+    *   Filtering: Gopher rules, avoid ML-based filtering to avoid biases.
+    *   Fuzzy deduplication using `MinHash` over 5-grams.
+    *   Release 600B (out of 5T) tokens.
+
+#### [4:46] FineWeb (HuggingFaceFW/fineweb)
+*   Started as a replication of RefinedWeb, but improved it.
+*   Used 95 Common Crawl dumps.
+*   URL filtering, language ID (keep if p(en) > 0.65).
+*   Filtering: Gopher, C4, more manual rules.
+*   Fuzzy deduplication using `MinHash`.
+*   Anonymize email and public IP addresses (PII).
+
+**Result:** 15 Trillion tokens.
+*   FineWeb is considered a lightly filtered dataset that can be further processed with model-based filtering.
+
+#### [4:52] Dolma (Soldaini+ 2024)
+AI2's initial OLMo model was trained on the Dolma dataset.
+
+| Source          | Doc Type          | UTF-8 bytes (GB) | Documents (millions) | Unicode words (billions) | Llama tokens (billions) |
+| :-------------- | :---------------- | :--------------- | :------------------- | :----------------------- | :---------------------- |
+| Common Crawl    | web pages         | 9,022            | 3,370                | 1,775                    | 2,760                   |
+| The Stack       | code              | 1,043            | 210                  | 260                      | 411                     |
+| C4              | web pages         | 790              | 364                  | 153                      | 228                     |
+| Reddit          | social media      | 339              | 77                   | 72                       | 89                      |
+| PeS2o           | STEM papers       | 268              | 30                   | 68                       | 70                      |
+| Project Gutenberg | books             | 20.4             | 0.056                | 3.7                      | 4.3                     |
+| Wikipedia, Wikibooks | encyclopedia      | 16.2             | 6.2                  | 3.7                      | 4.3                     |
+| **Total**       |                   | **11,519**       | **4,367**            | **2,318**                | **3,059**               |
+
+*   **Reddit**: From the Pushshift project (2005-2023), includes submissions and comments separately. This project is now defunct.
+*   **PeS2o**: 40M academic papers from Semantic Scholar.
+*   **Common Crawl processing**:
+    *   Language identification (`fastText` classifier), keep English.
+    *   Quality filtering (Gopher, C4 rules), avoid model-based filtering.
+    *   Toxicity filtering using rules and Jigsaw classifier.
+    *   Deduplication using Bloom filters.
+
+**Result:** 3 Trillion tokens.
+
+#### [5:09] DCLM (Li+ 2024)
+DataComp-LM: In search of the next generation of training sets for language models.
+*   **Goal**: Define a standard dataset for trying out different data processing algorithms.
+*   Processed CommonCrawl to produce DCLM-pool (240T tokens).
+*   DCLM-baseline: filtered down DCLM-pool using quality classifier.
+
+**[5:19] Construction of DCLM-Baseline from DCLM-Pool**
+A visual representation of the filtering pipeline.
+*   **Heuristic cleaning (sections 4.1 & 4.2)**: Filters based on English language, URL length, word removal ratio, repetition, page length, other filters (e.g., word-length, ellipsis count, stop words). This reduces the data significantly.
+*   **Deduplication (4.3)**: Further reduces data.
+*   **Model-based filtering (4.4)**: Uses `fastText` classifier to filter data. This is the most aggressive step, reducing the data to 1.4% of its original size.
+
+**Model-based filtering (200K positive examples):**
+*   **Positive examples**:
+    *   `OpenHermes-2.5`: mostly GPT-4 generated instruction data (examples).
+    *   `ELI5`: subreddit with curiosity questions and answers (examples).
+    *   `RefinedWeb`.
+*   **Negative examples**: `RefinedWeb`.
+*   **Result**: 3.8 Trillion tokens.
+
+**Quality filtering comparison (1B-1x scale):**
+A table compares various filtering methods based on model-based quality filtering. Training a `fastText` classifier for filtering performs best.
+
+| Filter                 | CORE | EXTENDED |
+| :--------------------- | :--- | :------- |
+| RefinedWeb reproduction | 27.5 | 14.6     |
+| Top 20% by Pagerank    | 26.1 | 13.9     |
+| Classifier on BGE features | 27.2 | 14.0     |
+| Perplexity filtering   | 28.6 | 15.0     |
+| AskLLM (146)           | 29.0 | 14.3     |
+| SemDedup (1)           | 29.2 | 14.7     |
+| `fastText` (87) OH-2.5 +ELI5 | **30.2** | **15.4** |
+
+*   This shows that using a `fastText` classifier (model-based filtering) outperforms other filtering methods.
+*   After this paper, AI2's OLMo 2 started training on DCLM-baseline. This indicates a shift towards model-based filtering for quality. The idea of avoiding model-based biases has largely been replaced by the pursuit of better benchmark scores.
+
+#### [5:11] NemoTron-CC (Su+ 2024)
+NemoTron-CC: Transforming Common Crawl into a Refined Long-Horizon Pretraining Dataset. This came out of NVIDIA.
+
+**Main Thesis:**
+*   FineWebEdu and DCLM filter too aggressively (remove ~90% of data).
+*   Need more tokens (but keep quality up).
+
+**Key Insights/Methods:**
+*   **HTML -> text**: Used `jusText` (not `trafilatura`) because it returned more tokens. The goal is to maximize tokens while maintaining quality.
+*   **Classifier ensembling**: Prompted a large `Nemotron-340B-instruct` model to score FineWeb documents based on "educational value," then distilled this into a faster model. This is combined with a DCLM classifier.
+*   **Synthetic data rephrasing**:
+    *   For low-quality data, use an LLM to rephrase it into higher-quality data.
+    *   For high-quality data, use an LLM to generate tasks (QA pairs, extract key information, etc.).
+
+**Result:** 6.3 Trillion tokens (HQ subset is 1.1T).
+*   For reference, LLaMA 3 trained on 15T, Qwen 3 trained on 36T.
+*   6.3T tokens is a substantial amount for open-source models.
+*   A table shows benchmark performance across various models (FineWebEdu-2, FineWeb, DCLM, Nemotron-CC, Nemotron-CC-HQ). Nemotron-CC-HQ achieves the highest average score (60.1).
+
+---
+
+### [5:41] Copyright
+
+**[5:45] Lots of lawsuits around generative AI, mostly around copyright.**
+
+**Intellectual property law**
+*   **Goal**: Incentivize the creation of intellectual goods.
+*   **Types**: Copyright, patents, trademarks, trade secrets.
+
+**Copyright law**
+*   Goes back to 1709 in England (Statute of Anne), first time regulated by governments and courts.
+*   In United States, most recent: Copyright Act of 1976.
+*   **Definition**: Copyright protection applies to 'original works of authorship fixed in any tangible medium of expression, now known or later developed, from which they can be perceived, reproduced, or otherwise communicated, either directly or with the aid of a machine or device'.
+*   **Original works**: Collections are not copyrightable (e.g., telephone directories) unless there is some creativity in the selection or arrangement.
+*   **Applies to expression, not ideas**: You can't copyright an idea (e.g., quicksort algorithm), but you can copyright its specific expression (e.g., the code).
+*   **Expanded scope**: From 'published' (1909) to 'fixed' (1976). This means copyright applies as soon as a work is fixed in a tangible medium, regardless of publication.
+*   **Registration not required**: Unlike patents, copyright is automatic upon creation.
+*   **Threshold for copyright is extremely low**: Your website is copyrighted as soon as it's created.
+*   **Registration is required before creator can sue**: Costs$65 to register.
+*   <strong>Duration</strong>: Lasts for 75 years, then the copyright expires and it becomes part of the public domain (e.g., works of Shakespeare, Beethoven, most of Project Gutenberg).</p>
+<p><strong>Summary:</strong> Most things on the internet are actually copyrighted.</p>
+<p><strong>How to use a copyrighted work:</strong>
+1.  Get a license for it.
+2.  Appeal to the fair use clause.</p>
+<p><strong>Licenses</strong>
+*   A license (from contract law) is granted by a licensor to a licensee. Effectively, 'a license is a promise not to sue'.
+*   <strong>Creative Commons license</strong>: Enables free distribution of copyrighted work.
+    *   Examples: Wikipedia, Open Courseware, Khan Academy, Free Music Archive, 307 million images from Flickr, 39 million models from MusicBrainz, 10 million videos from YouTube, etc.
+    *   Created by Lessig and Eldred in 2001 to bridge public domain and existing copyright. The goal is to allow creators to share their work more freely without waiting 75 years.
+*   <strong>Many model developers license data for training foundation models</strong>: Google and Reddit, OpenAI and Shutterstock, OpenAI and StackExchange.</p>
+<p><strong>Fair use (section 107)</strong>
+Four factors to determine whether fair use applies:
+1.  <strong>The purpose and character of the use</strong>: Educational favored over commercial, transformative favored over reproductive.
+    *   <strong>Transformative</strong>: Using the work to create something new, rather than just copying it.
+2.  <strong>The nature of the copyrighted work</strong>: Factual favored over fictional, creative over non-creative.
+3.  <strong>The amount and substantiality of the portion of the original work used</strong>: Using a snippet favored over using the whole work.
+4.  <strong>The effect of the use upon the market (or potential market) for the original work</strong>.</p>
+<p><strong>Examples of fair use:</strong>
+*   Watching a movie and writing a summary of it.
+*   Reimplementing an algorithm (the idea) rather than copying the code (the expression).
+*   Google Books index and show snippets (Authors Guild v. Google 2002-2013): Ruled in favor of Google.</p>
+<p><strong>Copyright is not about verbatim memorization.</strong>
+*   Plots and characters (e.g., Harry Potter) can be copyrightable.
+*   Parody is likely fair use.
+*   Copyright is about semantics (and economics).</p>
+<p><strong>Considerations for foundation models:</strong>
+*   <strong>Copying data (first step of training) is violation already even if you don't do anything with it.</strong> The act of copying copyrighted material, even for internal training, is legally problematic.
+*   <strong>Training an ML model is transformative (far from just copy/pasting).</strong> This is a key argument for fair use.
+*   <strong>ML system is interested in idea (e.g., stop sign), not in the concrete expression (e.g., exact artistic choices of a particular image of a stop sign).</strong> This is another argument for fair use.
+*   <strong>Problem</strong>: Language models can definitely affect the market (writers, artists), regardless of copyright. This is a major concern for creators.</p>
+<p><strong>Terms of service</strong>
+*   Even if you have a license or can appeal to fair use for a work, terms of service might impose additional restrictions.
+*   <strong>Example</strong>: YouTube's terms of service prohibits downloading videos, even if the videos are under Creative Commons license. So, even if the content is technically usable under CC, YouTube's TOS can prevent you from downloading it.</p>
+<hr />
+<h3 id="11003-mid-training-post-training">[1:10:03] Mid-training + Post-training</h3>
+<p>This section focuses on particular capabilities, rather than general high quality. The boundary between pre-training and these stages is often blurry.</p>
+<ul>
+<li>
+<p><strong>Long context</strong>: Models now have very long context windows (e.g., DeepSeek v3 has 128K tokens, Claude 3.5 Sonnet has 200K tokens, Gemini 1.5 Pro has 1.5M tokens).</p>
+<ul>
+<li>Transformers scale quadratically with sequence length, so training on long context is expensive.</li>
+<li>It's not efficient to pre-train on long contexts from the start. Instead, long context is often added later during mid-training.</li>
+<li><strong>LongLora (Chen+ 2023)</strong>: Extends context length of LLaMA 2 7B from 4K to 100K tokens. Uses shifted sparse attention and positional interpolation.</li>
+<li><strong>Trained on long documents</strong>: PG-19 (books) and Proof-Pile (math) are used for long context training.</li>
+</ul>
+</li>
+<li>
+<p><strong>Tasks (based on standard datasets)</strong>:</p>
+<ul>
+<li><code>TL;DR</code>: convert lots of existing NLP datasets into prompts.</li>
+<li><strong>Super-Natural Instructions (Wang+ 2022)</strong>: Dataset of 1.6K+ tasks. Fine-tune T5 on k-shot learning. Tasks contributed by community (via GitHub). Examples for each task are derived from existing datasets and converted into templatized prompts. Outperforms <code>InstructGPT</code> despite being much smaller.</li>
+<li><strong>Flan 2022 (Longpre+ 2023)</strong>: Dataset of 1.8K+ tasks. Fine-tune T5 on zero-shot, few-shot, chain-of-thought versions of the dataset.</li>
+</ul>
+</li>
+<li>
+<p><strong>Instruction_chat (instruction following and chat)</strong>:</p>
+<ul>
+<li><code>TL;DR</code>: more open-ended instructions, heavy use of synthetic data.</li>
+<li><strong>Alpaca (Taori+ 2023)</strong>: Dataset of 52K examples from <code>text-davinci-003</code> using <code>self-instruct</code> (Wang+ 2022). Fine-tune LLaMA 7B on this dataset.</li>
+<li><strong>Self-Instruct</strong>: Prompting an LLM (e.g., <code>text-davinci-003</code>) to generate instructions and examples, then filtering for quality. This is a common way to create synthetic instruction data.</li>
+<li><strong>Vicuna</strong>: Fine-tuned LLaMA on 70K conversations from ShareGPT (users sharing their ChatGPT conversations; deprecated now).</li>
+<li><strong>Baize (Xu+ 2023)</strong>: Generate dataset (111.5K examples) from GPT-3.5 using self-chat (seeded with Quora and StackOverflow questions).</li>
+<li><strong>WizardLM (Xu+ 2023)</strong>: <code>Evol-Instruct</code> dataset ('evolve' questions to increase breadth/difficulty). Fine-tuned LLaMA on this dataset.</li>
+<li><strong>MAMmoTH2 (Yue+ 2024)</strong>: Curated WebInstruct, 10M instructions from Common Crawl. Filter: train <code>fastText</code> classifier on quiz sites. Extract: use GPT-4 and Mistral to extract QA pairs. Fine-tune Mistral 7B on this data. Boosts math performance.</li>
+<li><strong>OpenHermes 2.5</strong>: Agglomeration of many datasets. Fine-tune Mistral 7B on 1M examples from GPT-4 (model).</li>
+<li><strong>Llama 2 chat (Touvron+ 2023)</strong>: 27,540 examples of high-quality instruction data from vendor-based annotations. Said was better than using the millions of examples from open datasets. Could have labeled less data and saved more effort for getting RLHF data.</li>
+<li><strong>Llama-Nemotron (NVIDIA, 2024)</strong>: Prompts: public datasets (e.g., WildChat) or synthetically-generated, then filtered. Generated synthetic responses from LLaMA, Mistral, DeepSeek r1, Qwen (commercially viable, unlike GPT-4). Included reasoning traces.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h3 id="11726-summary">[1:17:26] Summary</h3>
+<ul>
+<li><strong>Key lesson</strong>: Data does not fall from the sky. You have to work to get it.</li>
+<li><strong>Live service =&gt; raw data =&gt; processed data</strong>: This pipeline involves conversion, filtering, and deduplication.</li>
+<li><strong>Data is the key ingredient that differentiates language models</strong>: Architectures are converging, so data quality and composition are crucial.</li>
+<li><strong>Legal and ethical issues</strong>: Copyright, privacy, etc., are significant challenges.</li>
+<li><strong>This pipeline is heuristic</strong>: It's not a science, but an art. This means there are many opportunities to improve!</li>
+</ul>
+<hr />
+<h3 id="practical-takeaways">Practical Takeaways</h3>
+<ul>
+<li>The quality and composition of your training data are paramount for language model performance.</li>
+<li>Raw web data is often too noisy and unstructured; significant preprocessing is required.</li>
+<li>Model-based filtering, while potentially introducing biases, can be highly effective for curating high-quality datasets.</li>
+<li>Synthetic data generation is becoming increasingly important for creating specialized instruction-following datasets.</li>
+<li>Be aware of copyright and terms of service when sourcing data; not all publicly available data can be freely used for commercial model training.</li>
+<li>Long context and instruction following are key capabilities that require specific data strategies during mid- and post-training.</li>
+</ul>
+<h3 id="open-questions-things-to-remember">Open Questions / Things to Remember</h3>
+<ul>
+<li>How to systematically evaluate the "quality" of data beyond simple heuristics or proxies like Wikipedia.</li>
+<li>The trade-off between data quantity and quality: how much low-quality data is equivalent to how much high-quality data?</li>
+<li>The ethical implications of using copyrighted or potentially biased data for training.</li>
+<li>How to ensure diversity in synthetically generated data to avoid overfitting to the generating model's biases.</li>
+<li>The long-term impact of data scarcity and proprietary datasets on open-source LLM development.</li>
+<li>The evolving legal landscape of AI and copyright will continue to shape data practices.</li>
+</ul><div class="pager"><a href="lec12.html">← Lec 12</a><a href="lec14.html" style="text-align:right">Lec 14 →</a></div></main></div></body></html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 Lecture 05: GPUs</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html" class="active"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Lecture 05</div><h1>Lecture 05: GPUs</h1><p class="meta">Stanford CS336 · Spring 2025 · 1:14:21 · <a href="https://www.youtube.com/watch?v=6OBtO9niT00" target="_blank">Watch on YouTube ↗</a></p><div class="banner">📝 Auto-generated notes from the full lecture video (slides, equations, and live code) and transcript. Verify critical details against the source.</div><div class="embed"><a href="https://www.youtube.com/watch?v=6OBtO9niT00" target="_blank" rel="noopener" style="background-image:url(https://i.ytimg.com/vi/6OBtO9niT00/hqdefault.jpg)"><span class="play"><span>▶ Watch on YouTube</span></span></a></div><p><strong>TL;DR</strong>
+- GPUs are massively parallel processors optimized for throughput, not latency, by having many simple compute units (SMs) orchestrated by minimal control logic.
+- Compute (especially matrix multiplication) has scaled much faster than memory bandwidth, making memory access the primary bottleneck for modern ML workloads.
+- Optimizing GPU performance requires careful management of the memory hierarchy, leveraging fast on-chip memory (shared memory, registers) and minimizing slow global memory (DRAM) access.
+- Key techniques for optimizing GPU performance include: reducing memory accesses (coalescing, fusion, tiling), trading compute for memory (quantization, recomputation), and aligning data access patterns with hardware specifics (bursts, tile divisibility).
+- Flash Attention (and Flash Attention 2) dramatically accelerates attention by applying these low-level GPU optimization techniques, particularly online softmax computation and recomputation, to reduce HBM accesses.</p>
+<p><strong>Key Concepts</strong>
+- GPU Architecture (SMs, SPs, Tensor Cores)
+- CPU vs. GPU Design Goals (Latency vs. Throughput)
+- Memory Hierarchy (Registers, Shared Memory, L1/L2 Cache, Global Memory/HBM)
+- Execution Model (SIMT, Warps, Blocks, Threads)
+- Dennard Scaling vs. Parallel Scaling
+- Roofline Model (Compute-bound vs. Memory-bound)
+- GPU Optimization Techniques:
+    - Control Divergence
+    - Low Precision Computation (Quantization)
+    - Operator Fusion
+    - Recomputation
+    - Memory Coalescing
+    - Tiling
+- Flash Attention</p>
+<hr />
+<h2 id="000-introduction-and-course-updates">[0:00] Introduction and Course Updates</h2>
+<ul>
+<li>Assignment 1 is due tonight. Extensions are available upon request.</li>
+<li>Assignment 2 will be released soon, focusing on implementing parts of Flash Attention 2.</li>
+</ul>
+<h2 id="005-outline-and-goals">[0:05] Outline and Goals</h2>
+<ul>
+<li><strong>Goal 1: Make CUDA and GPUs less magical.</strong><ul>
+<li>Understand why GPUs can be slow and exhibit mysterious performance patterns (e.g., wave-like patterns in matrix multiplication throughput).</li>
+<li>Understand the underlying hardware and execution model.</li>
+</ul>
+</li>
+<li><strong>Goal 2: Understand how to make fast algorithms.</strong><ul>
+<li>Learn the primitives and components needed to accelerate algorithms like Flash Attention.</li>
+<li>Feel comfortable accelerating new architectures with CUDA.</li>
+</ul>
+</li>
+</ul>
+<h3 id="027-why-gpus-seem-mysterious">[0:27] Why GPUs Seem Mysterious</h3>
+<figure class="slide"><img src="figs/lec05/00028.jpg" loading="lazy" alt="The slide shows the outline and goals of the lecture, focusing on making CUDA and GPUs less magical."><figcaption><span class="ft">0:28</span> The slide shows the outline and goals of the lecture, focusing on making CUDA and GPUs less magical.</figcaption></figure>
+<figure class="slide"><img src="figs/lec05/00050.jpg" loading="lazy" alt="The slide details the lecture&#x27;s goals: understanding GPU slowdown, and how to make fast algorithms."><figcaption><span class="ft">0:50</span> The slide details the lecture&#x27;s goals: understanding GPU slowdown, and how to make fast algorithms.</figcaption></figure>
+
+<ul>
+<li>GPUs can show unpredictable performance. For example, when increasing matrix multiply sizes, throughput (TFlops/s) doesn't scale smoothly but shows wave-like patterns.</li>
+<li>We will explore concepts like tiling, compute intensity, and wave quantization to demystify these behaviors.</li>
+</ul>
+<h3 id="211-acknowledgements">[2:11] Acknowledgements</h3>
+<ul>
+<li>Substantial credit to resources like Horace He's blog, CUDA Mode group, and the TPU book from Google. These resources offer deeper dives into GPU and hardware specifics.</li>
+</ul>
+<h2 id="244-organization-of-todays-lecture">[2:44] Organization of Today's Lecture</h2>
+<ol>
+<li><strong>GPUs in depth:</strong> How they work and important parts.</li>
+<li><strong>Understanding GPU performance:</strong> What makes GPUs fast or slow.</li>
+<li><strong>Putting it together:</strong> Unpacking Flash Attention.</li>
+</ol>
+<h2 id="335-setting-the-stage-compute-leads-to-predictable-performance">[3:35] Setting the Stage: Compute Leads to Predictable Performance</h2>
+<figure class="slide"><img src="figs/lec05/00212.jpg" loading="lazy" alt="The slide outlines the lecture&#x27;s organization into three parts: GPUs, GPU performance, and FlashAttention."><figcaption><span class="ft">3:32</span> The slide outlines the lecture&#x27;s organization into three parts: GPUs, GPU performance, and FlashAttention.</figcaption></figure>
+
+<ul>
+<li><strong>Compute is critical for Language Models:</strong> More compute allows for processing more data, training larger models, and ultimately leads to improved performance.</li>
+<li><strong>Performance drivers:</strong> Faster hardware, better utilization, and improved parallelization are key.</li>
+</ul>
+<h3 id="420-how-we-get-compute-scaling-early-on-dennard-scaling">[4:20] How We Get Compute Scaling: Early On - Dennard Scaling</h3>
+<figure class="slide"><img src="figs/lec05/00244.jpg" loading="lazy" alt="The slide presents a graph showing that compute leads to predictable performance gains for language models."><figcaption><span class="ft">4:04</span> The slide presents a graph showing that compute leads to predictable performance gains for language models.</figcaption></figure>
+
+<ul>
+<li><strong>Dennard Scaling (1980s-2000s):</strong> In the early days of semiconductor scaling, CPUs got faster by packing more transistors onto a chip (Moore's Law). Smaller transistors could run at higher clock speeds with lower power, leading to increased single-thread performance.</li>
+<li><strong>End of Dennard Scaling:</strong> Around the 2000s, single-thread performance started to taper off (blue dots in the chart). While transistor counts continued to increase, this no longer translated to proportional gains in single-thread throughput.</li>
+</ul>
+<h3 id="530-parallel-scaling-continues">[5:30] Parallel Scaling Continues</h3>
+<figure class="slide"><img src="figs/lec05/00335.jpg" loading="lazy" alt="The slide illustrates how parallel scaling with GPUs has improved performance over 1000x in 10 years."><figcaption><span class="ft">5:35</span> The slide illustrates how parallel scaling with GPUs has improved performance over 1000x in 10 years.</figcaption></figure>
+
+<ul>
+<li><strong>Shift to Parallel Scaling:</strong> The story of scaling for deep learning and neural networks moved from single-thread scaling (doing computation faster in absolute terms) to parallel scaling (performing many workloads simultaneously).</li>
+<li><strong>GPU Performance Growth:</strong> GPUs have shown super-exponential growth in integer operations per second (INT8 TOPS), as illustrated by Bill Dally's keynote chart. This growth is driven by:<ul>
+<li><strong>Number Representation:</strong> Moving from FP32 to FP16, BF16, and INT8 (up to 16x gain).</li>
+<li><strong>Complex Instructions:</strong> Introducing specialized instructions like DP4, HMMA, IMMA (up to 12.5x gain).</li>
+<li><strong>Process:</strong> Smaller manufacturing processes (28nm down to 5nm) (up to 2.5x gain).</li>
+<li><strong>Sparsity:</strong> Leveraging sparsity in models (up to 2x gain).</li>
+<li><strong>Model Efficiency:</strong> Overall gains exceeding 1000x.</li>
+</ul>
+</li>
+<li>To achieve high performance in language models, we must understand and leverage this parallel scaling.</li>
+</ul>
+<h2 id="622-how-is-a-gpu-different-from-a-cpu">[6:22] How is a GPU Different from a CPU?</h2>
+<figure class="slide"><img src="figs/lec05/00419.jpg" loading="lazy" alt="The slide compares CPU and GPU architectures, highlighting their different optimization strategies for threads."><figcaption><span class="ft">6:59</span> The slide compares CPU and GPU architectures, highlighting their different optimization strategies for threads.</figcaption></figure>
+
+<ul>
+<li><strong>CPU Design:</strong> Optimized for <strong>latency</strong> (finish tasks quickly).<ul>
+<li>Features: Large control units, complex branch prediction, large caches.</li>
+<li>Goal: Execute a few threads very fast.</li>
+</ul>
+</li>
+<li><strong>GPU Design:</strong> Optimized for <strong>throughput</strong> (process total data quickly).<ul>
+<li>Features: Many tiny compute units (ALUs), much less support for branching/control.</li>
+<li>Goal: Execute many threads in parallel.</li>
+</ul>
+</li>
+<li><strong>Visual Analogy:</strong><ul>
+<li><strong>CPU:</strong> A few powerful workers (ALUs) with a sophisticated manager (Control) and fast local storage (Cache). Each worker processes a task to completion as fast as possible.</li>
+<li><strong>GPU:</strong> Many simple workers (ALUs) with minimal management (Control). Tasks are processed in parallel, with the goal of maximizing the total amount of work done over time, even if individual tasks take longer.</li>
+</ul>
+</li>
+</ul>
+<h3 id="828-anatomy-of-a-gpu-execution-units">[8:28] Anatomy of a GPU (Execution Units)</h3>
+<figure class="slide"><img src="figs/lec05/00530.jpg" loading="lazy" alt="The slide shows the anatomy of a GPU, detailing streaming multiprocessors (SMs) and their execution units."><figcaption><span class="ft">8:50</span> The slide shows the anatomy of a GPU, detailing streaming multiprocessors (SMs) and their execution units.</figcaption></figure>
+
+<ul>
+<li><strong>Streaming Multiprocessor (SM):</strong> The atomic unit of execution on a GPU. GPUs have many SMs (e.g., GA100 Full GPU with 128 SMs). SMs can independently execute "blocks" (jobs).</li>
+<li><strong>Streaming Processor (SP):</strong> Each SM contains many SPs. SPs execute "threads" in parallel.</li>
+<li><strong>Execution Model:</strong><ul>
+<li>An SM has control logic and can decide what to execute (e.g., branching).</li>
+<li>SPs within an SM take the same instruction and apply it to many different pieces of data (Single Instruction, Multiple Threads - SIMT). This allows for massive parallel computation.</li>
+</ul>
+</li>
+</ul>
+<h3 id="957-anatomy-of-a-gpu-memory">[9:57] Anatomy of a GPU (Memory)</h3>
+<ul>
+<li><strong>Memory Hierarchy is Crucial:</strong> The closer memory is to the SM, the faster it is. Physical proximity matters significantly for performance.</li>
+<li><strong>Memory Types and Latencies (approximate clock cycles):</strong><ul>
+<li><strong>Registers / Shared Memory (L1 cache):</strong> Inside the SM, very fast (20-33 cycles).</li>
+<li><strong>L2 Cache:</strong> On-die (on the GPU chip), still relatively fast (200 cycles).</li>
+<li><strong>Global Memory (HBM/DRAM):</strong> Off-chip, slowest (290 cycles).</li>
+</ul>
+</li>
+<li><strong>Impact of Slow Memory:</strong> If a computation requires frequent access to global memory, the SMs might run out of work and sit idle, leading to poor utilization. This is a key theme in GPU optimization.</li>
+</ul>
+<h3 id="1005-is-this-gpu-the-same-as-that-gpu">[10:05] Is this GPU the same as that GPU?</h3>
+<figure class="slide"><img src="figs/lec05/00622.jpg" loading="lazy" alt="This slide is a duplicate of a previous slide, comparing CPU and GPU architectures and their execution units."><figcaption><span class="ft">10:22</span> This slide is a duplicate of a previous slide, comparing CPU and GPU architectures and their execution units.</figcaption></figure>
+
+<ul>
+<li>The previous diagram was a cartoon version. The detailed diagram shows SMs (green blocks) with their own control units and specialized processing units (like FP32, INT32, Tensor Cores).</li>
+<li>HBM (High Bandwidth Memory) connectors (yellow) are visible on the chip diagram, connecting to off-chip DRAM.</li>
+</ul>
+<h3 id="1315-execution-model-of-a-gpu">[13:15] Execution Model of a GPU</h3>
+<figure class="slide"><img src="figs/lec05/00828.jpg" loading="lazy" alt="The slide explains the execution model of a GPU, defining threads, blocks, and warps."><figcaption><span class="ft">13:48</span> The slide explains the execution model of a GPU, defining threads, blocks, and warps.</figcaption></figure>
+
+<ul>
+<li><strong>Three important players:</strong><ol>
+<li><strong>Threads:</strong> "Do the work" in parallel. All threads execute the same instructions but with different inputs (SIMT).</li>
+<li><strong>Blocks:</strong> Groups of threads. Each block runs on an SM with its own shared memory.</li>
+<li><strong>Warp:</strong> Threads always execute in a "warp" of 32 consecutively numbered threads each.</li>
+</ol>
+</li>
+<li><strong>Process:</strong><ul>
+<li>A CUDA program launches many blocks.</li>
+<li>Each block is assigned to an SM.</li>
+<li>Within an SM, a block is divided into warps.</li>
+<li>Each warp (32 threads) is scheduled by a Warp Scheduler to run on the SM's SPs.</li>
+<li>All threads in a warp execute the same instruction on different data.</li>
+</ul>
+</li>
+</ul>
+<h3 id="1504-memory-model-of-a-gpu">[15:04] Memory Model of a GPU</h3>
+<figure class="slide"><img src="figs/lec05/00957.jpg" loading="lazy" alt="The slide illustrates the memory model of a GPU, showing different memory types and their accessibility."><figcaption><span class="ft">15:57</span> The slide illustrates the memory model of a GPU, showing different memory types and their accessibility.</figcaption></figure>
+
+<ul>
+<li><strong>Device Code (GPU) can access:</strong><ul>
+<li>Read/Write per-thread registers (fastest)</li>
+<li>Read/Write per-thread local memory</li>
+<li>Read/Write per-block shared memory</li>
+<li>Read/Write per-grid global memory (slowest)</li>
+<li>Read only per-grid constant memory</li>
+</ul>
+</li>
+<li><strong>Host Code (CPU) can:</strong><ul>
+<li>Transfer data to/from per-grid global and constant memories.</li>
+</ul>
+</li>
+<li><strong>Key Principle:</strong> Each thread can access its own register and shared memory within the block. Information that goes across blocks needs to be written to global memory.</li>
+<li><strong>Implication:</strong> Accessing global memory is very slow. Ideally, threads should operate on small amounts of data loaded into fast shared memory.</li>
+</ul>
+<h2 id="1634-side-thread-what-about-tpus">[16:34] Side Thread - What about TPUs?</h2>
+<figure class="slide"><img src="figs/lec05/01039.jpg" loading="lazy" alt="The slide discusses TPUs as an alternative to GPUs, highlighting their core structure and differences."><figcaption><span class="ft">17:19</span> The slide discusses TPUs as an alternative to GPUs, highlighting their core structure and differences.</figcaption></figure>
+<figure class="slide"><img src="figs/lec05/01110.jpg" loading="lazy" alt="The slide discusses TPUs as an alternative to GPUs, highlighting their core structure and differences."><figcaption><span class="ft">18:30</span> The slide discusses TPUs as an alternative to GPUs, highlighting their core structure and differences.</figcaption></figure>
+
+<ul>
+<li><strong>TPUs (Tensor Processing Units):</strong> Google's custom ASICs for ML.</li>
+<li><strong>High-level Similarity to GPUs:</strong> TPUs, GPUs, and many other accelerators share a similar high-level structure.<ul>
+<li><strong>Tensor Core (analogous to SM):</strong> An atomic unit that operates on data.</li>
+<li><strong>Scalar Unit:</strong> Control unit, dispatches instructions.</li>
+<li><strong>Vector Unit (VPU):</strong> Performs element-wise operations on vectors.</li>
+<li><strong>Matrix Multiply Unit (MXU):</strong> Dedicated hardware for matrix multiplications.</li>
+<li><strong>Memory:</strong> Fast on-core memory (Vector Memory, SMEM) and High Bandwidth Memory (HBM) off-core.</li>
+</ul>
+</li>
+<li><strong>Core Structure:</strong> Lightweight control, fast (big) matrix multiply, fast memory.</li>
+<li><strong>Differences:</strong><ul>
+<li>TPUs have fewer Tensor Cores (TCs) than GPUs have SMs, but individual TCs are more powerful.</li>
+<li>TPUs have no concept of "warps" or "blocks" in the same way as GPUs. They are optimized purely for matrix multiplications, making them simpler.</li>
+<li>The networking of accelerators is different (covered in a later lecture).</li>
+</ul>
+</li>
+</ul>
+<h2 id="1915-strengths-of-the-gpu-model">[19:15] Strengths of the GPU Model</h2>
+<ol>
+<li><strong>Easily scales up hard workloads:</strong> By adding more SMs, performance can be increased without necessarily increasing clock speed or dealing with heat dissipation issues.</li>
+<li><strong>Easy (?) to program due to the SIMT model:</strong> The Single Instruction, Multiple Threads (SIMT) model, where all threads in a warp execute the same instruction on different data, is conceptually straightforward for parallelizing operations on matrices.</li>
+<li><strong>Threads are "lightweight":</strong> GPU threads have minimal state and can be stopped and started quickly. This allows the GPU to hide latency by switching between active threads, ensuring high utilization even when some threads are waiting for data.</li>
+</ol>
+<h2 id="2018-gpus-as-fast-matrix-multipliers">[20:18] GPUs as Fast Matrix Multipliers</h2>
+<ul>
+<li><strong>Early Days:</strong> GPUs (Graphics Processing Units) were initially designed for graphics. Researchers "hacked" programmable shaders to perform matrix multiplications.</li>
+<li><strong>Modern Hardware:</strong> NVIDIA and other manufacturers realized the importance of matrix multiplications for deep learning.<ul>
+<li><strong>Tensor Cores:</strong> Introduced in the V (Volta) and T (Turing) series, Tensor Cores are specialized matrix multiplication circuits.</li>
+<li><strong>Performance Gap:</strong> Matmuls are now &gt;10x faster than other floating-point operations on GPUs.</li>
+</ul>
+</li>
+<li><strong>Implication:</strong> If you're designing a neural architecture, most of your workload should be matrix multiplications to leverage this specialized hardware. Non-matmul based operations will be significantly slower.</li>
+</ul>
+<h2 id="2203-compute-scaling-is-faster-than-memory-scaling">[22:03] Compute Scaling is Faster than Memory Scaling</h2>
+<ul>
+<li><strong>Relative Scaling:</strong><ul>
+<li><strong>HW FLOPs (Compute):</strong> Scales incredibly fast (60,000x in 20 years, ~3.0x every 2 years).</li>
+<li><strong>DRAM BW (Memory):</strong> Scales much slower (100x in 20 years, ~1.2x every 2 years).</li>
+<li><strong>Interconnect BW (Host-GPU):</strong> Scales even slower (20x in 20 years, ~1.1x every 2 years).</li>
+</ul>
+</li>
+<li><strong>Memory Bottleneck:</strong> While early ML problems might have been compute-bound, modern GPUs are so fast that memory access (DRAM bandwidth) is now the primary bottleneck. This gap will continue to widen.</li>
+<li><strong>Design Implication:</strong> Hardware-efficient algorithms must prioritize minimizing memory movement.</li>
+</ul>
+<h2 id="2355-recap-gpus-what-are-they-and-how-do-they-work">[23:55] Recap: GPUs - What are they and how do they work?</h2>
+<ul>
+<li>GPUs are massively parallel processors: Same instructions applied across many workers (SMs).</li>
+<li>Compute (especially matmuls) has scaled faster than memory.</li>
+<li>We must respect the memory hierarchy to make things go fast.</li>
+</ul>
+<h2 id="2502-part-2-making-ml-workloads-fast-on-a-gpu">[25:02] Part 2: Making ML Workloads Fast on a GPU</h2>
+<ul>
+<li><strong>The Matrix Multiply Mystery Plot:</strong> The initial plot showed unpredictable, wave-like performance patterns for square matrix multiplications as size increases. We aim to understand these patterns.<ul>
+<li><strong>X-axis:</strong> Size of square matrix (N).</li>
+<li><strong>Y-axis:</strong> Throughput (TFlops/s), representing hardware utilization.</li>
+<li><strong>Observed Patterns:</strong> Multiple lines, wave-like behavior, sudden drops/increases.</li>
+</ul>
+</li>
+</ul>
+<h3 id="2621-what-makes-ml-workloads-fast-the-roofline-model">[26:21] What Makes ML Workloads Fast? The Roofline Model</h3>
+<ul>
+<li><strong>Roofline Model:</strong> A performance model that identifies whether a workload is compute-bound or memory-bound.<ul>
+<li><strong>Memory-limited regime (left side):</strong> Performance is limited by the rate at which data can be fetched from memory.</li>
+<li><strong>Throughput-limited / Compute-bound regime (right side):</strong> Performance is limited by the raw processing power of the compute units.</li>
+<li><strong>Goal:</strong> Avoid being memory-bound and operate in the compute-bound regime (fully utilizing compute units).</li>
+</ul>
+</li>
+<li>The mystery plot's general shape (diagonal then flat) is consistent with the roofline model.</li>
+</ul>
+<h3 id="2736-how-do-we-make-gpus-go-fast-tricks">[27:36] How Do We Make GPUs Go Fast? (Tricks)</h3>
+<ul>
+<li>To avoid memory bottlenecks, we need a large array of tricks.</li>
+<li>
+<p><strong>1. Control Divergence (not a memory bottleneck):</strong></p>
+<ul>
+<li><strong>SIMT Model:</strong> Every thread in a warp executes the same instruction.</li>
+<li><strong>Conditionals (if/else statements):</strong> If threads within a warp take different branches, the GPU must execute both branches sequentially, pausing threads that don't follow the current path. This leads to significant overhead.</li>
+<li><strong>Implication:</strong> Avoid conditional statements within warps in performance-critical code.</li>
+</ul>
+</li>
+<li>
+<p><strong>2. Low Precision Computation (Quantization):</strong></p>
+<ul>
+<li><strong>Gains:</strong> Moving from FP32 to FP16, BF16, or INT8 can yield many orders of magnitude performance gains (e.g., 16x for FP32 to INT8).</li>
+<li><strong>Reason:</strong> Fewer bits mean fewer bits to move. This effectively increases memory bandwidth for free.</li>
+<li><strong>Example (Element-wise ReLU):</strong><ul>
+<li><strong>FP32:</strong> 1 read, 1 write (if x &lt; 0), 1 comparison, 1 FLOP. Memory access: 8 bytes. Intensity: 8 bytes/FLOP.</li>
+<li><strong>FP16:</strong> 1 read, 1 write (if x &lt; 0), 1 comparison, 1 FLOP. Memory access: 4 bytes. Intensity: 4 bytes/FLOP.</li>
+<li><strong>Result:</strong> Halving memory access effectively doubles memory bandwidth.</li>
+</ul>
+</li>
+<li><strong>Tensor Cores:</strong> Modern GPUs (like NVIDIA's Tensor Cores) are designed for mixed precision. Inputs can be 16-bit, intermediate accumulations can be 32-bit for precision, and the final result can be downcast to 16-bit.</li>
+<li><strong>Careful Engineering:</strong> Not all parts of a network or training algorithm can be low precision. Operations needing high precision (e.g., sums, reductions) or high dynamic range (e.g., exponential functions) might need FP32 or BF16.</li>
+</ul>
+</li>
+<li>
+<p><strong>3. Operator Fusion:</strong></p>
+<ul>
+<li><strong>Problem:</strong> Naive execution of sequential operations (e.g., square -&gt; triangle -&gt; circle) involves repeatedly writing intermediate results to global memory and reading them back. This incurs significant memory overhead.</li>
+<li><strong>Solution (Fused Kernel):</strong> Combine multiple sequential operations into a single CUDA kernel. The intermediate results stay in fast on-chip memory (registers, shared memory) and are not written back to global memory until the final output.</li>
+<li><strong>Example (sin^2(x) + cos^2(x)):</strong> Naive implementation launches 5 separate CUDA kernels, each involving global memory access. A fused kernel performs all operations on-chip, dramatically reducing memory traffic.</li>
+<li><strong>Automation:</strong> "Easy" fusions can be done automatically by compilers like <code>torch.compile</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>4. Recomputation:</strong></p>
+<ul>
+<li><strong>Problem (Backpropagation):</strong> During backpropagation, activations from the forward pass are needed to compute gradients. Storing all activations can consume significant memory and lead to slow global memory accesses.</li>
+<li><strong>Solution:</strong> Instead of storing all activations, recompute them on the fly during the backward pass.</li>
+<li><strong>Example (Stacked Sigmoids):</strong><ul>
+<li><strong>Normal Forward Pass:</strong> 1 memory read (x), 3 memory writes (S1, S2, out).</li>
+<li><strong>Normal Backward Pass:</strong> 3 memory reads (S1, S2, dout), 1 memory write (dx). Total 8 memory accesses.</li>
+<li><strong>Recomputed Forward Pass:</strong> 1 memory read (x), 1 memory write (out). S1 and S2 are not stored.</li>
+<li><strong>Recomputed Backward Pass:</strong> 2 memory reads (x, dout). S1 and S2 are recomputed on-chip. 1 memory write (dx). Total 5 memory accesses.</li>
+</ul>
+</li>
+<li><strong>Trade-off:</strong> Recomputation increases compute but significantly reduces memory accesses. This is beneficial when compute is abundant and memory bandwidth is scarce.</li>
+<li><strong>Relation to Checkpointing:</strong> Similar to gradient checkpointing, but here the goal is execution speed rather than just memory savings.</li>
+</ul>
+</li>
+<li>
+<p><strong>5. Memory Coalescing and DRAM:</strong></p>
+<ul>
+<li><strong>DRAM Burst Mode:</strong> When reading from global memory (DRAM), the hardware doesn't return just the requested byte, but a whole "burst section" (e.g., 4 bytes, 16 bytes, 128 bytes) for free. This is because moving data to the sense amplifier is the slow step; once there, many bytes can be read quickly.</li>
+<li><strong>Coalesced Accesses:</strong> Memory accesses are "coalesced" if all threads in a warp access locations that fall within the same burst section. This allows the GPU to fetch multiple data points with a single, efficient DRAM read.</li>
+<li><strong>Impact on Matrix Multiplication:</strong><ul>
+<li><strong>Row-major access (not coalesced):</strong> If threads move along rows (e.g., Thread 0 reads M0,0, Thread 1 reads M0,1), their memory accesses might fall into different burst sections, leading to many inefficient DRAM reads.</li>
+<li><strong>Column-major access (coalesced):</strong> If threads move down columns (e.g., Thread 0 reads M0,0, Thread 1 reads M1,0), their memory accesses are more likely to fall within the same burst section, allowing for coalesced reads and higher throughput.</li>
+</ul>
+</li>
+<li><strong>Importance:</strong> Correct memory traversal order is crucial for performance. Misaligned access patterns can drastically slow down memory access.</li>
+</ul>
+</li>
+<li>
+<p><strong>6. Tiling (The Big One):</strong></p>
+<ul>
+<li><strong>Idea:</strong> Grouping and ordering threads to minimize global memory access.</li>
+<li><strong>Process:</strong><ol>
+<li>Cut large matrices into smaller "tiles."</li>
+<li>Load a tile from global memory into fast shared memory.</li>
+<li>Perform all necessary computations on that tile within shared memory.</li>
+<li>Write the final result back to global memory (or accumulate if possible).</li>
+<li>Repeat for the next tile.</li>
+</ol>
+</li>
+<li><strong>Advantages:</strong><ul>
+<li><strong>Reduced Global Memory Access:</strong> Each input is read $N/T$ times from global memory (where $N$ is matrix size, $T$ is tile size), and $T$ times within shared memory. This is a factor of $T$ reduction in global memory access.</li>
+<li><strong>Repeated Reads Now Shared:</strong> Data within a tile is loaded once and reused by multiple threads, reducing redundant global memory reads.</li>
+<li><strong>Memory Access Can Be Coalesced:</strong> Within a tile, access patterns can be optimized for coalescing.</li>
+</ul>
+</li>
+<li><strong>Complexities:</strong><ul>
+<li><strong>Tile Size Selection:</strong> Factors affecting optimal tile size include coalesced memory access, shared memory size, and divisibility of the matrix dimensions.</li>
+<li><strong>Divisibility Issues:</strong> If matrix dimensions are not perfectly divisible by tile sizes, some tiles will be very sparse, leading to underutilized SMs and reduced overall performance. This requires careful padding.</li>
+<li><strong>Memory Alignment:</strong> Tiles must align with burst sections in DRAM for fast loading. Misalignment can double memory accesses.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="11050-putting-it-all-together-the-forward-pass-of-flash-attention">[1:10:50] Putting it all together: The Forward Pass of Flash Attention</h2>
+<ul>
+<li><strong>Matrix Multiply Mystery Revisited:</strong> The wave-like patterns in matrix multiply performance are due to the complex interplay of compute intensity, tiling, and wave quantization (burst mode alignment).</li>
+<li><strong>Andrej Karpathy's Tweet:</strong> Highlights how a seemingly small change in vocabulary size (50257 to 50304, nearest multiple of 64) can lead to a 25% speedup in nanoGPT, due to better memory alignment and higher occupancy. This illustrates the importance of low-level details.</li>
+</ul>
+<h3 id="11110-flash-attention-how-it-dramatically-accelerates-attention">[1:11:10] Flash Attention: How it Dramatically Accelerates Attention</h3>
+<ul>
+<li><strong>Standard Attention Computation:</strong> Involves three matrix multiplies (Q, K, V) and a softmax operation.</li>
+<li><strong>The Challenge of Softmax:</strong> Softmax is a global operation, requiring summing the entire row of attention scores. This is problematic for tiling, as it breaks the locality needed to keep computations within tiles.</li>
+<li><strong>Online Softmax (from Mikailov and Gimelshein 2018):</strong><ul>
+<li><strong>Normal Softmax:</strong> Requires all values (x1 to xn) upfront to compute the maximum and sum for normalization.</li>
+<li><strong>Online Softmax:</strong> Allows incremental computation of the softmax. It maintains a running maximum and a telescoping sum.</li>
+<li><strong>Key Idea:</strong> You don't need all x1 to xn upfront. You can process a stream of values, incrementally updating the max and sum.</li>
+<li><strong>Benefit:</strong> This allows computing the softmax tile-by-tile.</li>
+</ul>
+</li>
+<li><strong>Flash Attention's Forward Pass (from Dao 2023):</strong><ol>
+<li><strong>Tile-wise computation of the inner products (S):</strong> The QK^T matrix multiply is tiled, as discussed.</li>
+<li><strong>Fusion of the exponential operator:</strong> The exponential function (part of softmax) is fused with the inner product computation.</li>
+<li><strong>Tile-wise computation of the softmax via the online, telescoping sum trick:</strong> This is the crucial part. By using the online softmax, Flash Attention can compute the softmax within each tile, incrementally updating the necessary components (max and sum) without needing to materialize the full N^2 attention matrix.</li>
+<li><strong>Output:</strong> Once all tiles are processed, the final output is computed by combining the partial results.</li>
+</ol>
+</li>
+<li><strong>Backward Pass:</strong> Flash Attention uses recomputation tile-by-tile for the backward pass to avoid storing the N^2 attention matrix, which would be too memory-intensive.</li>
+</ul>
+<h2 id="11254-recap-for-the-whole-lecture">[1:12:54] Recap for the Whole Lecture</h2>
+<ul>
+<li><strong>Hardware Power:</strong> Hardware scales, and low-level details determine what scales or doesn't.</li>
+<li><strong>Current GPU Compute:</strong> Strongly encourages compute based on matrix multiplication and efficient data movement.</li>
+<li><strong>Thinking Carefully about the GPU:</strong> Coalescing, tiling, and fusion are key techniques that lead to good performance on things like Flash Attention.</li>
+</ul>
+<hr />
+<p><strong>Practical Takeaways</strong>
+- <strong>Memory is King:</strong> For modern ML on GPUs, memory bandwidth is often the bottleneck, not raw FLOPs. Prioritize minimizing global memory access.
+- <strong>Embrace Low-Level Optimizations:</strong> Techniques like tiling, fusion, coalescing, and recomputation are not just academic exercises; they are essential for achieving high performance.
+- <strong>Understand the Memory Hierarchy:</strong> Design algorithms to keep data in the fastest available memory (registers, shared memory) as much as possible.
+- <strong>Be Mindful of Data Access Patterns:</strong> Optimize memory access patterns to leverage hardware features like burst mode and avoid control divergence.
+- <strong>Leverage Low Precision:</strong> Use FP16, BF16, or INT8 where possible to reduce memory traffic and increase effective bandwidth.</p>
+<p><strong>Open Questions / Things to Remember</strong>
+- How do different GPU architectures (e.g., NVIDIA vs. AMD vs. Intel) impact the optimal values for tiling sizes, burst sections, and other low-level parameters?
+- What are the practical implications of these low-level optimizations for researchers who primarily use high-level frameworks like PyTorch or TensorFlow? (e.g., how much can compilers like <code>torch.compile</code> automate?)
+- How do these principles extend to multi-GPU and distributed training scenarios?
+- What are the trade-offs between numerical stability and performance when using mixed precision and quantization?</p><div class="pager"><a href="lec04.html">← Lec 04</a><a href="lec06.html" style="text-align:right">Lec 06 →</a></div></main></div></body></html>

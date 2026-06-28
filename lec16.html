@@ -1,0 +1,386 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 Lecture 16: Alignment — RL 1</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html" class="active"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Lecture 16</div><h1>Lecture 16: Alignment — RL 1</h1><p class="meta">Stanford CS336 · Spring 2025 · 1:20:32 · <a href="https://www.youtube.com/watch?v=46f2QTDB08Q" target="_blank">Watch on YouTube ↗</a></p><div class="banner">📝 Auto-generated notes from the full lecture video (slides, equations, and live code) and transcript. Verify critical details against the source.</div><div class="embed"><a href="https://www.youtube.com/watch?v=46f2QTDB08Q" target="_blank" rel="noopener" style="background-image:url(https://i.ytimg.com/vi/46f2QTDB08Q/hqdefault.jpg)"><span class="play"><span>▶ Watch on YouTube</span></span></a></div><p>These notes cover the second part of the lecture on post-training methods for language models, focusing on Reinforcement Learning from Verifiable Rewards (RLVR). The lecture revisits DPO and PPO, introduces GRPO, and then delves into case studies of recent open models that utilize RLVR, such as DeepSeek R1, Kimi 1.5, and Qwen 3.</p>
+<hr />
+<h2 id="tldr">TL;DR</h2>
+<ul>
+<li><strong>RLHF Limitations:</strong> Overoptimization and mode collapse are significant problems in RLHF, often stemming from the noisiness and complexity of human preferences.</li>
+<li><strong>RLVR as a Solution:</strong> Reinforcement Learning from Verifiable Rewards (RLVR) offers a path to scale RL by using objective, verifiable rewards (e.g., correctness in math problems) instead of human feedback, mitigating overoptimization.</li>
+<li><strong>GRPO: A Simpler PPO:</strong> Group Relative Policy Optimization (GRPO) simplifies PPO by removing the value function and using a z-score within groups for advantage computation, making it easier to implement and scale.</li>
+<li><strong>DeepSeek R1 &amp; Kimi 1.5:</strong> These models demonstrate that simple RL recipes (like GRPO) on verifiable rewards can achieve O1-level reasoning performance, highlighting the importance of data curation and efficient RL algorithms.</li>
+<li><strong>Qwen 3: Advanced Control:</strong> Qwen 3 introduces "thinking mode fusion" for fine-grained control over CoT length and early stopping, enabling a single model to adapt its reasoning process based on budget.</li>
+</ul>
+<h2 id="key-concepts">Key Concepts</h2>
+<ul>
+<li>DPO (Direct Preference Optimization)</li>
+<li>PPO (Proximal Policy Optimization)</li>
+<li>TRPO (Trust Region Policy Optimization)</li>
+<li>GRPO (Group Relative Policy Optimization)</li>
+<li>RLHF (Reinforcement Learning from Human Feedback)</li>
+<li>RLVR (Reinforcement Learning from Verifiable Rewards)</li>
+<li>Overoptimization / Overfitting</li>
+<li>Mode Collapse / Calibration</li>
+<li>Policy Gradients</li>
+<li>Advantage Estimation</li>
+<li>Value Function</li>
+<li>Reward Shaping</li>
+<li>Length Normalization</li>
+<li>SFT (Supervised Fine-Tuning)</li>
+<li>CoT (Chain-of-Thought)</li>
+<li>Distillation</li>
+<li>Thinking Mode Fusion</li>
+<li>Inference Efficiency</li>
+</ul>
+<hr />
+<h2 id="0000-introduction-rl-from-verifiable-rewards">[00:00] Introduction: RL from Verifiable Rewards</h2>
+<p>The lecture begins by finishing the remaining content from the previous session on RLHF and then transitions to Reinforcement Learning from Verifiable Rewards (RLVR), a new and exciting development in language model training.</p>
+<h2 id="0005-rlhf-recap-and-challenges">[00:05] RLHF Recap and Challenges</h2>
+<figure class="slide"><img src="figs/lec16/00013.jpg" loading="lazy" alt="Lecture 16: Reinforcement Learning from Verifiable Rewards, CS336, Stanford"><figcaption><span class="ft">0:13</span> Lecture 16: Reinforcement Learning from Verifiable Rewards, CS336, Stanford</figcaption></figure>
+
+<p>The lecturer provides a quick recap of RLHF and DPO, emphasizing the core idea of maximizing an underlying reward based on pairwise preference data.</p>
+<h3 id="0040-dpo-rlhf-without-tears">[00:40] DPO - RLHF without tears?</h3>
+<figure class="slide"><img src="figs/lec16/00040.jpg" loading="lazy" alt="A speaker at a podium, with a slide titled &quot;Remaining content from last lecture..&quot;"><figcaption><span class="ft">0:40</span> A speaker at a podium, with a slide titled &quot;Remaining content from last lecture..&quot;</figcaption></figure>
+
+<p>DPO simplifies PPO by getting rid of the reward model and on-policy rollouts. Instead, it takes gradient steps on log-loss of good stuff and negative gradient steps on bad stuff (appropriately weighted).</p>
+<p>$$
+\mathcal{L}_{\text{DPO}}(\pi_\theta; \pi_{\text{ref}}) = \mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} [-\log \sigma(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)})]
+$$</p>
+<p>The key steps for DPO are:
+1. Make a nonparametric assumption (policy class is the set of all functions).
+2. Parametrize reward $r$ via the policy.
+3. Optimize the reward via supervised losses (which in turn, optimizes the policy).</p>
+<p>This makes DPO essentially supervised learning on a reparameterized objective.</p>
+<h3 id="0203-dpo-updates-and-components">[02:03] DPO Updates and Components</h3>
+<figure class="slide"><img src="figs/lec16/00107.jpg" loading="lazy" alt="A slide showing the DPO derivation, including loss equations and key steps."><figcaption><span class="ft">1:47</span> A slide showing the DPO derivation, including loss equations and key steps.</figcaption></figure>
+
+<p>DPO updates can be written in a nice form where the gradient steps are scaled by $\beta$ (regularization). Updates are weighted higher when reward estimates are incorrect. The likelihood of good examples is increased, and the likelihood of bad examples is decreased.</p>
+<p>$$
+\nabla_\theta \mathcal{L}_{\text{DPO}}(\pi_\theta; \pi_{\text{ref}}) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} [\sigma(\beta(\hat{r}_\theta(x, y_l) - \hat{r}_\theta(x, y_w))) \cdot \beta \left( \nabla_\theta \log \pi_\theta(y_w|x) - \nabla_\theta \log \pi_\theta(y_l|x) \right)]
+$$</p>
+<p>This means "positive gradient on good, negative gradient on bad."</p>
+<h3 id="0300-dpo-works-pretty-well">[03:00] DPO Works Pretty Well</h3>
+<p>For a while, DPO was the dominant approach for post-training in open-source models due to its ease of implementation compared to PPO.</p>
+<h3 id="0319-variants">[03:19] Variants</h3>
+<p>A flood of DPO variants emerged, often denoted as "<em>PO". Two notable variants are:
+- </em><em>SimPO (Simple Preference Optimization):</em><em> Normalizes the update size by the length of responses and removes the reference policy. While losing the mathematical argument of DPO, it aligns with the "upweight good, downweight bad" intuition.
+- </em><em>Length Normalized DPO:</em>* Normalizes by length without removing the reference policy.</p>
+<h3 id="0435-ppo-does-too-and-sometimes-better">[04:35] PPO Does Too (and Sometimes Better?)</h3>
+<figure class="slide"><img src="figs/lec16/00301.jpg" loading="lazy" alt="A slide discussing PPO, showing two research paper excerpts and a table of results."><figcaption><span class="ft">5:01</span> A slide discussing PPO, showing two research paper excerpts and a table of results.</figcaption></figure>
+<figure class="slide"><img src="figs/lec16/00320.jpg" loading="lazy" alt="A slide discussing PPO, showing two research paper excerpts and a table of results."><figcaption><span class="ft">5:20</span> A slide discussing PPO, showing two research paper excerpts and a table of results.</figcaption></figure>
+
+<p>The empirical findings in RL are highly contingent on the specific experimental setup. Different environments, base models, and post-training preferences can lead to different conclusions. For example, some AI2 work initially found PPO to be better than DPO, but later found that a better SFT method could negate these gains, with DPO with normalization performing best. This highlights the need for caution when generalizing results from a single paper.</p>
+<h3 id="0601-things-to-watch-out-for-in-rlhf">[06:01] Things to Watch Out For in RLHF</h3>
+<figure class="slide"><img src="figs/lec16/00395.jpg" loading="lazy" alt="A slide on RLHF, showing graphs of overoptimization/overfitting and mode collapse/entropy."><figcaption><span class="ft">6:35</span> A slide on RLHF, showing graphs of overoptimization/overfitting and mode collapse/entropy.</figcaption></figure>
+<figure class="slide"><img src="figs/lec16/00430.jpg" loading="lazy" alt="A slide on overoptimization in RLHF, showing three graphs comparing different optimizers."><figcaption><span class="ft">7:10</span> A slide on overoptimization in RLHF, showing three graphs comparing different optimizers.</figcaption></figure>
+<figure class="slide"><img src="figs/lec16/00445.jpg" loading="lazy" alt="A slide on overoptimization in RLHF, showing three graphs comparing different optimizers."><figcaption><span class="ft">7:25</span> A slide on overoptimization in RLHF, showing three graphs comparing different optimizers.</figcaption></figure>
+<figure class="slide"><img src="figs/lec16/00455.jpg" loading="lazy" alt="A slide on overoptimization in RLHF, showing three graphs comparing different optimizers."><figcaption><span class="ft">7:35</span> A slide on overoptimization in RLHF, showing three graphs comparing different optimizers.</figcaption></figure>
+<figure class="slide"><img src="figs/lec16/00465.jpg" loading="lazy" alt="A slide on overoptimization in RLHF, showing three graphs comparing different optimizers."><figcaption><span class="ft">7:45</span> A slide on overoptimization in RLHF, showing three graphs comparing different optimizers.</figcaption></figure>
+<figure class="slide"><img src="figs/lec16/00475.jpg" loading="lazy" alt="A slide on overoptimization in RLHF, showing three graphs comparing different optimizers."><figcaption><span class="ft">7:55</span> A slide on overoptimization in RLHF, showing three graphs comparing different optimizers.</figcaption></figure>
+<figure class="slide"><img src="figs/lec16/00485.jpg" loading="lazy" alt="A slide on mode collapse in RLHF, showing calibration curves and an entropy histogram."><figcaption><span class="ft">8:05</span> A slide on mode collapse in RLHF, showing calibration curves and an entropy histogram.</figcaption></figure>
+
+<ol>
+<li><strong>Overoptimization / Overfitting on the Reward:</strong> As RL training progresses, the model's performance on the learned reward model initially improves, but eventually diverges from true human preferences. This is essentially overfitting to the reward model, which is often noisy and complex. This phenomenon is observed with human preferences and noisy AI feedback, but not with clean, noiseless AI feedback.</li>
+<li><strong>Mode Collapse / Entropy:</strong> RLHF makes models less probabilistic and calibrated by default. Unlike pre-training or supervised fine-tuning, RLHF is not about matching a distribution. This often leads to models exhibiting overconfident behavior, as calibration is not part of the reward signal. It's crucial not to treat RLHF models as calibrated probabilistic models.</li>
+</ol>
+<h2 id="0905-the-class-thus-far">[09:05] The Class Thus Far</h2>
+<p>The discussion so far has focused on pre-training and RLHF, leading to models like GPT-3.5. The next part of the lecture will transition to RLVR, which is enabling the development of reasoning models like O1.</p>
+<h3 id="1150-qa-on-rlhf">[11:50] Q&amp;A on RLHF</h3>
+<p><strong>Q:</strong> What do the x and y axes represent in the overoptimization graph?
+<strong>A:</strong> The x-axis represents the success of the RL algorithm in optimizing the proxy reward classifier (e.g., how well PPO optimized the reward model). The y-axis represents true win-rates, measured by fresh human votes or AI feedback. The graph shows that succeeding in RL doesn't guarantee success in the actual task, as models can overfit to human preferences.</p>
+<p><strong>Q:</strong> Why are the ratios of policies used in DPO, not just the difference of log probabilities?
+<strong>A:</strong> The ratios are a compact and intuitive way to represent the underlying mathematical argument of DPO. While taking the difference of log probabilities is computationally equivalent, the ratio form is often used for theoretical clarity. When moving to SimPO, the mathematical argument changes, as it's no longer strictly about ratios of policies.</p>
+<p><strong>Q:</strong> How is the ground truth of the reward measured in the overoptimization graph?
+<strong>A:</strong> The x-axis measures the performance on the <em>fitted</em> reward model (train set), while the y-axis measures performance on <em>fresh samples</em> from the true reward oracle (test set). This is analogous to a train-test gap in machine learning, where the model overfits to the training data.</p>
+<h2 id="1225-the-goal-expand-the-scope-and-power-of-rl">[12:25] The Goal: Expand the Scope and Power of RL</h2>
+<p>The core idea behind RLVR is to leverage the power of RL in domains where objective, verifiable rewards are available, similar to how AlphaGo or AlphaFold excelled. This avoids the limitations of human feedback (noisiness, scalability, overoptimization) and allows for more efficient and robust training.</p>
+<h2 id="1330-lecture-today">[13:30] Lecture Today</h2>
+<p>The lecture will proceed in two parts:
+1.  <strong>Core Algorithms:</strong> A detailed discussion of PPO, its transformation into GRPO, and various GRPO variants.
+2.  <strong>Case Studies:</strong> An examination of three prominent open models (DeepSeek R1, Kimi 1.5, and Qwen 3) that utilize RLVR, providing practical examples of the concepts discussed.</p>
+<h2 id="1430-recap-ppo-in-theory">[14:30] Recap: PPO in Theory</h2>
+<p>PPO (Proximal Policy Optimization) is a policy gradient method for optimizing rewards in actual RL tasks. The lecturer explains PPO by starting from the simplest policy gradient and progressively adding complexities.</p>
+<h3 id="1450-attempt-1-policy-gradients-variances-are-too-high">[14:50] Attempt 1: Policy Gradients (Variances are Too High)</h3>
+<p>The simplest approach is to optimize the expected reward under the policy $\pi_\theta$ using gradient ascent. The policy gradient theorem states that the gradient of the expected reward is:</p>
+<p>$$
+\nabla_\theta \mathbb{E}_{P_\theta}[R(Z)] = \mathbb{E}_{P_\theta}[R(Z) \nabla_\theta \log P_\theta(Z)]
+$$</p>
+<p>This means taking gradient steps proportional to the reward, increasing the probability of actions that lead to high rewards. However, the variance of these gradients can be very high.</p>
+<h3 id="1528-attempt-2-trpo-trust-region-policy-optimization">[15:28] Attempt 2: TRPO (Trust Region Policy Optimization)</h3>
+<p>To address high variance and improve sample efficiency, TRPO linearizes the problem around the current policy. Instead of sampling from the current policy $\pi_\theta$ for every gradient step, TRPO samples from an older policy $\pi_{\text{old}}$ (or $\pi_k$) and uses importance sampling to correct the gradients. To prevent the new policy from diverging too much from the old one, a KL divergence constraint is added.</p>
+<p>$$
+\max_\theta \mathbb{E}_{(s,a) \sim \pi_{\text{old}}} \left[ \frac{\pi_\theta(a|s)}{\pi_{\text{old}}(a|s)} \hat{A}_{\text{old}}(s,a) \right] \quad \text{subject to} \quad \mathbb{E}_{s \sim \pi_{\text{old}}} [D_{\text{KL}}(\pi_\theta(\cdot|s) || \pi_{\text{old}}(\cdot|s))] \le \delta
+$$</p>
+<p>Here, $\hat{A}_{\text{old}}(s,a)$ is an advantage estimate, a lower-variance version of the reward.</p>
+<h3 id="1700-attempt-3-ppo-clip-the-ratios-at-some-epsilon">[17:00] Attempt 3: PPO (Clip the Ratios at Some Epsilon)</h3>
+<p>PPO simplifies TRPO by replacing the explicit KL divergence constraint with a clipping mechanism. The objective function for PPO is:</p>
+<p>$$
+L(s, a, \theta, \theta_{\text{old}}) = \min \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_{\text{old}}}(a|s)} \hat{A}(s,a), \text{clip}\left(\frac{\pi_\theta(a|s)}{\pi_{\theta_{\text{old}}}(a|s)}, 1-\epsilon, 1+\epsilon\right) \hat{A}(s,a) \right)
+$$</p>
+<p>This clips the ratio of new to old policy probabilities, effectively limiting how much the policy can change in a single step. This prevents large, destabilizing updates and encourages the policy to stay close to the previous one without an explicit KL constraint.</p>
+<h3 id="1730-ppo-in-practice">[17:30] PPO in Practice</h3>
+<p>PPO is a very successful RL algorithm, used in various environments from simple toy tasks to complex games like Dota 2 (OpenAI Five). However, implementing PPO in practice is notoriously difficult. The blog post "The 37 Implementation Details of Proximal Policy Optimization" highlights the complexity and the sensitivity of PPO to implementation choices. Different implementations can lead to vastly different performance, and even slight errors can lead to incorrect policy gradients that surprisingly sometimes perform better. This underscores the empirical nature of RL and the need to carefully examine implementation details.</p>
+<h3 id="1935-ppo-idealization-for-language-models">[19:35] PPO - Idealization (?) for Language Models</h3>
+<p>Applying PPO to language models involves a complex setup:
+- <strong>SFT Model:</strong> A supervised fine-tuned model.
+- <strong>Reward Model:</strong> Learned from human feedback.
+- <strong>Value Model:</strong> A neural network that estimates expected rewards, used for variance reduction in advantage estimation.
+- <strong>GAE (Generalized Advantage Estimation):</strong> A sophisticated method for estimating advantages.
+- <strong>Policy LM:</strong> The language model being trained.
+- <strong>Replay Buffer:</strong> Stores past experiences for off-policy learning.</p>
+<p>This intricate machinery is necessary for PPO to work in the context of language models.</p>
+<h3 id="2013-ppo-in-practice-an-implementation">[20:13] PPO in Practice - An Implementation</h3>
+<p>The lecturer refers to an implementation of PPO from AlpacaFarm, which has been somewhat tested. The code snippet shows the outer loop of PPO, which involves:
+1.  Getting rollouts (trajectories) from the current policy.
+2.  Computing losses based on these rollouts.
+3.  Performing backpropagation and gradient steps (with clipping).
+4.  Updating the optimizer.</p>
+<p>This structure is common in many RL algorithms.</p>
+<h3 id="2117-ppo-in-practice-loss-computation">[21:17] PPO in Practice - Loss Computation</h3>
+<p>The loss computation in PPO involves two main parts:
+1.  <strong>Value Function Loss:</strong> Measures how close the predicted value from the value function is to the actual returns (rewards). This helps the value function provide accurate variance reduction.
+2.  <strong>Policy Loss:</strong> Computes the PPO-Clip objective, comparing the current policy's log probabilities to the reference policy's log probabilities, weighted by advantages, and clipped within a range (e.g., $\pm 0.2$).</p>
+<h3 id="2215-ppo-in-practice-rollouts">[22:15] PPO in Practice - Rollouts</h3>
+<p>Rollouts involve generating sequences from the current policy. This is where the complexity arises:
+-   <strong>Tokenization:</strong> Different models (policy, reward, value) might have different tokenizers, requiring retokenization.
+-   <strong>Evaluation:</strong> Feeding rollouts into the models to get log probabilities, rewards, and values.</p>
+<h3 id="2241-ppo-in-practice-reward-shaping">[22:41] PPO in Practice - Reward Shaping</h3>
+<p>Reward shaping is often used to make the reward signal more amenable to RL algorithms. In PPO, this involves:
+-   <strong>Per-token KL penalty:</strong> A regularization term computed for each token, encouraging the policy not to deviate too much from the reference policy.
+-   <strong>Last-token full reward:</strong> The main task reward (e.g., success/failure) is applied only at the last token of the sequence.</p>
+<p>The KL term is often clamped to 0 to avoid numerical instability when the log-ratio becomes too negative, which is an approximation rather than a true KL divergence.</p>
+<h3 id="2552-ppo-in-practice-generalized-advantage-estimate">[25:52] PPO in Practice - Generalized Advantage Estimate</h3>
+<p>Instead of directly using rewards, PPO uses generalized advantage estimation (GAE) to reduce variance in policy gradients. GAE is a discounted sum of advantages, where the advantage is the difference between the reward and a baseline (often the value function). The hyperparameters $\lambda$ and $\gamma$ control the trade-off between bias and variance. A common simplification is to set $\gamma = \lambda = 1$, which reduces GAE to a simple baseline policy gradient.</p>
+<h3 id="2659-what-to-expect-in-ppo">[26:59] What to Expect in PPO?</h3>
+<p>In a contextual bandit setting like language model generation, PPO typically shows:
+-   Increasing overall rewards.
+-   Increasing reward model scores.
+-   Negative KL rewards (as the policy deviates from the reference).</p>
+<h2 id="2733-why-do-we-need-yet-another-rl-algorithm">[27:33] Why Do We Need Yet Another RL Algorithm?</h2>
+<p>The complexities of PPO (complicated implementation, memory-hungry value model) and the limitations of DPO (data not inherently pairwise, offline nature) motivate the search for simpler and more efficient RL algorithms for language models.</p>
+<h2 id="2858-new-kid-on-the-block-grpo">[28:58] New Kid on the Block: GRPO</h2>
+<p>GRPO (Group Relative Policy Optimization) aims to simplify PPO while retaining its benefits.
+-   <strong>Start with PPO:</strong> GRPO builds upon the core ideas of PPO.
+-   <strong>Remove Value Function / Advantage Computation:</strong> GRPO eliminates the need for a separate value function and complex advantage estimation.
+-   <strong>Calculate Advantage as "z-score within group":</strong> The advantage for a given response is calculated as its z-score (reward minus mean, divided by standard deviation) relative to other responses within the same group (e.g., responses to the same prompt).</p>
+<p>A "group" typically refers to all responses generated for a single input prompt. This group-wise z-score normalization acts as a baseline, accounting for varying problem difficulties.</p>
+<p>The GRPO objective is:
+$$
+\max_\theta \mathbb{E}_{G \sim \mathcal{D}} \left[ \frac{1}{|G|} \sum_{i=1}^{|G|} \left( \frac{\pi_\theta(a_i|s_i)}{\pi_{\text{old}}(a_i|s_i)} \hat{A}_i \right) - \beta D_{\text{KL}}(\pi_\theta || \pi_{\text{old}}) \right]
+$$
+where $\hat{A}_i = \frac{r_i - \text{mean}(r_1, \dots, r_{|G|})}{\text{std}(r_1, \dots, r_{|G|})}$.</p>
+<p>In the online case (rollout + immediate update), GRPO simplifies to a policy gradient with group-normalized rewards.</p>
+<h3 id="3000-qa-on-grpo">[30:00] Q&amp;A on GRPO</h3>
+<p><strong>Q:</strong> When you say "group," does it mean multiple answers for one question, or multiple questions?
+<strong>A:</strong> For each question (Q), GRPO samples a group of outputs (G). So, for a single question, you generate multiple responses, and these responses form a group. The baselining (mean and standard deviation) is applied <em>within</em> this group. Across different questions, there's no explicit baselining, only the policy updates.</p>
+<p><strong>Q:</strong> What about the DKL term in GRPO?
+<strong>A:</strong> The DKL term in GRPO is a slightly non-standard estimate of KL divergence. Instead of just the average log-ratio, it includes additional terms related to the ratio of reference to current policy probabilities, which act as a control variate to reduce variance.</p>
+<h3 id="3050-grpo-is-simple-thanks-to-lack-of-value-function">[30:50] GRPO is Simple (Thanks to Lack of Value Function)</h3>
+<p>GRPO implementations are typically much simpler than PPO because they don't require a value function. The core steps involve:
+-   Compute reward for each rollout.
+-   Mean/variance normalization per group.
+-   Compute KL term.
+-   Gradient updates on the loss.</p>
+<h3 id="3110-grpo-doesnt-use-a-valid-baseline">[31:10] GRPO Doesn't Use a "Valid" Baseline</h3>
+<p>Recent analyses of GRPO have identified two mathematical "issues":
+1.  <strong>Division by Standard Deviation:</strong> Dividing by the standard deviation in the advantage calculation is not a valid baseline that preserves unbiasedness. This breaks the theoretical guarantee of the policy gradient theorem.
+2.  <strong>Length Normalization:</strong> The GRPO objective implicitly normalizes rewards by the length of the output. This creates an incentive for the model to produce very long responses when incorrect (to minimize negative reward per token) and very short responses when correct (to maximize positive reward per token). This leads to models "BS-ing" as aggressively as possible.</p>
+<p>These issues can lead to unintended behaviors, such as models generating overly long or short responses to manipulate the reward signal.</p>
+<h3 id="3210-length-biases-of-grpo">[32:10] Length Biases of GRPO</h3>
+<p>The standard deviation term in GRPO upweights problems that are either too easy or too hard (where variance is low), potentially slowing convergence. The length normalization term incentivizes longer responses for negative advantages and shorter responses for positive advantages.</p>
+<p>If these issues are fixed, models show improved reward curves and output lengths that stabilize rather than growing unboundedly. This suggests that some of the very long CoTs observed in GRPO might be an artifact of these implementation choices rather than an inherent property of reasoning.</p>
+<h2 id="3300-case-studies-of-rlvr">[33:00] Case Studies of RLVR</h2>
+<p>The lecture will now examine three representative open models that utilize RLVR: DeepSeek R1, Kimi 1.5, and Qwen 3.</p>
+<h3 id="3310-deepseek-r1">[33:10] DeepSeek R1</h3>
+<p>DeepSeek R1 is a paper that launched a significant social phenomenon, demonstrating O1-level reasoning performance with a surprisingly simple RL recipe.
+-   <strong>Performance:</strong> Achieves performance exceeding OpenAI O1.
+-   <strong>RL Recipe:</strong> The RL recipe is remarkably simple, lacking complex search or process reward models. This challenged the prevailing belief that such complexities were necessary for reasoning models.
+-   <strong>Insights:</strong> Provides insights into the interaction between SFT and RL.</p>
+<h3 id="3400-algorithm-grpo">[34:00] Algorithm - GRPO</h3>
+<p>DeepSeek R1 builds on the results of GRPO from DeepSeekMath. However, unlike DeepSeekMath, R1 does not use process supervision (intermediate step rewards) in its GRPO implementation.</p>
+<h3 id="3420-controlled-setting-r1-zero">[34:20] Controlled Setting - R1 Zero</h3>
+<p>R1 Zero is a controlled setting where a pre-trained model (DeepSeek V3) is directly fine-tuned with GRPO on math-ish tasks.
+-   <strong>Rewards:</strong> Uses accuracy rewards (binary correct/incorrect) and format rewards (to ensure CoTs are within thinking tags).
+-   <strong>Data:</strong> Proprietary math-ish tasks (not public).
+-   <strong>Results:</strong> Achieves performance close to OpenAI O1 on various benchmarks (AIME, MATH, GPQA, LiveCodeBench, CodeForces) by simply applying GRPO on top of the base model.</p>
+<h3 id="3500-interesting-phenomena">[35:00] Interesting Phenomena</h3>
+<p>R1 Zero exhibits two interesting phenomena:
+1.  <strong>Longer CoTs during training:</strong> The length of the CoT increases predictably during RL training. The authors interpret this as the model learning to solve harder problems by thinking harder.
+2.  <strong>"Aha" moment:</strong> The model learns to backtrack and correct its reasoning, which the authors refer to as an "aha" moment.</p>
+<p>However, follow-up analyses (e.g., in the Dr. GRPO paper) suggest these phenomena might be overstated:
+-   <strong>Length due to biased objective:</strong> The increasing CoT length might be an artifact of the biased GRPO objective rather than an inherent learning process.
+-   <strong>Base model already has 'aha':</strong> The "aha" moments might already be present in the base model (DeepSeek V3) and not necessarily an emergent property of RL.</p>
+<h3 id="3600-pushing-performance-further-r1">[36:00] Pushing Performance Further - R1</h3>
+<p>To achieve even better performance, R1 extends R1 Zero by incorporating additional techniques:
+-   <strong>SFT initialization:</strong> Fine-tuning the base model with long CoTs from an undisclosed source to prevent unstable cold start of RL training. This also provides interpretability benefits.
+-   <strong>Language consistency reward for CoT:</strong> An additional reward to prevent the CoT from language mixing (e.g., switching between English and Chinese).
+-   <strong>Non-verifiable rewards (in stage 2):</strong> Using RLHF for general-purpose alignment.</p>
+<h3 id="3700-sft-initialization">[37:00] SFT Initialization</h3>
+<p>SFT initialization involves fine-tuning the base model with long CoTs. This helps to prevent unstable cold start of RL training and provides interpretability benefits by keeping the model's CoTs closer to human-readable formats. However, the source and quality of this CoT data are not fully disclosed.</p>
+<h3 id="3730-sft-for-reasoning-math">[37:30] SFT for Reasoning / Math</h3>
+<p>Even a small number of SFT examples (e.g., 1000) on long CoTs can significantly boost math reasoning accuracy. This suggests that base models already possess significant reasoning capabilities that can be unlocked with targeted SFT, rather than requiring extensive RL.</p>
+<h3 id="3800-rl-step">[38:00] RL Step</h3>
+<p>The RL step in R1 is similar to R1 Zero, but with an additional language consistency loss. This loss is added to mitigate language mixing in CoTs, which can naturally occur during aggressive RL training. This is consistent with observations of models like Grok 3 switching languages in their CoTs.</p>
+<h3 id="3820-sftrlhf">[38:20] SFT/RLHF</h3>
+<p>The final stage involves layering on the usual post-training pipeline:
+-   <strong>SFT step:</strong> Fine-tuning on a mix of reasoning data (non-verifiable tasks, judged by V3) and non-reasoning data (SFT dataset).
+-   <strong>RLHF step:</strong> Reusing the R1 Zero-style reasoning RLHF pipeline, still using GRPO for RLHF.</p>
+<h3 id="3900-how-well-does-r1-work">[39:00] How Well Does R1 Work?</h3>
+<p>R1 achieves performance comparable to OpenAI O1 across various benchmarks (MMLU, GPQA, LiveCodeBench, CodeForces). It matches or beats O1 on most English tasks and performs very well on math and coding tasks, demonstrating that a simple recipe can achieve state-of-the-art reasoning capabilities.</p>
+<h3 id="3920-distillation-can-we-get-non-reasoning-models-to-reason">[39:20] Distillation - Can We Get Non-Reasoning Models to Reason?</h3>
+<p>R1 also shows that its generated CoT traces can be used to distill reasoning capabilities into smaller, non-reasoning models. By fine-tuning models like Qwen with R1's CoT traces, significant performance boosts can be achieved on math benchmarks, suggesting that reasoning can be effectively transferred.</p>
+<h3 id="4000-other-relevant-observations">[40:00] Other, Relevant Observations</h3>
+<p>R1 also explored other approaches that did not pan out:
+-   <strong>PRMs (Process Reward Models):</strong> These models provide intermediate feedback on each step of a CoT. While conceptually powerful, R1 found that PRMs did not significantly improve performance compared to outcome-based rewards.
+-   <strong>MCTS (Monte Carlo Tree Search):</strong> Inspired by AlphaGo, MCTS involves searching through possible reasoning steps. R1 found that MCTS did not yield better results than simple RL, suggesting that the search space for reasoning might be ill-defined or too complex for current methods.</p>
+<p>These "negative" results highlight the effectiveness and simplicity of the GRPO-based RLVR approach.</p>
+<h3 id="4050-kimi-15">[40:50] Kimi 1.5</h3>
+<p>Kimi 1.5 is another contemporaneous model that achieves similar results to R1 using RLVR.
+-   <strong>Released at the same time as R1:</strong> Allows for a comparison of parallel developments.
+-   <strong>Beats O1 using RL:</strong> Demonstrates strong performance.</p>
+<h3 id="4100-long-cot-reasoning-strategy">[41:00] Long CoT Reasoning Strategy</h3>
+<p>Kimi 1.5 employs a similar strategy to R1:
+-   <strong>Dataset Construction:</strong> Filters for difficulty using a "best-of-N" strategy.
+-   <strong>SFT:</strong> Fine-tuning with long CoTs.
+-   <strong>RL:</strong> Uses its own policy gradient loss.</p>
+<h3 id="4130-data-curation-sft">[41:30] Data Curation + SFT</h3>
+<p>Kimi 1.5's data curation involves:
+-   <strong>Standard coverage across math-style settings:</strong> Balances questions across different domains (math, STEM, competitions).
+-   <strong>Exclude multiple choice / true false (false positives):</strong> Focuses on verifiable answers that are not easily guessable.
+-   <strong>Select only examples that fail best-of-8:</strong> Filters out problems that are too easy for the model.</p>
+<p>SFT is described as "prompt engineering," suggesting a focus on crafting effective prompts to elicit desired model behavior.</p>
+<h3 id="4230-kimi-rl-algorithm-regularization">[42:30] Kimi RL Algorithm + Regularization</h3>
+<p>The Kimi RL algorithm is derived from a DPO-type derivation, but it's closer to a baselined policy gradient with regularization.
+-   <strong>Objective:</strong> Maximizes reward while minimizing KL divergence from the base policy.
+-   <strong>RL Algorithm:</strong> Uses a baselined policy gradient with a squared loss regularization term instead of clipping. This is analogous to GRPO but without the standard deviation normalization.</p>
+<h3 id="4315-length-control-in-kimi">[43:15] Length Control in Kimi</h3>
+<p>Kimi 1.5 explicitly addresses the issue of CoT length, recognizing its impact on inference cost.
+-   <strong>Length Reward:</strong> For each batch, a length reward is calculated based on the minimum and maximum CoT lengths.
+-   <strong>Incentives:</strong> The reward incentivizes correct answers to be as short as possible and incorrect answers to be around the average length. This aims to compress CoTs while maintaining performance.
+-   <strong>Training Schedule:</strong> This length reward is only enabled later in training to avoid stalling the RL process in early stages.</p>
+<h3 id="4400-additional-details">[44:00] Additional Details</h3>
+<ul>
+<li><strong>Curriculum:</strong> Kimi 1.5 uses a curriculum-based approach, assigning difficulty labels to the dataset and sampling problems proportional to (1 - success rate) to avoid repeating solved ones.</li>
+<li><strong>Rewards:</strong> For code, they generate new test cases for ground truth solutions. For math, they use a CoT reward model (trained on 800k samples) for answer equivalence checks, which is highly accurate.</li>
+</ul>
+<h3 id="4430-rl-infra">[44:30] RL Infra</h3>
+<p>Kimi 1.5 provides details on its RL infrastructure, highlighting challenges in scaling RL:
+-   <strong>On-policy rollouts:</strong> Inference is slow.
+-   <strong>Switching from training to rollouts:</strong> Requires frequent data transfer between different frameworks.
+-   <strong>Long CoTs:</strong> Can lead to uneven batch sizes.</p>
+<p>Kimi's hybrid deployment framework uses separate containers for different tasks (training, rollouts, inference) and manages data flow through shared memory and checkpointing. This allows for efficient GPU utilization and asynchronous operations.</p>
+<h3 id="4500-scaling-results">[45:00] Scaling Results</h3>
+<p>Kimi 1.5 shows impressive scaling results, with accuracy improving across iterations and different benchmarks. The length of responses also shows a controlled growth, unlike the unbounded growth seen in vanilla GRPO.</p>
+<h2 id="4530-final-case-study-qwen-3">[45:30] Final Case Study - Qwen 3</h2>
+<p>Qwen 3 is the most recent and modern of the RL for reasoning models. It builds upon previous works and introduces new techniques for controlling CoT generation.</p>
+<h3 id="4540-overall-picture">[45:40] Overall Picture</h3>
+<p>Qwen 3's pipeline is similar to R1 and Kimi 1.5:
+-   <strong>Stage 1: Long-CoT Cold Start:</strong> SFT with long CoTs.
+-   <strong>Stage 2: Reasoning RL:</strong> RL training for reasoning.
+-   <strong>Stage 3: Thinking Mode Fusion:</strong> A new technique to control CoT length.
+-   <strong>Stage 4: General RL:</strong> RLHF for general alignment.
+-   <strong>Distillation:</strong> Distilling flagship models into lightweight models.</p>
+<h3 id="4600-sft-reasoning-rl">[46:00] SFT + Reasoning RL</h3>
+<p>Qwen 3's data curation and RL training are similar to Kimi 1.5, with filtering for difficulty and manual filtering for CoT quality. Notably, their RL is performed on a very small number of examples (3995), suggesting high sample efficiency.</p>
+<h3 id="4620-qwen-3-specific-new-stuff">[46:20] Qwen 3 Specific New Stuff</h3>
+<p>Qwen 3 introduces "Thinking Mode Fusion" to control the length of the CoT.
+-   <strong>Mixed Training Data:</strong> The model is fine-tuned with data that includes both "thinking mode" (with <code>&lt;think&gt;</code> tags) and "non-thinking mode" (with <code>&lt;no_think&gt;</code> tags).
+-   <strong>Inference Control:</strong> During inference, the model can be prompted to either generate a CoT (by including <code>&lt;think&gt;</code> tags) or directly provide an answer (by including <code>&lt;no_think&gt;</code> tags).
+-   <strong>Early Stopping:</strong> A special string can be inserted to terminate the thinking process early, allowing for precise control over the CoT length.</p>
+<h3 id="4700-test-time-scaling">[47:00] Test Time Scaling</h3>
+<p>Thinking Mode Fusion allows for flexible test-time scaling. By setting a maximum thinking budget, Qwen 3 can achieve graceful performance degradations as the budget is reduced. This provides a control knob for balancing inference cost and performance.</p>
+<h3 id="4730-composition-of-the-different-stages">[47:30] Composition of the Different Stages</h3>
+<p>Qwen 3 provides a detailed ablation study, showing the performance at each stage of its pipeline.
+-   <strong>Reasoning RL:</strong> Improves performance on general tasks and instruction following.
+-   <strong>Thinking Mode Fusion:</strong> Further enhances performance, especially for math and coding.
+-   <strong>General RL:</strong> RLHF improves performance across the board.</p>
+<p>A notable observation is a potential trade-off: General RL (RLHF) seems to hurt performance on math and coding tasks in thinking mode, while improving it in non-thinking mode. This suggests a tension between general instruction following and specialized reasoning.</p>
+<h2 id="4800-recap-for-today">[48:00] Recap for Today</h2>
+<ul>
+<li><strong>Overoptimization is a problem:</strong> RL in narrow domains (RLVR) is one solution.</li>
+<li><strong>GRPO is simple (but with some flaws):</strong> It's an easy-to-implement algorithm that enables RLVR.</li>
+<li><strong>Lots of successful recipes in the wild:</strong> DeepSeek R1, Kimi 1.5, and Qwen 3 demonstrate the effectiveness of RLVR.</li>
+</ul>
+<hr />
+<h2 id="practical-takeaways">Practical Takeaways</h2>
+<ul>
+<li><strong>RLHF is powerful but tricky:</strong> While RLHF can align models with human preferences, it's prone to overoptimization and can lead to uncalibrated models.</li>
+<li><strong>RLVR offers a scalable alternative:</strong> By using verifiable, objective rewards, RLVR can overcome the limitations of human feedback and enable more robust and efficient training.</li>
+<li><strong>Simplicity can be powerful:</strong> GRPO demonstrates that effective RL algorithms don't necessarily need complex components like value functions, making them easier to implement and scale.</li>
+<li><strong>Data curation is key:</strong> The quality and diversity of the training data, especially for SFT, significantly impact the performance of RLVR models.</li>
+<li><strong>Control over inference is crucial:</strong> Techniques like Thinking Mode Fusion in Qwen 3 allow for fine-grained control over CoT generation, balancing performance and inference cost.</li>
+<li><strong>Infrastructure matters:</strong> Efficient RL training requires robust infrastructure to handle rollouts, model updates, and data transfer between workers.</li>
+</ul>
+<h2 id="open-questions-things-to-remember">Open Questions / Things to Remember</h2>
+<ul>
+<li><strong>Generalizability of RLVR:</strong> How well do models trained with RLVR on narrow, verifiable domains generalize to broader, more open-ended tasks?</li>
+<li><strong>Trade-offs between general purpose and specialized reasoning:</strong> Is there an inherent trade-off between optimizing for general instruction following (via RLHF) and specialized reasoning (via RLVR)?</li>
+<li><strong>The "black magic" of RL hyperparameters:</strong> How to optimally combine different reward signals (accuracy, formatting, consistency) remains an empirical challenge.</li>
+<li><strong>The role of CoT length:</strong> While longer CoTs can improve reasoning, they also increase inference cost. Finding the optimal balance and controlling CoT generation is an active area of research.</li>
+<li><strong>The future of RL infrastructure:</strong> As RL for LLMs becomes more prevalent, robust and efficient infrastructure will be critical for scaling research and deployment.</li>
+</ul><div class="pager"><a href="lec15.html">← Lec 15</a><a href="lec17.html" style="text-align:right">Lec 17 →</a></div></main></div></body></html>

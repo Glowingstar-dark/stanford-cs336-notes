@@ -1,0 +1,473 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 Lecture 09: Scaling Laws 1</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html" class="active"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Lecture 09</div><h1>Lecture 09: Scaling Laws 1</h1><p class="meta">Stanford CS336 · Spring 2025 · 1:05:18 · <a href="https://www.youtube.com/watch?v=6Q-ESEmDf4Q" target="_blank">Watch on YouTube ↗</a></p><div class="banner">📝 Auto-generated notes from the full lecture video (slides, equations, and live code) and transcript. Verify critical details against the source.</div><div class="embed"><a href="https://www.youtube.com/watch?v=6Q-ESEmDf4Q" target="_blank" rel="noopener" style="background-image:url(https://i.ytimg.com/vi/6Q-ESEmDf4Q/hqdefault.jpg)"><span class="play"><span>▶ Watch on YouTube</span></span></a></div><p><strong>TL;DR</strong>
+* Scaling laws describe how model performance (loss) changes with resources (data, model size, compute) in a predictable, often log-linear, fashion.
+* Historically, scaling laws were studied in statistical learning theory (generalization bounds) and early NLP (data scaling for task performance).
+* Modern scaling laws for LLMs show power-law relationships between test loss and compute, dataset size, or parameters.
+* These laws enable efficient engineering decisions: predicting optimal hyperparameters, architectures, and resource allocation (e.g., data vs. model size) without expensive large-scale training.
+* Key insights include the existence of distinct scaling regions (small data, power-law, irreducible error) and the importance of accounting for factors like data composition, repetition, and specific parameter types (e.g., embeddings).
+* While powerful for pre-training objectives (like perplexity), scaling law predictability can be less reliable for downstream tasks.</p>
+<p><strong>Key Concepts</strong>
+* Scaling Laws
+* Data Scaling
+* Model Scaling
+* Compute Scaling
+* Power-Law Relationships
+* Log-Log Plots
+* Generalization Error
+* Irreducible Error
+* Small Data Region
+* Power-Law Region
+* Data Composition
+* Data Repetition
+* Isotropes / IsoFLOPs
+* Optimal Training Budget
+* Critical Batch Size
+* Scale-Aware Initialization (muP)
+* Downstream Scaling</p>
+<hr />
+<h3 id="000-introduction-to-scaling-laws">[0:00] Introduction to Scaling Laws</h3>
+<p>The lecture begins by setting a scenario: imagine you have access to 100,000 H100 GPUs for a month and need to build the best open-source Large Language Model (LLM). We've already covered infrastructure, distributed training, pre-training datasets, and architectures. The question then becomes: how do you make optimal decisions regarding architecture, hyperparameters, and resource allocation to push the frontiers of model performance, rather than just copying existing models?</p>
+<p>This is where <strong>scaling laws</strong> come in.
+*   <strong>Goal</strong>: Build simple, predictive "laws" for the behavior of language models.
+*   <strong>Approach</strong>: Train small models, learn from their behavior, and extrapolate to larger ones.
+*   <strong>Old (unpleasant) way</strong>: Tune hyperparameters directly on big models, which is computationally expensive.
+*   <strong>New (optimistic) way</strong>: Tune on small models, extrapolate to large ones, saving significant compute.</p>
+<p>The lecture will cover:
+1.  <strong>History and background of scaling laws</strong>: Contextualizing their origins beyond recent "AGI" hype.
+2.  <strong>Neural (LLM) scaling behaviors</strong>: Empirical results and practical applications.</p>
+<hr />
+<h3 id="005-part-1-scaling-laws-history-and-background">[0:05] Part 1. Scaling Laws: History and Background</h3>
+<p>The speaker emphasizes that scaling laws are more grounded than often portrayed, with a rich history.</p>
+<h4 id="005-data-scaling-as-empirical-sample-complexities">[0:05] Data Scaling as Empirical Sample Complexities</h4>
+<p>From a statistical machine learning perspective, scaling laws describe how model behavior changes with increased data or model size.</p>
+<ul>
+<li>
+<p><strong>Theoretical Generalization Bounds</strong>:</p>
+<ul>
+<li>For learning in a finite set of $k$ hypotheses, the generalization error $\epsilon(\hat{h})$ is bounded by:
+    $$ \epsilon(\hat{h}) \le (\min_{h \in H} \epsilon(h)) + 2\sqrt{\frac{1}{m} \log \frac{2k}{\delta}} $$
+    This suggests error should scale as $1/\sqrt{m}$ (where $m$ is the number of samples).</li>
+<li>For generative modeling (e.g., fitting a smooth density), the $L_2$ error can be bounded by a polynomial in $n$ (number of samples):
+    $$ \sup_{p \in \mathcal{P}_{\beta, L}} E[(\hat{p}_n(x_0) - p(x_0))^2] \le C n^{-\frac{\beta}{2\beta+1}} $$
+    These are theoretical upper bounds, not actual realized loss values.</li>
+</ul>
+</li>
+<li>
+<p><strong>The Leap to Empirical Scaling Laws</strong>: Moving from theoretical bounds to empirically observed performance trends.</p>
+</li>
+</ul>
+<h4 id="005-earliest-data-scaling-law-paper-1993">[0:05] Earliest (Data) Scaling Law Paper - 1993</h4>
+<p>The earliest paper that resembles modern scaling law analysis is "Learning Curves: Asymptotic Values and Rate of Convergence" from 1993 by Corinna Cortes, L.D. Jackel, Sara A. Solla, Vladimir Vapnik, and John S. Denker (Bell Labs).</p>
+<ul>
+<li><strong>Key Idea</strong>: Training classifiers on large datasets is computationally demanding. We need predictive methods to estimate model performance without full training.</li>
+<li><strong>Functional Form</strong>: The paper proposes that test error ($E$) can be expressed as:
+    $$ E = A + \frac{B}{\text{train-data-size}^\beta} $$
+    where $A$ is irreducible error, and $B/\text{train-data-size}^\beta$ is a polynomially decaying term.</li>
+<li><strong>Methodology</strong>: They trained small models, fit curves, and accurately predicted performance for larger models. This is precisely the spirit of modern scaling laws.</li>
+</ul>
+<h4 id="005-early-history-of-scaling-laws-data-scaling">[0:05] Early History of Scaling Laws - Data Scaling</h4>
+<p>Other early works also explored data scaling.
+*   <strong>Log-linear scaling with data (Banko and Brill, 2001)</strong>: Studied how NLP system performance scales with data size.
+    *   <strong>Observation</strong>: Log-linear relationship between data size (x-axis, log scale) and test accuracy (y-axis).
+    *   <strong>Conclusion</strong>: Dramatic performance improvements can be achieved by scaling data. This led to the argument that collecting more data might be more effective than complex algorithm development, a sentiment echoed in modern pre-training.</p>
+<h4 id="005-early-tests-of-functional-forms">[0:05] Early Tests of Functional Forms</h4>
+<p>Even in the early 2010s, researchers were investigating the best functional forms for these scaling relationships.
+*   <strong>Kolachina et al. (2012)</strong>: Tested various functional forms (e.g., exponential, power-law) to predict model behavior based on training data size.
+*   <strong>Key Relationship</strong>: Model capabilities (y-axis) as a function of data (x-axis).</p>
+<h4 id="005-earliest-large-scale-neural-scaling-work-hestness-et-al-2017">[0:05] Earliest Large-Scale Neural Scaling Work: Hestness et al. 2017</h4>
+<p>This paper from Baidu (Hestness et al., 2017) is often cited as the earliest large-scale neural scaling work.
+*   <strong>Observation</strong>: For tasks like machine translation, speech, and vision, error rates fall as a power law with increasing data.
+*   <strong>Generalization Error Curve</strong>: The paper proposes a conceptual curve for generalization error vs. training data size, identifying three regions:
+    1.  <strong>Small Data Region</strong>: Initial phase where performance is close to random guessing ("Best Guess Error").
+    2.  <strong>Power-Law Region</strong>: Predictable scaling where error decreases polynomially with data ("Power-Law").
+    3.  <strong>Irreducible Error Region</strong>: Asymptotic phase where error approaches the fundamental limit of the task ("Irreducible Error").</p>
+<h4 id="005-hestness-ii-ahead-of-its-time">[0:05] Hestness II: Ahead of its Time</h4>
+<p>The Hestness et al. (2017) paper also foreshadowed many "new" phenomena discussed in recent years:
+*   <strong>"Emergence"</strong>: Noted that small data regimes can be hard to predict because models might suddenly "leave the random region" and show significant improvements.
+*   <strong>Scaling by Compute</strong>: Highlighted that if scaling laws are predictable, then scaling by compute (training larger models for longer) becomes a crucial strategy.
+*   <strong>Speed = Accuracy Trade-off</strong>: Suggested that hardware improvements (e.g., quantization) and distributed training could be used to improve compute throughput, allowing for larger models and better accuracy.</p>
+<hr />
+<h3 id="005-part-2-neural-llm-scaling-behaviors">[0:05] Part 2. Neural (LLM) Scaling Behaviors</h3>
+<p>This section delves into empirical scaling behaviors of LLMs, focusing on data, model size, and hyperparameters.</p>
+<h4 id="005-data-vs-performance">[0:05] Data vs. Performance</h4>
+<p><strong>What is a data scaling law?</strong>
+*   A simple formula that maps dataset size ($n$) to error.
+*   <strong>Expectation</strong>: Monotonic, logistic-like curves for generalization error (log-scale) vs. training data set size (log-scale), with distinct regions (small data, power-law, irreducible error).</p>
+<p><strong>Scaling laws hold on many different kinds of phenomena!</strong>
+*   <strong>Kaplan et al. (2020)</strong>: Showed log-linear relationships between test loss and:
+    *   Compute (PF-days)
+    *   Dataset Size (tokens)
+    *   Parameters (non-embedding)
+*   These relationships hold even in non-standard settings (e.g., when training and test data are different).</p>
+<h4 id="005-conceptual-foundations-of-data-scaling-laws">[0:05] Conceptual Foundations of Data Scaling Laws</h4>
+<p><strong>Q: Why do scaling laws show up?</strong>
+*   We expect error to be monotonic (more data = less error).
+*   <strong>Q: But why is it a power law / linear in log-log?</strong>
+*   <strong>A</strong>: Estimation error naturally decays polynomially.</p>
+<p><strong>Toy Example: Mean Estimation</strong>
+*   <strong>Input</strong>: $x_1, \dots, x_n \sim N(\mu, \sigma^2)$
+*   <strong>Task</strong>: Estimate the average, $\hat{\mu} = \frac{1}{n} \sum x_i$.
+*   <strong>Error</strong>: The expected squared error is $E[(\hat{\mu} - \mu)^2] = \frac{\sigma^2}{n}$.
+*   <strong>This is a "scaling law"</strong>: Taking the logarithm of both sides:
+    $$ \log(\text{Error}) = -\log n + 2 \log \sigma $$
+    This shows a linear relationship in log-log space with a slope of -1.
+*   <strong>Generalization</strong>: Any polynomial rate $1/n^\alpha$ is a scaling law.</p>
+<p><strong>Detour: Scaling Laws for (Nonparametric) Learning</strong>
+*   Neural nets can approximate arbitrary functions. Let's consider estimating a function $f(x)$ where $x_i$ are uniformly distributed in a 2D unit box, and $y_i = f(x_i) + N(0,1)$.
+*   <strong>Approach</strong>: Cut the 2D space into boxes of length $n^{-1/4}$.
+*   <strong>Estimation Error</strong>: Informally, we have $\sqrt{n}$ boxes, each getting $\sqrt{n}$ samples. The error is approximately $1/\sqrt{n}$ (plus other smoothness terms).
+*   <strong>In d-dimensions</strong>: This becomes Error $\approx n^{-1/d}$.
+*   <strong>Meaning</strong>: Scaling means $\log(\text{Error}) = -\frac{1}{d} \log n + C$.
+*   <strong>Takeaway</strong>: "Nonparametric" learning has dimension-dependent scaling. The slope of the scaling law is related to the intrinsic dimensionality of the data.</p>
+<p><strong>Scaling Law Exponents: An Intriguing Mystery</strong>
+*   We expect "nice round numbers" for the slope (e.g., -1 or -0.5) based on simple models.
+*   <strong>Empirical Findings</strong>:
+    *   Machine Translation (Hestness et al.): -0.13
+    *   Speech (Hestness et al.): -0.3
+    *   Language Modeling (Kaplan et al.): -0.095
+*   These exponents are much slower than expected. This suggests that the "effective" dimensionality of the learning problem for neural networks is very high.</p>
+<p><strong>Intrinsic Dimensionality Theory of Data Scaling Laws</strong>
+*   <strong>Argument (Bahri 2021)</strong>:
+    1.  Scaling laws arise due to polynomial rates of learning $1/n^\alpha$.
+    2.  Scaling argument $\alpha$ is closely connected to the intrinsic dimensionality of the data.
+*   <strong>Caveat</strong>: Estimators of intrinsic dimension are sketchy, and this is not airtight.</p>
+<h4 id="005-other-data-scaling-laws">[0:05] Other Data Scaling Laws</h4>
+<p>Data scaling laws are useful for making engineering decisions.
+*   <strong>Related Question</strong>: How does dataset <em>composition</em> affect performance?
+    *   <strong>Kaplan et al.</strong> showed that data composition affects the <em>offset</em> of the scaling law, not the <em>slope</em>.
+    *   <strong>Implication</strong>: To pick an optimal data mixture, you can run experiments on small models and extrapolate.
+    *   <strong>Example</strong>: Optimal data mixture can be found by analyzing the shape of expected error as a function of data source proportion.</p>
+<ul>
+<li>
+<p><strong>Scaling Laws Under Data Repetition</strong></p>
+<ul>
+<li><strong>Question</strong>: In practice, we have finite data. How does repeating examples affect scaling?</li>
+<li><strong>Observation</strong>: Return on compute when repeating data diminishes rapidly after a few epochs (e.g., 4 epochs).</li>
+<li><strong>Modified Scaling Law</strong>: $D' = U_D + U_D R_D (1 - e^{-R_D/U_D})$, where $D'$ is effective data, $U_D$ is unique tokens, and $R_D$ is repetition.</li>
+<li><strong>Implication</strong>: There's an effective sample size, and after about 4 epochs, you get rapidly diminishing returns from repeating data.</li>
+</ul>
+</li>
+<li>
+<p><strong>Data Selection Scaling and Accounting for Finiteness</strong></p>
+<ul>
+<li><strong>Problem</strong>: Given that repeated data is less valuable, data selection should be adaptive to scale.</li>
+<li><strong>Approach</strong>: Use scaling laws to trade off between repeating high-quality data and including new, lower-quality data.</li>
+<li><strong>Example (CMU folks)</strong>: Showed how to balance quality with repetition rate using scaling laws.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Recap: Data Scaling Laws</strong>
+*   Remarkably linear relationship between log-data size and log-error.
+*   Holds across domains and models.
+*   Theory understanding: Similar to generalization bounds (mean estimation example).
+*   Applications: Data collection / curation.</p>
+<hr />
+<h3 id="005-scaling-laws-for-model-engineering">[0:05] Scaling Laws for Model Engineering</h3>
+<p>Now, let's shift to <strong>model scaling</strong>, which is often more mysterious.</p>
+<p><strong>Our Motivation</strong>: How can we efficiently design huge LLMs?
+*   <strong>Choices</strong>: LSTMs vs. Transformers, Adam vs. SGD, etc.
+*   <strong>Resource Allocation</strong>: How should we allocate limited resources?
+    *   Train models longer vs. train bigger models?
+    *   Collect more data vs. get more GPUs?
+*   <strong>Scaling laws provide a simple procedure to answer these questions.</strong></p>
+<h4 id="005-hyperparameter-questions">[0:05] Hyperparameter Questions</h4>
+<p>We'll consider some of these choices in the context of the classic Kaplan scaling paper.
+1.  Architecture
+2.  Optimizer
+3.  Aspect ratio / depth
+4.  Batch size</p>
+<p><strong>1. Architecture: Transformers vs. LSTMs</strong>
+*   <strong>Q</strong>: Are transformers better than LSTMs?
+*   <strong>Brute force way</strong>: Spend tens of millions to train an LSTM GPT-3.
+*   <strong>Scaling law way</strong>: Train LSTMs and Transformers across various compute levels.
+    *   <strong>Observation</strong>: Transformers consistently outperform LSTMs with a constant factor gap in compute efficiency (e.g., 15x more efficient). This gap holds across different numbers of layers.</p>
+<p><strong>Many Architectures (Tay et al.)</strong>
+*   <strong>Cross-architecture scaling (Tay et al., Google)</strong>: Compared many architectures (ALBERT, DConv, Funnel, Transformer-GLU, LCconv, MLP Mixer, MoS Transformer, Switch Transformer, Universal Transformer) against a Transformer baseline.
+*   <strong>Method</strong>: Scaled each architecture across different FLOPs budgets and plotted negative log-perplexity.
+*   <strong>Observation</strong>: Only architectures like Gated Linear Units (GLU) and Mixture of Experts (MoE) (e.g., Switch Transformer) consistently beat the Transformer baseline. This provides evidence for which architectures are worth scaling up.</p>
+<p><strong>2. Optimizer Choice</strong>
+*   <strong>Q</strong>: What about Adam vs. SGD?
+*   <strong>Hestness et al. (2017)</strong>: Compared SGD and Adam for Recurrent Highway Networks (RHNs, pre-transformers).
+*   <strong>Observation</strong>: Similar to architecture choice, there's a constant factor gap in compute effectiveness between Adam and SGD. The slopes of the scaling curves are similar, but Adam provides a better offset (lower loss for the same compute).</p>
+<p><strong>3. Depth/Width: Number of Layers</strong>
+*   <strong>Q</strong>: Does depth or width make a huge difference?
+*   <strong>Kaplan et al.</strong> analysis shows that while 1 layer performs significantly worse, models with 2 or more layers have diminishing returns beyond $10^7$ parameters.
+*   <strong>Insight</strong>: There's a wide basin of approximately optimal depth/width ratios, rather than a sharp optimal point.</p>
+<p><strong>Depth/Width: But not all parameters are made equal</strong>
+*   <strong>Observation</strong>: Embedding layer parameters don't behave the same as non-embedding parameters.
+    *   If embedding parameters are included in the total parameter count, the scaling law becomes distorted (bends over).
+    *   If only non-embedding parameters are considered, the scaling law is much cleaner.
+*   <strong>Related Work</strong>: Recent papers on scaling laws for mixtures of experts also explore how different types of parameters contribute to scaling.</p>
+<p><strong>Do hyperparameters and other Transformer layers scale equally?</strong>
+*   <strong>Kaplan et al.</strong> also analyzed the impact of aspect ratios (Feed-Forward Ratio, Attention Head Dimension) on performance.
+*   <strong>Observation</strong>: The shape of the loss curve (loss increase vs. aspect ratio) remains similar across different model sizes (50M, 274M, 1.5B parameters).
+*   <strong>Implication</strong>: You can tune aspect ratios on small models, and the optimal range will likely transfer to larger models. This highlights the importance of being "scale-aware" in hyperparameter tuning.</p>
+<p><strong>4. Batch Size: Critical Batch Size</strong>
+*   <strong>Batch size</strong> is known to have strong diminishing returns past a certain point.
+*   <strong>Critical batch size</strong>: The minimum number of examples for target loss / minimum number of steps for target loss.
+*   <strong>Perfect Scaling</strong>: When batch size is smaller than the noise scale, increasing batch size is almost equivalent to taking more gradient steps. This is desirable for parallel processing.
+*   <strong>Ineffective Scaling</strong>: Past the critical batch size, increasing batch size no longer effectively reduces noise, as it's dominated by the curvature of the optimization landscape.
+*   <strong>Empirical Analysis</strong>: The critical batch size can be estimated empirically.
+    *   <strong>Observation</strong>: As the loss target gets smaller (better performance), the critical batch size tends to get larger.
+    *   <strong>Practical Implication</strong>: Training reports (e.g., Llama 3) often show increasing batch size during training as loss decreases.</p>
+<p><strong>Batch Size: Selecting the Optimal Batch</strong>
+*   <strong>Q</strong>: As we increase both compute and model size, how should we scale training?
+*   <strong>Kaplan et al.</strong> analysis shows that for a given compute budget, the number of total steps can remain relatively constant while batch sizes increase.
+*   <strong>Good news for data parallel processing</strong>: This allows for efficient scaling of training.</p>
+<p><strong>5. Learning Rates: muP and Scale-Aware LR Choices</strong>
+*   <strong>Problem</strong>: If we naively scale up, the optimal learning rate depends on scale.
+    *   <strong>Standard Practice (left plot)</strong>: As model width increases, the optimal learning rate shifts to the left (smaller values).
+*   <strong>Solution</strong>: We need scale-aware initialization and learning rate scaling.
+*   <strong>muP (Maximal Update Parametrization)</strong>: A reparameterization of the model where learning rates are scaled based on model width and other factors (e.g., variance of initialization, output multipliers).
+    *   <strong>Our Work (right plot)</strong>: With muP, the optimal learning rate remains stable across different model widths.
+    *   <strong>Implication</strong>: Tune learning rate once on a small model, and it directly transfers to the largest scale.
+    *   <strong>Industry Adoption</strong>: Labs (e.g., Meta's "MetaP" for Llama 4) are adopting similar ideas to simplify scaling.</p>
+<hr />
+<h3 id="005-caution-scaling-behaviors-can-differ-downstream">[0:05] Caution - Scaling Behaviors Can Differ Downstream</h3>
+<ul>
+<li><strong>Observation</strong>: Scaling is predictable and depends mainly on parameters.</li>
+<li><strong>Catch</strong>: Downstream scaling can often be much less predictable.</li>
+<li><strong>Tay et al. (2023)</strong>:<ul>
+<li><strong>Left Plot (Pre-training)</strong>: Negative log-perplexity (pre-training loss) shows a very clean log-linear relationship with parameters (a surrogate for compute). This means architecture and hyperparameter choices don't significantly alter the fundamental scaling.</li>
+<li><strong>Right Plot (Downstream)</strong>: SuperGLUE accuracy (downstream task) shows a much less predictable relationship with parameters. Different architectures and hyperparameters lead to widely varying performance, and the log-linear trend is not as clear.</li>
+</ul>
+</li>
+<li><strong>Implication</strong>: Don't assume pre-training scaling directly translates to downstream task performance. Be cautious when extrapolating.</li>
+<li><strong>Example</strong>: State-space models (e.g., Mamba) show excellent pre-training scaling but may perform differently on specific in-context learning or QA tasks.</li>
+</ul>
+<hr />
+<h3 id="005-some-surprising-takeaways">[0:05] Some Surprising Takeaways</h3>
+<ul>
+<li>The effect of hyperparameters on big LLMs can be predicted <em>before training</em>!<ul>
+<li>Optimizer choice</li>
+<li>Model depth</li>
+<li>Architecture choice</li>
+</ul>
+</li>
+<li><strong>The scaling law based design procedure</strong>:<ol>
+<li>Train a few smaller models (spanning a couple orders of magnitude compute).</li>
+<li>Establish a scaling law (e.g., ADAM vs SGD scaling law).</li>
+<li>Select optimal hyperparameters based on the scaling law prediction.</li>
+</ol>
+</li>
+<li>In many cases, scaling laws won't vary much (slopes will be similar), meaning small model results transfer surprisingly well to larger models.</li>
+</ul>
+<h4 id="005-one-important-use-of-scaling-laws">[0:05] One Important Use of Scaling Laws</h4>
+<p><strong>Q</strong>: Do we need more data or bigger models?
+*   <strong>Context</strong>: Historically, compute was the limiting resource, not data. The question was how to optimally spend a fixed FLOPs budget.
+*   <strong>Joint Data-Model Scaling Laws</strong>: Describe how data and model size relate to error.
+    *   <strong>Rosenfeld et al. (2020) &amp; Kaplan et al. (2020)</strong>: Proposed functional forms where error is a sum of terms decaying polynomially with data ($n^{-\alpha}$) and model size ($m^{-\beta}$), plus an irreducible error term ($C$).
+        *   $$ \text{Error} = n^{-\alpha} + m^{-\beta} + C $$ (Rosenfeld et al.)
+        *   $$ \text{Error} = [m^{-\alpha} + n^{-1}]^\beta $$ (Kaplan et al.)
+    *   These functional forms, while somewhat ad-hoc, provide surprisingly good fits to the observed data-model joint error landscape.</p>
+<p><strong>Model-Data Joint Scaling is Accurate</strong>
+*   <strong>Rosenfeld et al.</strong> demonstrated that by fitting scaling exponents on small data and small models, they could accurately predict the performance of much larger models and datasets.
+*   <strong>Method</strong>: Train models on a small subset of the data-model space (e.g., small models, small data), fit the joint scaling law, and extrapolate to predict performance for larger models and datasets.
+*   <strong>Accuracy</strong>: The predictions (y-axis) closely match the real values (x-axis) for both ImageNet and WikiText-103, showing high accuracy of joint extrapolation.
+*   <strong>Implication</strong>: This allows trading off data and model size to optimize $n^{-\alpha} + m^{-\beta} + C$ with your costs.</p>
+<h4 id="005-compute-tradeoffs">[0:05] Compute Tradeoffs</h4>
+<ul>
+<li><strong>Q</strong>: What about other resources? Compute vs. performance?</li>
+<li><strong>For a fixed compute budget</strong>: Is a big model that's undertrained better than a small model that's well-trained?</li>
+<li><strong>Kaplan et al. (2020) &amp; Brown et al. (2020)</strong>: Showed that for a fixed compute budget (FLOPs), there's an optimal balance between model size and training data.<ul>
+<li><strong>Observation</strong>: Plotting test loss vs. parameters (x-axis) for different compute budgets (colors), the minimum loss for each compute budget forms a scaling law.</li>
+</ul>
+</li>
+<li><strong>Scaling laws let us navigate this tradeoff.</strong></li>
+</ul>
+<h4 id="005-caution-optimal-scaling-laws-are-hard-to-get">[0:05] Caution - 'Optimal' Scaling Laws Are Hard to Get</h4>
+<ul>
+<li><strong>Problem</strong>: Rosenfeld and Kaplan both predict the relationship of data, model, and performance. However, their initial estimates for optimal scaling were quite different.</li>
+<li><strong>Chinchilla (Hoffmann et al., 2022)</strong>: Argued that previous fits were quite off.<ul>
+<li><strong>Kaplan et al. (2020)</strong> predicted an optimal ratio of ~2 tokens per parameter.</li>
+<li><strong>Chinchilla</strong> found the optimal ratio to be ~20 tokens per parameter, a 10x difference.</li>
+<li><strong>Gopher (Rae et al., 2021)</strong> and <strong>Megatron-Turing NLG (Narayanan et al., 2021)</strong> also had ratios closer to Kaplan's initial estimate.</li>
+</ul>
+</li>
+<li><strong>Implication</strong>: Precisely determining the "optimal" scaling laws is challenging and sensitive to methodology.</li>
+</ul>
+<p><strong>Main Difference - Accounting for LR Schedules</strong>
+*   One key reason for the discrepancy between Kaplan's and Chinchilla's estimates lies in how they accounted for learning rate schedules.
+*   <strong>Cosine Learning Rate Schedules</strong>: Models are typically trained with cosine learning rate schedules, which involve a warm-up phase, a decay phase, and a cool-down phase.
+*   <strong>Problem</strong>: You cannot truncate a cosine learning rate schedule early and expect the same model quality as a full run. A model trained for a shorter duration with a truncated schedule is not equivalent to a model trained from scratch with a schedule designed for that shorter duration.
+*   <strong>Kaplan's Approach</strong>: Assumed that truncating training runs (and thus the learning rate schedule) was equivalent to training a smaller model for a shorter time. This assumption was flawed.
+*   <strong>Chinchilla's Approach</strong>: Accounted for the full cosine learning rate schedule, ensuring that models were trained to convergence for each data/model size combination.</p>
+<p><strong>Chinchilla in Depth - 3 Methods</strong>
+Chinchilla authors suggested 3 ways of fitting scaling laws, which mostly (minus method 3) suggest similar constants.</p>
+<ol>
+<li>
+<p><strong>Minimum over training runs (Method 1)</strong>:</p>
+<ul>
+<li><strong>Approach</strong>: Overlay training curves for various model sizes and compute budgets. Identify the "lower envelope" of these curves, representing the minimum loss achievable for a given FLOPs budget.</li>
+<li><strong>Observation</strong>: The minimum over the union of all training curves is a power law.</li>
+<li><strong>Result</strong>: This method yields optimal parameter-to-FLOPs and token-to-FLOPs ratios that are consistent with 0.5 for both coefficients ($N_{opt} \propto C^a$, $D_{opt} \propto C^b$).</li>
+</ul>
+</li>
+<li>
+<p><strong>IsoFLOPs (Method 2)</strong>:</p>
+<ul>
+<li><strong>Approach</strong>: Pick a range of FLOPs budgets. For each budget, vary the total parameter count and take the minimum loss over these convex shapes (IsoFLOP curves).</li>
+<li><strong>Observation</strong>: The minima form a power law.</li>
+<li><strong>Result</strong>: This method also yields optimal parameter-to-FLOPs and token-to-FLOPs ratios consistent with 0.5. This is considered conceptually straightforward.</li>
+</ul>
+</li>
+<li>
+<p><strong>Joint Fits (Method 3)</strong>:</p>
+<ul>
+<li><strong>Approach</strong>: Run a bunch of models on the size-data grid. Use least squares to fit a joint scaling law (like the Rosenfeld/Kaplan functional forms).</li>
+<li><strong>Observation</strong>: This method is messier and yields different coefficients (e.g., 0.73 for $a$ and 0.27 for $b$ in Kaplan's initial work).</li>
+</ul>
+</li>
+</ol>
+<p><strong>Fun Addendum - Errors in Chinchilla Method 3</strong>
+*   <strong>Discovery</strong>: Some authors (Besiroglu et al., 2024) later found that Method 3 in the original Chinchilla paper was likely flawed.
+*   <strong>Process</strong>: They performed data forensics, recovered the raw data, and re-did the fit.
+*   <strong>Result</strong>: The re-fit yielded results more consistent with Methods 1 and 2. The original fit had non-zero mean residuals, indicating a biased fit. Correcting this bias brought Method 3's estimates in line with the other two methods.
+*   <strong>Conclusion</strong>: The original authors had both the idea and the data right, but a minor error in curve fitting led to a misleading result.</p>
+<h4 id="005-important-note-train-optimal-may-not-be-what-you-want">[0:05] Important Note - Train-Optimal May Not Be What You Want</h4>
+<ul>
+<li><strong>Chinchilla's Aim</strong>: To tell you what gives the best model for fixed training compute.</li>
+<li><strong>Reality</strong>: Most of the compute in a real deployment is inference.</li>
+<li><strong>Implication</strong>: We should "over-train" (train with more tokens per parameter than what Chinchilla suggests for training optimality).</li>
+<li><strong>Trend</strong>: Over time, the tokens per parameter ratio has steadily increased:<ul>
+<li>GPT-3: 2 tokens / param</li>
+<li>Chinchilla: 20 tokens / param</li>
+<li>LLaMA 65B: 22 tokens / param</li>
+<li>Llama 2 70B: 29 tokens / param</li>
+<li>Mistral 7B: 110 tokens / param</li>
+<li>Llama 3 70B: 215 tokens / param</li>
+</ul>
+</li>
+<li><strong>Reason</strong>: The more usage we expect, the more it becomes worth it to pay the upfront cost of training with more data to get a better model, rather than incurring higher ongoing inference costs for a less capable model.</li>
+</ul>
+<h4 id="005-recent-example-for-different-diffusion-models">[0:05] Recent Example for Different (Diffusion) Models</h4>
+<ul>
+<li><strong>Observation</strong>: Methods like IsoFLOPs are pretty easy to execute, and our group has replicated these results.</li>
+<li><strong>Gulrajani+ (2023)</strong>: Applied IsoFLOP analysis to auto-regressive and diffusion models for text.<ul>
+<li><strong>Auto-regressive models</strong>: Showed the familiar chinchilla-like curves and optimal scaling.</li>
+<li><strong>Diffusion models</strong>: Despite being a totally different generative model, they also show very similar curves and predictable scaling.</li>
+<li><strong>Conclusion</strong>: Plotting the minimum across these shows predictable scaling for both, separated by a constant offset.</li>
+</ul>
+</li>
+<li><strong>Takeaway</strong>: Scaling laws are not just for cherry-picked examples; they seem to happen pretty naturally as you work on new models or environments.</li>
+</ul>
+<hr />
+<h3 id="005-scaling-laws-for-models-and-compute">[0:05] Scaling Laws for Models and Compute</h3>
+<ul>
+<li>Log-linearity extends to model parameters and compute!</li>
+<li><strong>Lets us set the following based on small models</strong>:<ul>
+<li>Pick optimizer</li>
+<li>Pick architecture and model sizes</li>
+</ul>
+</li>
+<li><strong>Also lets us make smart resource tradeoffs</strong>:<ul>
+<li>Big models vs. more data?</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h3 id="005-recap-scaling-laws-surprising-and-useful">[0:05] Recap: Scaling Laws - Surprising and Useful!</h3>
+<figure class="slide"><img src="figs/lec09/00014.jpg" loading="lazy" alt="Lecture 9: Scaling Laws - Basics, introducing a scenario for large-scale language model training."><figcaption><span class="ft">0:14</span> Lecture 9: Scaling Laws - Basics, introducing a scenario for large-scale language model training.</figcaption></figure>
+<figure class="slide"><img src="figs/lec09/00102.jpg" loading="lazy" alt="Slide title: Today: simple, predictive &#x27;laws&#x27; for behaviors of LMs, with two graphs showing validation and test loss."><figcaption><span class="ft">1:42</span> Slide title: Today: simple, predictive &#x27;laws&#x27; for behaviors of LMs, with two graphs showing validation and test loss.</figcaption></figure>
+<figure class="slide"><img src="figs/lec09/00140.jpg" loading="lazy" alt="Slide title: Today: simple, predictive &#x27;laws&#x27; for behaviors of LMs, with two graphs showing validation and test loss."><figcaption><span class="ft">2:20</span> Slide title: Today: simple, predictive &#x27;laws&#x27; for behaviors of LMs, with two graphs showing validation and test loss.</figcaption></figure>
+<figure class="slide"><img src="figs/lec09/00241.jpg" loading="lazy" alt="Slide title: Sample complexity and rates, showing two mathematical equations related to learning theory."><figcaption><span class="ft">4:01</span> Slide title: Sample complexity and rates, showing two mathematical equations related to learning theory.</figcaption></figure>
+<figure class="slide"><img src="figs/lec09/00328.jpg" loading="lazy" alt="Slide title: Earliest (data) scaling law paper – 1993, displaying a paper title and a graph of error vs. training set size."><figcaption><span class="ft">5:28</span> Slide title: Earliest (data) scaling law paper – 1993, displaying a paper title and a graph of error vs. training set size.</figcaption></figure>
+<figure class="slide"><img src="figs/lec09/00433.jpg" loading="lazy" alt="Slide title: Early history of scaling laws – data scaling, showing a graph of test accuracy vs. millions of words."><figcaption><span class="ft">7:13</span> Slide title: Early history of scaling laws – data scaling, showing a graph of test accuracy vs. millions of words.</figcaption></figure>
+<figure class="slide"><img src="figs/lec09/00520.jpg" loading="lazy" alt="Slide title: Hestness et al 2017, presenting three graphs illustrating neural machine translation learning curves and generalization error."><figcaption><span class="ft">8:40</span> Slide title: Hestness et al 2017, presenting three graphs illustrating neural machine translation learning curves and generalization error.</figcaption></figure>
+<figure class="slide"><img src="figs/lec09/00650.jpg" loading="lazy" alt="Slide title: Part 2. Neural (LLM) scaling behaviors, outlining three key areas: data vs performance, data vs model size, and hyperparameters vs performance."><figcaption><span class="ft">10:50</span> Slide title: Part 2. Neural (LLM) scaling behaviors, outlining three key areas: data vs performance, data vs model size, and hyperparameters vs performance.</figcaption></figure>
+<figure class="slide"><img src="figs/lec09/00741.jpg" loading="lazy" alt="Slide title: Part 2. Neural (LLM) scaling behaviors, outlining three key areas: data vs performance, data vs model size, and hyperparameters vs performance."><figcaption><span class="ft">12:21</span> Slide title: Part 2. Neural (LLM) scaling behaviors, outlining three key areas: data vs performance, data vs model size, and hyperparameters vs performance.</figcaption></figure>
+<figure class="slide"><img src="figs/lec09/00823.jpg" loading="lazy" alt="Slide title: Data vs performance, defining data scaling laws and showing a generalization error curve."><figcaption><span class="ft">13:43</span> Slide title: Data vs performance, defining data scaling laws and showing a generalization error curve.</figcaption></figure>
+<figure class="slide"><img src="figs/lec09/00913.jpg" loading="lazy" alt="Slide title: Conceptual foundations of data scaling laws, posing a question about why scaling laws appear."><figcaption><span class="ft">15:13</span> Slide title: Conceptual foundations of data scaling laws, posing a question about why scaling laws appear.</figcaption></figure>
+<figure class="slide"><img src="figs/lec09/01017.jpg" loading="lazy" alt="Slide title: Toy example: mean estimation, presenting equations for estimating the average and its error."><figcaption><span class="ft">16:57</span> Slide title: Toy example: mean estimation, presenting equations for estimating the average and its error.</figcaption></figure>
+
+<ul>
+<li><strong>Data scaling</strong>: Understand how data affects models, clean theory.</li>
+<li><strong>Model scaling</strong>: Dramatically reduce costs for training.</li>
+<li><strong>Scaling as prediction</strong>: Understand what problems can be 'brute forced'.</li>
+</ul>
+<hr />
+<h3 id="practical-takeaways">Practical Takeaways</h3>
+<ul>
+<li><strong>Efficiency</strong>: Scaling laws provide a principled way to make engineering decisions (architecture, hyperparameters, resource allocation) for large models without needing to train them fully.</li>
+<li><strong>Predictability</strong>: Many aspects of model performance (loss) exhibit predictable power-law relationships with resources (data, parameters, compute) on log-log scales.</li>
+<li><strong>Resource Allocation</strong>: Scaling laws help optimize the trade-off between model size, dataset size, and compute budget to achieve the best performance for a given cost.</li>
+<li><strong>Architecture/Optimizer Choice</strong>: Small-scale scaling experiments can reveal which architectures or optimizers are fundamentally more efficient, even if the absolute performance is low.</li>
+<li><strong>Hyperparameter Tuning</strong>: Scale-aware initialization (like muP) can make optimal learning rates stable across different model scales, simplifying tuning.</li>
+<li><strong>Data Strategy</strong>: Scaling laws inform decisions about data composition (offset vs. slope) and repetition (diminishing returns).</li>
+</ul>
+<h3 id="open-questions-things-to-remember">Open Questions / Things to Remember</h3>
+<ul>
+<li><strong>Theoretical vs. Empirical</strong>: While statistical learning theory provides bounds, empirical scaling laws often reveal different, slower decay rates, suggesting high effective dimensionality.</li>
+<li><strong>Beyond Perplexity</strong>: Scaling law predictability is strong for pre-training objectives (like perplexity) but can be much less reliable for downstream tasks. This is a critical caution.</li>
+<li><strong>Not All Parameters Are Equal</strong>: Embedding parameters can behave differently from non-embedding parameters, affecting scaling law linearity.</li>
+<li><strong>Learning Rate Schedules</strong>: Proper accounting for learning rate schedules (e.g., full cosine cycles) is crucial for accurate scaling law predictions, as shown by the Chinchilla paper's refinement of Kaplan's work.</li>
+<li><strong>Train-Optimal vs. Inference-Optimal</strong>: The "optimal" scaling for training (minimizing FLOPs for a given loss) might not be the optimal strategy for deployment, where inference cost and model capability at small sizes are paramount. This has led to a shift towards "over-training" (more tokens per parameter) in recent LLMs.</li>
+<li><strong>Robustness</strong>: The widespread applicability of scaling laws across different model types (auto-regressive, diffusion) and tasks suggests a fundamental underlying principle in deep learning.</li>
+</ul><div class="pager"><a href="lec08.html">← Lec 08</a><a href="lec10.html" style="text-align:right">Lec 10 →</a></div></main></div></body></html>

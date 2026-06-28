@@ -1,0 +1,671 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 Lecture 15: Alignment — SFT/RLHF</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html" class="active"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Lecture 15</div><h1>Lecture 15: Alignment — SFT/RLHF</h1><p class="meta">Stanford CS336 · Spring 2025 · 1:14:51 · <a href="https://www.youtube.com/watch?v=Dfu7vC9jo4w" target="_blank">Watch on YouTube ↗</a></p><div class="banner">📝 Auto-generated notes from the full lecture video (slides, equations, and live code) and transcript. Verify critical details against the source.</div><div class="embed"><a href="https://www.youtube.com/watch?v=Dfu7vC9jo4w" target="_blank" rel="noopener" style="background-image:url(https://i.ytimg.com/vi/Dfu7vC9jo4w/hqdefault.jpg)"><span class="play"><span>▶ Watch on YouTube</span></span></a></div><p><strong>TL;DR</strong>
+*   Post-training (alignment) is crucial to make large language models (LLMs) useful and safe, transitioning from raw pre-trained models to instruction-following agents like ChatGPT.
+*   Supervised Fine-Tuning (SFT) involves training on expert demonstrations, but the quality and style of this data significantly impact model behavior and can lead to issues like hallucination if not carefully managed.
+*   Reinforcement Learning from Human Feedback (RLHF) optimizes models to maximize a measurable reward function, moving beyond simply imitating a reference distribution.
+*   RLHF data collection (pairwise comparisons) is often cheaper than SFT, but still faces challenges with annotator quality, consistency, and ethical considerations (e.g., fair wages).
+*   Algorithms like Proximal Policy Optimization (PPO) and Direct Preference Optimization (DPO) are used to adapt LLMs using human feedback, with DPO offering a simpler, more accessible approach by reframing RL as a maximum likelihood problem.</p>
+<p><strong>Key Concepts</strong>
+*   Post-training / Alignment
+*   Supervised Fine-Tuning (SFT)
+*   Instruction Tuning Data (FLAN, Alpaca, Oasst)
+*   Hallucination
+*   Safety Tuning / Content Moderation
+*   Mid-training / Two-phase Training
+*   Reinforcement Learning from Human Feedback (RLHF)
+*   Reward Model
+*   Pairwise Feedback
+*   Policy Gradient Theorem
+*   Proximal Policy Optimization (PPO)
+*   Trust Region Policy Optimization (TRPO)
+*   Direct Preference Optimization (DPO)
+*   KL Divergence
+*   Bradley-Terry Model
+*   Self-preference / Self-bias
+*   Length Effects
+*   Generator-Validator Gap
+*   Crowdsourcing complexities and ethics</p>
+<hr />
+<h3 id="000-introduction-from-pre-training-to-post-training">[0:00] Introduction: From Pre-training to Post-training</h3>
+<figure class="slide"><img src="figs/lec15/00014.jpg" loading="lazy" alt="Lecture 15 title slide: RLHF / Alignment for CS336."><figcaption><span class="ft">0:14</span> Lecture 15 title slide: RLHF / Alignment for CS336.</figcaption></figure>
+
+<p>The lecture shifts focus from pre-training (building large models and data components) to <strong>post-training</strong> or <strong>alignment</strong>, which aims to make these pre-trained models useful and safe.</p>
+<p><strong>Motivation:</strong>
+*   <strong>GPT-3 vs. ChatGPT:</strong> GPT-3 was a remarkable system, but not particularly "useful" in a product sense (e.g., it didn't follow instructions well). ChatGPT, however, transformed the landscape by effectively following instructions and performing amazing feats.
+*   <strong>The Goal:</strong> Understand the transition from a powerful pre-trained model (like GPT-3) to a highly aligned and useful system (like ChatGPT).</p>
+<p><strong>Key Aspects of Post-Training:</strong>
+1.  <strong>Instruction Following:</strong> Enabling models to understand and execute complex, nested instructions.
+    *   Example: GPT-4 generating <code>matplotlib</code> code from a long, detailed prompt (Sebastian Bubeck's "Sparks of AGI" paper). This ability to follow instructions is a key differentiator.
+2.  <strong>Safety and Content Moderation:</strong> Ensuring models are safe, prevent misuse (scams), and avoid generating toxic or harmful content.
+    *   ChatGPT's success is partly attributed to its robust guardrails.</p>
+<p><strong>Core Idea of Post-Training:</strong>
+*   Pre-training "packs" the model with capabilities (reasoning, answering questions), but these aren't accessible "out of the box."
+*   Post-training involves collecting specific data on desired behaviors and training the model to exhibit them.
+*   <strong>Key Questions:</strong>
+    *   What does this "desired behavior" data look like?
+    *   How hard is it to collect?
+    *   How do we best make use of it (algorithmic questions)?
+    *   How do we scale this process?</p>
+<h3 id="049-the-rlhf-pipeline-supervised-fine-tuning-sft">[0:49] The RLHF Pipeline: Supervised Fine-Tuning (SFT)</h3>
+<figure class="slide"><img src="figs/lec15/00049.jpg" loading="lazy" alt="Lecture 15 title slide: RLHF / Alignment for CS336, with lecturer visible."><figcaption><span class="ft">0:49</span> Lecture 15 title slide: RLHF / Alignment for CS336, with lecturer visible.</figcaption></figure>
+<figure class="slide"><img src="figs/lec15/00236.jpg" loading="lazy" alt="Slide on goal: enable better, tighter controls over LM output, with questions on data collection."><figcaption><span class="ft">3:56</span> Slide on goal: enable better, tighter controls over LM output, with questions on data collection.</figcaption></figure>
+
+<p>The lecture structure will roughly follow the InstructGPT paper, which outlines a three-step process for building instruction-following models:</p>
+<ol>
+<li><strong>Supervised Fine-Tuning (SFT)</strong>: Collect demonstration data and train a supervised policy.</li>
+<li><strong>Reward Model Training</strong>: Collect comparison data and train a reward model.</li>
+<li><strong>Reinforcement Learning (RLHF)</strong>: Optimize a policy against the reward model using reinforcement learning.</li>
+</ol>
+<p>This lecture covers <strong>Part 1 (SFT)</strong> and <strong>Part 2 (RLHF)</strong>.</p>
+<h4 id="511-ingredients-for-sft-data-and-method">[5:11] Ingredients for SFT: Data and Method</h4>
+<figure class="slide"><img src="figs/lec15/00315.jpg" loading="lazy" alt="Slide on ingredients in SFT: training data examples like Muffin, CoT, Natural Instructions, and Open Assistant."><figcaption><span class="ft">5:15</span> Slide on ingredients in SFT: training data examples like Muffin, CoT, Natural Instructions, and Open Assistant.</figcaption></figure>
+
+<p>Two main considerations for SFT:
+1.  <strong>Training Data</strong>: What does expert demonstration data look like?
+2.  <strong>Method</strong>: How do we adapt the model to this data? (Beyond simple gradient descent, there are non-obvious aspects).</p>
+<h4 id="551-training-data-instruction-tuning-datasets">[5:51] Training Data: Instruction Tuning Datasets</h4>
+<ul>
+<li><strong>What's inside these datasets?</strong></li>
+<li><strong>What matters in building 'high-performance' instruction tuning data?</strong></li>
+</ul>
+<p>The speaker introduces three types of instruction-tuning datasets, representing different paradigms:</p>
+<ol>
+<li>
+<p><strong>FLAN (Fine-tuned LAnguage Net)</strong>:</p>
+<ul>
+<li>Constructed by aggregating many existing NLP task datasets (e.g., T0-SF, Natural Instructions v2, CoT).</li>
+<li><strong>Pros</strong>: Easy to get lots of data for free by repurposing existing benchmarks.</li>
+<li><strong>Cons</strong>: Can be unnatural or "benchmark-centric." The format often requires "surgery" (e.g., appending options to a text) that doesn't resemble natural chat interactions.</li>
+</ul>
+</li>
+<li>
+<p><strong>Alpaca (Stanford Alpaca)</strong>:</p>
+<ul>
+<li>An early attempt at using LLMs to generate instruction tuning data.</li>
+<li><strong>Procedure</strong>: A seed set of human-written instructions is used to prompt a powerful LLM (like GPT-3) to generate more instructions. Then, InstructGPT is used to generate responses for these instructions.</li>
+<li><strong>Pros</strong>: Generates data that feels more like natural chat interactions, with long-form natural language responses.</li>
+<li><strong>Cons</strong>: The generated instructions can be less diverse and shorter than human-written ones.</li>
+</ul>
+</li>
+<li>
+<p><strong>Oasst (Open Assistant)</strong>:</p>
+<ul>
+<li>A crowd-sourced effort where online enthusiasts wrote instruction-tuning data.</li>
+<li><strong>Pros</strong>: High-quality, detailed human-written instructions and responses, often including citations.</li>
+<li><strong>Cons</strong>: Very difficult and expensive to collect at scale.</li>
+</ul>
+</li>
+</ol>
+<h4 id="201-interactive-annotation-task">[2:01] Interactive Annotation Task</h4>
+<p>The speaker conducts a live annotation task where students are asked to provide a response to the prompt: "Please provide what you think is the best response to the following user input: CS336 is all you need."</p>
+<ul>
+<li><strong>Observations from student responses</strong>:<ul>
+<li>A mix of short, informal responses (e.g., "Nah fam," emojis).</li>
+<li>Some long, detailed responses, often resembling ChatGPT output.</li>
+<li>Some responses are clearly generated by an LLM (e.g., "I'm getting trolled").</li>
+<li>Some responses are irrelevant (e.g., "Ice cream is a frozen dessert...").</li>
+</ul>
+</li>
+<li><strong>Key takeaway</strong>: It's difficult for humans to consistently write long, detailed, high-quality responses, especially under time constraints or for prompts they aren't prepared for.</li>
+</ul>
+<h4 id="245-gpt-4o-response-vs-human-annotation">[2:45] GPT-4o Response vs. Human Annotation</h4>
+<ul>
+<li>The GPT-4o response to the same prompt is long, detailed, and high-quality.</li>
+<li><strong>Challenge</strong>: How do we incentivize human annotators to produce this level of quality consistently, especially when it's expensive and labor-intensive?</li>
+</ul>
+<h4 id="506-what-we-notice-across-datasets">[5:06] What We Notice Across Datasets</h4>
+<figure class="slide"><img src="figs/lec15/00430.jpg" loading="lazy" alt="Slide on instruction-tuning data: FLAN, Oasst, and Alpaca datasets."><figcaption><span class="ft">7:10</span> Slide on instruction-tuning data: FLAN, Oasst, and Alpaca datasets.</figcaption></figure>
+<figure class="slide"><img src="figs/lec15/00511.jpg" loading="lazy" alt="Slide showing FLAN random examples, including email, business, and restaurant prompts."><figcaption><span class="ft">8:31</span> Slide showing FLAN random examples, including email, business, and restaurant prompts.</figcaption></figure>
+<figure class="slide"><img src="figs/lec15/00600.jpg" loading="lazy" alt="Slide showing FLAN random examples, including email, business, and restaurant prompts."><figcaption><span class="ft">10:00</span> Slide showing FLAN random examples, including email, business, and restaurant prompts.</figcaption></figure>
+<figure class="slide"><img src="figs/lec15/01023.jpg" loading="lazy" alt="Graph showing preference for lists and longer outputs when evaluating by preferences."><figcaption><span class="ft">17:03</span> Graph showing preference for lists and longer outputs when evaluating by preferences.</figcaption></figure>
+<figure class="slide"><img src="figs/lec15/01118.jpg" loading="lazy" alt="Slide on references, complex knowledge, and factuality, with an example from Open Assistant."><figcaption><span class="ft">18:38</span> Slide on references, complex knowledge, and factuality, with an example from Open Assistant.</figcaption></figure>
+<figure class="slide"><img src="figs/lec15/01600.jpg" loading="lazy" alt="Slide on safety-tuning, showing a graph of unsafe and exaggerated safety responses."><figcaption><span class="ft">26:40</span> Slide on safety-tuning, showing a graph of unsafe and exaggerated safety responses.</figcaption></figure>
+<figure class="slide"><img src="figs/lec15/01693.jpg" loading="lazy" alt="Slide on how to fine-tune, showing Python code for gradient descent and instruction tuning."><figcaption><span class="ft">28:13</span> Slide on how to fine-tune, showing Python code for gradient descent and instruction tuning.</figcaption></figure>
+<figure class="slide"><img src="figs/lec15/01731.jpg" loading="lazy" alt="Slide on turning instruction tuning into pretraining, outlining a three-step process."><figcaption><span class="ft">28:51</span> Slide on turning instruction tuning into pretraining, outlining a three-step process.</figcaption></figure>
+
+<p>Instruction-tuning datasets vary significantly in:
+*   <strong>Length and bullet points (style variations)</strong>: Some prefer lists, some prefer long paragraphs.
+*   <strong>References, other complex knowledge</strong>: Some include citations, some assume deep domain knowledge.
+*   <strong>Scale</strong>: Amount of data collected.
+*   <strong>Safety</strong>: How models handle harmful or toxic content.</p>
+<p><strong>Style Variations in Data and Models:</strong>
+*   A table from a survey by Ejong Wong et al. (2023) shows significant variation in the average length of prompts and completions across different datasets.
+*   <strong>Human Preference</strong>: Humans (and AI judges) have a strong preference for lists and longer outputs.
+*   <strong>Concern</strong>: Optimizing for stylistic preferences (like length) might overshadow optimizing for core capabilities (e.g., reducing hallucinations, improving factual accuracy).
+*   <strong>Benchmarking</strong>: These stylistic factors are <em>not</em> highly correlated with benchmark performance (e.g., MMLU). Benchmarks are still crucial for evaluating core capabilities, while chat-style evaluations (e.g., AlpacaEval) help understand user engagement. A diverse array of evaluation strategies is needed.</p>
+<h4 id="13000-references-complex-knowledge-and-factuality">[1:30:00] References, Complex Knowledge, and Factuality</h4>
+<ul>
+<li><strong>Problem</strong>: When SFT data includes complex knowledge or citations, the model might learn to associate a concept with a citation. This is good (learning new knowledge).</li>
+<li><strong>Hallucination Risk</strong>: However, if the model <em>doesn't</em> have that knowledge in its pre-training, it might learn to <em>hallucinate</em> a citation to match the desired output style.</li>
+<li><strong>Schulman's Argument</strong>: Forcing a model to answer questions it doesn't know the answer to can encourage it to hallucinate. It's better to teach the model to abstain or say "I don't know" when it lacks knowledge.</li>
+<li><strong>Knowledge Extraction and Alignment</strong>: It's easier for models to reproduce known facts than to learn unknown facts from SFT.</li>
+<li><strong>Takeaways</strong>:<ol>
+<li>You may not want to fine-tune on factual knowledge if it's not already in the pre-trained model, even if the LM use case demands it.</li>
+<li>In principle, RL-style correctness feedback could help (more on this later).</li>
+<li>Knowledge storage and extraction in LLMs is messy and nuanced.</li>
+</ol>
+</li>
+</ul>
+<h4 id="23950-safety-tuning">[2:39:50] Safety Tuning</h4>
+<ul>
+<li>LLMs are widely deployed, requiring safety controls to prevent misuse (misinformation, scams, spam).</li>
+<li><strong>Safety Tuning</strong>: A bit of instruction tuning can drastically change safety profiles. Even a small amount of safety-tuning data mixed with instruction-tuning data can make models much safer.</li>
+<li><strong>Core Trade-off</strong>: Balancing safety with over-refusals. Models might exaggerate safety by refusing to answer benign questions that merely <em>look</em> unsafe (e.g., "How can I kill a Python process?").</li>
+<li><strong>Challenge</strong>: How to teach models nuance in safety. Carefully curated, small instruction-tuning datasets are used to balance this trade-off. Even 500 examples can significantly improve safety guidelines.</li>
+</ul>
+<h4 id="25950-putting-it-together-sft-data">[2:59:50] Putting it Together: SFT Data</h4>
+<ul>
+<li>SFT works best when extracting pre-training behaviors, not adding new ones.</li>
+<li>Adding factually correct data can sometimes hurt (by encouraging hallucination if the model doesn't actually know the facts).</li>
+<li>Small amounts of the right kinds of behavior data (safety, instruction-following, style) make a big difference, but there's a long tail that benefits from more data.</li>
+</ul>
+<h4 id="30700-how-to-fine-tune-and-mid-training">[3:07:00] How to Fine-Tune (and Mid-training)</h4>
+<ul>
+<li><strong>Flippant Answer</strong>: Just do gradient descent. This is typically how it's done in academic settings for small-scale SFT.</li>
+<li><strong>Frontier Labs</strong>: With more compute and data, the process scales up significantly. Modern instruction tuning pipelines look like pre-training pipelines.</li>
+<li><strong>Blurring Boundaries</strong>: The distinction between pre-training and instruction tuning is blurring.</li>
+<li><strong>Mid-training / Two-phase Training</strong>: An increasingly popular idea is to:<ol>
+<li>Pre-train on web/pre-training data.</li>
+<li>Mix in instruction-tuning data into pre-training (especially towards the tail end of pre-training, as learning rate anneals).</li>
+<li>Do an actual (but short) instruction-tuning round.</li>
+</ol>
+</li>
+<li><strong>Benefits</strong>: Scales up instruction tuning without catastrophic forgetting, gets more leverage from data by integrating it deeper into pre-training.</li>
+<li><strong>Example (MiniCPM)</strong>: Pie charts show data mixtures for "Stable Stage" (pure pre-training) and "Decay Stage" (mid-training). The Decay Stage includes a mix of pre-training data (e.g., Common Crawl, Code Pretrain) and instruction-tuning adjacent data (e.g., Wikipedia, Code SFT, Stack Exchange QA, OSS Instruct, Evil Instruct).</li>
+<li><strong>Implication</strong>: The term "base model" is becoming increasingly questionable, as these models have already undergone implicit instruction tuning through mid-training.</li>
+</ul>
+<h3 id="34200-part-2-rlhf-from-imitation-to-optimization">[3:42:00] Part 2: RLHF - From Imitation to Optimization</h3>
+<ul>
+<li><strong>Conceptual Shift</strong>: Moving from pure generative modeling (SFT, where the goal is to fit $p(y|x)$ to some reference distribution $p^*(y|x)$) to optimization (RLHF, where the goal is to find $p(y|x)$ that maximizes the expected reward $E_{p}[R(y,x)]$).</li>
+<li><strong>SFT Perspective</strong>: Pure generative modeling, requires samples from a reference policy.</li>
+<li><strong>RLHF Perspective</strong>: Maximize some reward function that we can measure. LLMs are policies, not models of some distribution.</li>
+</ul>
+<h4 id="34900-why-optimize-costs-and-g-v-gap">[3:49:00] Why Optimize? Costs and G-V Gap</h4>
+<p>Two main reasons to optimize with RLHF:
+1.  <strong>Cost</strong>: SFT data (expert demonstrations) can be very expensive to collect.
+    *   Annotation costs for SFT are high ($25k for 100 examples in one study).
+    *   Pairwise feedback (used in RLHF) is cheaper ($4k for 100 examples).
+    *   RLHF (optimizing against a reward model) has lower annotation costs than SFT.
+    *   RLHF is cheaper because it's easier to verify than to generate.
+2.  <strong>Generator-Validator (G-V) Gap</strong>: People don't always write what they prefer in LM outputs.
+    *   Human annotators might prefer LM-generated summaries over their own, even if they are expert writers.
+    *   This suggests that human generation is not always aligned with human preference, creating a gap between what humans generate and what they prefer.
+    *   RLHF helps bridge this gap by directly optimizing for human preference.</p>
+<h4 id="40300-rlhf-data-types-of-pairwise-feedback">[4:03:00] RLHF Data: Types of Pairwise Feedback</h4>
+<ul>
+<li><strong>Standard Setup</strong>: The InstructGPT paper outlines the standard RLHF pipeline:<ol>
+<li><strong>Collect demonstration data (SFT)</strong>: Train a supervised policy (e.g., GPT-3 to InstructGPT).</li>
+<li><strong>Collect comparison data (Reward Model)</strong>: Sample multiple outputs from the model, and a human labeler ranks them from best to worst.</li>
+<li><strong>Optimize a policy (RLHF)</strong>: Use reinforcement learning (e.g., PPO) to update the policy based on the reward model.</li>
+</ol>
+</li>
+<li><strong>How do we get pairwise feedback?</strong><ul>
+<li>Typically done via web apps where annotators are given two AI responses and asked to choose which is better (e.g., a 4-way checkbox).</li>
+<li><strong>Annotation Guidelines</strong>: Detailed instructions are provided to annotators on what constitutes a "good" response (helpful, truthful, harmless).</li>
+<li><strong>InstructGPT Guidelines</strong>: Emphasize helpfulness (clear language, answer intent, sensitive to internationality), truthfulness (not hallucinating), and harmlessness (not toxic, not NSFW).</li>
+<li><strong>Google Bard Crowdsourcing (Allegedly Leaked)</strong>: Similar guidelines, with emphasis on helpfulness (address intent, adhere to requirements, no misleading info), style (good/bad styles), and rating scales.</li>
+<li><strong>Crowdsourcing Challenges</strong>:<ul>
+<li>Hard to get high-quality, verifiable annotators (especially for complex tasks).</li>
+<li>Hard to get them to reliably check correctness (e.g., fact-checking under time pressure).</li>
+<li>Risk of annotators using LLMs (e.g., GPT-4) to generate responses, leading to synthetic data.</li>
+<li>Ethical issues: low wages for annotators in third-world countries.</li>
+<li><strong>Demographics</strong>: Annotator demographics can significantly shift model behaviors. InstructGPT annotators were predominantly Filipino and Bangladeshi, leading to models aligning more with Southeast Asian religious views.</li>
+<li><strong>Annotator Style</strong>: Different annotators pay attention to different aspects (e.g., authors focus on factuality, crowdworkers on formatting). This leads to different kinds of feedback.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="45300-rlhf-data-lm-generated-feedback-self-training">[4:53:00] RLHF Data: LM-Generated Feedback (Self-Training)</h4>
+<ul>
+<li><strong>Motivation</strong>: To address the cost and quality challenges of human annotation, AI feedback (LM-generated) has become increasingly popular.</li>
+<li><strong>GPT-4 as a good pairwise feedback system</strong>: Studies show high agreement between GPT-4's estimated win rates and human preferences, and between GPT-4 and human annotators.</li>
+<li><strong>Examples</strong>:<ul>
+<li><strong>Ultrafeedback</strong>: Uses a helpful RLHF model to generate responses, then critiques and revises them. It also generates "red teaming" prompts to elicit harmful samples.</li>
+<li><strong>Tulu 3</strong>: Uses prompts from a policy dataset, generates responses from multiple models, and then uses an LM to rate these responses (preference annotation).</li>
+<li><strong>Zephyr 7B</strong>: Hugging Face's Zephyr model was built using AI feedback, where a teacher model (GPT-4) provided feedback for alignment tasks.</li>
+</ul>
+</li>
+<li><strong>Self-Training</strong>: This involves using LMs to generate feedback for self-improvement.<ul>
+<li>Example (Constitutional AI): A helpful RLHF model generates responses. A "red teaming" model generates prompts to elicit harmful samples. Constitutional AI provides feedback for self-improvement, which is then used to fine-tune a preference model. This preference model is used in RLHF training.</li>
+</ul>
+</li>
+<li><strong>Length Effects</strong>: RLHF often leads to models generating longer responses, which humans (and AI) tend to prefer. This is a significant confounder for general preference.</li>
+</ul>
+<h3 id="50900-how-do-we-do-rlhf-ppo-and-dpo">[5:09:00] How do we do RLHF? PPO and DPO</h3>
+<ul>
+<li>We now have a high-quality pairwise feedback data collection pipeline.</li>
+<li><strong>Question</strong>: How do we adapt the model to make use of pairwise feedback?</li>
+</ul>
+<h4 id="51200-ppo-proximal-policy-optimization">[5:12:00] PPO (Proximal Policy Optimization)</h4>
+<ul>
+<li><strong>From InstructGPT</strong>: PPO is the original algorithm used in InstructGPT.</li>
+<li><strong>Goal</strong>: Find a policy $p(y|x)$ that maximizes the expected reward $E_{p}[R(y,x)]$.</li>
+<li><strong>Method</strong>:<ul>
+<li><strong>Reward Model</strong>: A reward model $R(y,x)$ is trained from human feedback (noisy pairwise comparisons) using the Bradley-Terry model. This model assigns a scalar score to any output.</li>
+<li><strong>PPO Algorithm</strong>: PPO is used to optimize the policy. It's a policy gradient algorithm that aims to maximize the expected reward.</li>
+<li><strong>Objective (Conceptual)</strong>: Maximize $E_{p_{\theta}}[R(z)] \log p_{\theta}(z)$. This means upweighting probabilities of high-reward actions and downweighting low-reward actions.</li>
+<li><strong>Challenges with Policy Gradients</strong>: High variance.</li>
+<li><strong>TRPO (Trust Region Policy Optimization)</strong>: Linearizes the problem around the current policy and adds a KL divergence constraint to ensure the new policy doesn't stray too far from the old one.</li>
+<li><strong>PPO (Clipping)</strong>: Simplifies TRPO by clipping the probability ratios, which naturally incentivizes the policy to stay close to the original policy without an explicit KL constraint.</li>
+<li><strong>InstructGPT's PPO Objective</strong>: Includes a reward term, a KL divergence penalty (to stay close to the SFT model), and a pre-training loss term (to prevent catastrophic forgetting).</li>
+</ul>
+</li>
+</ul>
+<h4 id="53000-can-we-get-rid-of-ppo-introducing-dpo">[5:30:00] Can we get rid of PPO? (Introducing DPO)</h4>
+<ul>
+<li>PPO is complicated (reward model, on-policy rollouts, importance sampling, etc.).</li>
+<li><strong>Question</strong>: Can we avoid any 'RL' (on-policy RL algorithms)?</li>
+<li><strong>Some reasonable stuff people thought about</strong>:<ul>
+<li>Train the model with a control token (e.g., <code>[GOOD]</code> or <code>[BAD]</code>) prepended to the input. (Doesn't work well).</li>
+<li>Train the model only on the preferred output. (Doesn't work well).</li>
+<li>Train a reward model, get LM outputs, train on the preferred output (using the reward model to select the best). (Works okay, but not great).</li>
+</ul>
+</li>
+<li><strong>What really stuck</strong>: DPO (Direct Preference Optimization).</li>
+</ul>
+<h4 id="53400-dpo-rlhf-without-tears">[5:34:00] DPO - RLHF without Tears?</h4>
+<ul>
+<li><strong>Goal</strong>: Simplify PPO by getting rid of the reward model and getting rid of on-policy RL (rollouts, outer loops).</li>
+<li><strong>Instead</strong>:<ul>
+<li>Take gradient steps on the log-loss of good stuff.</li>
+<li>Take negative gradient steps on log-loss of bad stuff (appropriately weighted).</li>
+</ul>
+</li>
+<li><strong>DPO Derivation</strong>:<ol>
+<li><strong>Goal</strong>: Optimize the original RLHF objective (maximize reward, penalize KL divergence from reference policy).</li>
+<li><strong>Assumption</strong>: Assume the policy $\pi$ is the set of all policies (non-parametric assumption). This allows for a closed-form solution for the optimal policy.</li>
+<li><strong>Optimal Policy Form</strong>: The optimal policy $\pi_r(y|x)$ is proportional to $\pi_{ref}(y|x) \exp(\frac{1}{\beta} r(y,x))$.</li>
+<li><strong>Solve for Implied Reward</strong>: From this, we can solve for the implied reward $r(y,x) = \beta \log \frac{\pi_r(y|x)}{\pi_{ref}(y|x)} + \beta \log Z(x)$.</li>
+<li><strong>Key Insight</strong>: This implies that every policy has an associated reward function, and vice-versa. We can optimize the reward directly by optimizing the policy.</li>
+<li><strong>DPO Objective</strong>: The DPO objective is derived by plugging the implied reward into the Bradley-Terry model (which models human preferences). This results in a maximum likelihood estimation (MLE) problem on pairwise rewards.</li>
+<li><strong>Key Steps</strong>:<ul>
+<li>Make a non-parametric assumption (links $\pi_{ref}$ and $r$ in closed form).</li>
+<li>Parametrize reward $r$ via the policy.</li>
+<li>Optimize the reward via supervised losses (which in turn, optimizes the policy).</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h3 id="54300-practical-takeaways">[5:43:00] Practical Takeaways</h3>
+<ul>
+<li>Post-training is essential for making LLMs useful and safe.</li>
+<li>SFT data quality and style are crucial, but collecting it is expensive and prone to biases.</li>
+<li>RLHF offers a way to optimize directly for human preferences, but it's complex and can be costly.</li>
+<li>AI-generated feedback (from powerful LMs like GPT-4) is increasingly used to reduce human annotation costs and improve data quality for RLHF.</li>
+<li>DPO simplifies RLHF by reframing it as a maximum likelihood problem, making it more accessible.</li>
+</ul>
+<h3 id="54600-open-questions-things-to-remember">[5:46:00] Open Questions / Things to Remember</h3>
+<ul>
+<li>The boundaries between pre-training and instruction tuning are blurring (mid-training).</li>
+<li>Hallucination is a significant risk when models are forced to generate knowledge they don't possess.</li>
+<li>Length is a confounder in human preference, as longer outputs are often preferred regardless of quality.</li>
+<li>Crowdsourcing RLHF data introduces ethical concerns (wages, working conditions) and biases (demographics of annotators can influence model alignment).</li>
+<li>The "self-bias" of LMs (preferring their own outputs) is a factor to consider when using LMs for feedback.</li>
+<li>The "generator-validator gap" highlights that what humans generate isn't always what they prefer.</li>
+<li>The question of how much models can "self-improve" through self-training loops is an active area of research.## Lecture 15: Alignment - SFT/RLHF</li>
+</ul>
+<p><strong>TL;DR</strong>
+*   Post-training (alignment) is crucial to make large language models (LLMs) useful and safe, transitioning from raw pre-trained models to instruction-following agents like ChatGPT.
+*   Supervised Fine-Tuning (SFT) involves training on expert demonstrations, but the quality and style of this data significantly impact model behavior and can lead to issues like hallucination if not carefully managed.
+*   Reinforcement Learning from Human Feedback (RLHF) optimizes models to maximize a measurable reward function, moving beyond simply imitating a reference distribution.
+*   RLHF data collection (pairwise comparisons) is often cheaper than SFT, but still faces challenges with annotator quality, consistency, and ethical considerations (e.g., fair wages).
+*   Algorithms like Proximal Policy Optimization (PPO) and Direct Preference Optimization (DPO) are used to adapt LLMs using human feedback, with DPO offering a simpler, more accessible approach by reframing RL as a maximum likelihood problem.</p>
+<p><strong>Key Concepts</strong>
+*   Post-training / Alignment
+*   Supervised Fine-Tuning (SFT)
+*   Instruction Tuning Data (FLAN, Alpaca, Oasst)
+*   Hallucination
+*   Safety Tuning / Content Moderation
+*   Mid-training / Two-phase Training
+*   Reinforcement Learning from Human Feedback (RLHF)
+*   Reward Model
+*   Pairwise Feedback
+*   Policy Gradient Theorem
+*   Proximal Policy Optimization (PPO)
+*   Trust Region Policy Optimization (TRPO)
+*   Direct Preference Optimization (DPO)
+*   KL Divergence
+*   Bradley-Terry Model
+*   Self-preference / Self-bias
+*   Length Effects
+*   Generator-Validator Gap
+*   Crowdsourcing complexities and ethics</p>
+<hr />
+<h3 id="000-introduction-from-pre-training-to-post-training_1">[0:00] Introduction: From Pre-training to Post-training</h3>
+<p>The lecture shifts focus from pre-training (building large models and data components) to <strong>post-training</strong> or <strong>alignment</strong>, which aims to make these pre-trained models useful and safe.</p>
+<p><strong>Motivation:</strong>
+*   <strong>GPT-3 vs. ChatGPT:</strong> GPT-3 was a remarkable system, but not particularly "useful" in a product sense (e.g., it didn't follow instructions well). ChatGPT, however, transformed the landscape by effectively following instructions and performing amazing feats.
+*   <strong>The Goal:</strong> Understand the transition from a powerful pre-trained system (like GPT-3) to a highly aligned and useful system (like ChatGPT).</p>
+<p><strong>Key Aspects of Post-Training:</strong>
+1.  <strong>Instruction Following:</strong> Enabling models to understand and execute complex, nested instructions.
+    *   Example: GPT-4 generating <code>matplotlib</code> code from a long, detailed prompt (Sebastian Bubeck's "Sparks of AGI" paper). This ability to follow instructions is a key differentiator.
+2.  <strong>Safety and Content Moderation:</strong> Ensuring models are safe, prevent misuse (scams), and avoid generating toxic or harmful content.
+    *   ChatGPT's success is partly attributed to its robust guardrails.</p>
+<p><strong>Core Idea of Post-Training:</strong>
+*   Pre-training "packs" the model with capabilities (reasoning, answering questions), but these aren't accessible "out of the box."
+*   Post-training involves collecting specific data on desired behaviors and training the model to exhibit them.
+*   <strong>Key Questions:</strong>
+    *   What does this "desired behavior" data look like?
+    *   How hard is it to collect?
+    *   How do we best make use of it (algorithmic questions)?
+    *   How do we scale this process?</p>
+<h3 id="049-the-rlhf-pipeline-supervised-fine-tuning-sft_1">[0:49] The RLHF Pipeline: Supervised Fine-Tuning (SFT)</h3>
+<p>The lecture structure will roughly follow the InstructGPT paper, which outlines a three-step process for building instruction-following models:</p>
+<ol>
+<li><strong>Supervised Fine-Tuning (SFT)</strong>: Collect demonstration data and train a supervised policy.</li>
+<li><strong>Reward Model Training</strong>: Collect comparison data and train a reward model.</li>
+<li><strong>Reinforcement Learning (RLHF)</strong>: Optimize a policy against the reward model using reinforcement learning.</li>
+</ol>
+<p>This lecture covers <strong>Part 1 (SFT)</strong> and <strong>Part 2 (RLHF)</strong>.</p>
+<h4 id="511-ingredients-for-sft-data-and-method_1">[5:11] Ingredients for SFT: Data and Method</h4>
+<p>Two main considerations for SFT:
+1.  <strong>Training Data</strong>: What does expert demonstration data look like?
+2.  <strong>Method</strong>: How do we adapt the model to this data? (Beyond simple gradient descent, there are non-obvious aspects).</p>
+<h4 id="551-training-data-instruction-tuning-datasets_1">[5:51] Training Data: Instruction Tuning Datasets</h4>
+<ul>
+<li><strong>What's inside these datasets?</strong></li>
+<li><strong>What matters in building 'high-performance' instruction tuning data?</strong></li>
+</ul>
+<p>The speaker introduces three types of instruction-tuning datasets, representing different paradigms:</p>
+<ol>
+<li>
+<p><strong>FLAN (Fine-tuned LAnguage Net)</strong>:</p>
+<ul>
+<li>Constructed by aggregating many existing NLP task datasets (e.g., T0-SF, Natural Instructions v2, CoT).</li>
+<li><strong>Pros</strong>: Easy to get lots of data for free by repurposing existing benchmarks.</li>
+<li><strong>Cons</strong>: Can be unnatural or "benchmark-centric." The format often requires "surgery" (e.g., appending options to a text) that doesn't resemble natural chat interactions.</li>
+<li>Example: Summarizing an article with travel info, classifying text as "business," or generating restaurant descriptions from database entries.</li>
+</ul>
+</li>
+<li>
+<p><strong>Alpaca (Stanford Alpaca)</strong>:</p>
+<ul>
+<li>An early attempt at using LLMs to generate instruction tuning data.</li>
+<li><strong>Procedure</strong>: A seed set of human-written instructions is used to prompt a powerful LLM (like GPT-3) to generate more instructions. Then, InstructGPT is used to generate responses for these instructions.</li>
+<li><strong>Pros</strong>: Generates data that feels more like natural chat interactions, with long-form natural language responses.</li>
+<li><strong>Cons</strong>: The generated instructions can be less diverse and shorter than human-written ones.</li>
+</ul>
+</li>
+<li>
+<p><strong>Oasst (Open Assistant)</strong>:</p>
+<ul>
+<li>A crowd-sourced effort where online enthusiasts wrote instruction-tuning data.</li>
+<li><strong>Pros</strong>: High-quality, detailed human-written instructions and responses, often including citations.</li>
+<li><strong>Cons</strong>: Very difficult and expensive to collect at scale.</li>
+</ul>
+</li>
+</ol>
+<h4 id="201-interactive-annotation-task_1">[2:01] Interactive Annotation Task</h4>
+<p>The speaker conducts a live annotation task where students are asked to provide a response to the prompt: "Please provide what you think is the best response to the following user input: CS336 is all you need."</p>
+<ul>
+<li><strong>Observations from student responses</strong>:<ul>
+<li>A mix of short, informal responses (e.g., "Nah fam," emojis).</li>
+<li>Some long, detailed responses, often resembling ChatGPT output.</li>
+<li>Some responses are clearly generated by an LLM (e.g., "I'm getting trolled").</li>
+<li>Some responses are irrelevant (e.g., "Ice cream is a frozen dessert...").</li>
+</ul>
+</li>
+<li><strong>Key takeaway</strong>: It's difficult for humans to consistently write long, detailed, high-quality responses, especially under time constraints or for prompts they aren't prepared for.</li>
+</ul>
+<h4 id="245-gpt-4o-response-vs-human-annotation_1">[2:45] GPT-4o Response vs. Human Annotation</h4>
+<ul>
+<li>The GPT-4o response to the same prompt is long, detailed, and high-quality.</li>
+<li><strong>Challenge</strong>: How do we incentivize human annotators to produce this level of quality consistently, especially when it's expensive and labor-intensive?</li>
+</ul>
+<h4 id="506-what-we-notice-across-datasets_1">[5:06] What We Notice Across Datasets</h4>
+<p>Instruction-tuning datasets vary significantly in:
+*   <strong>Length and bullet points (style variations)</strong>: Some prefer lists, some prefer long paragraphs.
+*   <strong>References, other complex knowledge</strong>: Some include citations, some assume deep domain knowledge.
+*   <strong>Scale</strong>: Amount of data collected.
+*   <strong>Safety</strong>: How models handle harmful or toxic content.</p>
+<p><strong>Style Variations in Data and Models:</strong>
+*   A table from a survey by Ejong Wong et al. (2023) shows significant variation in the average length of prompts and completions across different datasets.
+*   <strong>Human Preference</strong>: Humans (and AI judges) have a strong preference for lists and longer outputs.
+*   <strong>Concern</strong>: Optimizing for stylistic preferences (like length) might overshadow optimizing for core capabilities (e.g., reducing hallucinations, improving factual accuracy).
+*   <strong>Benchmarking</strong>: These stylistic factors are <em>not</em> highly correlated with benchmark performance (e.g., MMLU). Benchmarks are still crucial for evaluating core capabilities, while chat-style evaluations (e.g., AlpacaEval) help understand user engagement. A diverse array of evaluation strategies is needed.</p>
+<h4 id="13000-references-complex-knowledge-and-factuality_1">[1:30:00] References, Complex Knowledge, and Factuality</h4>
+<ul>
+<li><strong>Problem</strong>: When SFT data includes complex knowledge or citations, the model might learn to associate a concept with a citation. This is good (learning new knowledge).</li>
+<li><strong>Hallucination Risk</strong>: However, if the model <em>doesn't</em> have that knowledge in its pre-training, it might learn to <em>hallucinate</em> a citation to match the desired output style.</li>
+<li><strong>Schulman's Argument</strong>: Forcing a model to answer questions it doesn't know the answer to can encourage it to hallucinate. It's better to teach the model to abstain or say "I don't know" when it lacks knowledge.</li>
+<li><strong>Knowledge Extraction and Alignment</strong>: It's easier for models to reproduce known facts than to learn unknown facts from SFT.</li>
+<li><strong>Takeaways</strong>:<ol>
+<li>You may not want to fine-tune on factual knowledge if it's not already in the pre-trained model, even if the LM use case demands it.</li>
+<li>In principle, RL-style correctness feedback could help (more on this later).</li>
+<li>Knowledge storage and extraction in LLMs is messy and nuanced.</li>
+</ol>
+</li>
+</ul>
+<h4 id="23950-safety-tuning_1">[2:39:50] Safety Tuning</h4>
+<ul>
+<li>LLMs are widely deployed, requiring safety controls to prevent misuse (misinformation, scams, spam).</li>
+<li><strong>Safety Tuning</strong>: A bit of instruction tuning can drastically change safety profiles. Even a small amount of safety-tuning data mixed with instruction-tuning data can make models much safer.</li>
+<li><strong>Core Trade-off</strong>: Balancing safety with over-refusals. Models might exaggerate safety by refusing to answer benign questions that merely <em>look</em> unsafe (e.g., "How can I kill a Python process?").</li>
+<li><strong>Challenge</strong>: How to teach models nuance in safety. Carefully curated, small instruction-tuning datasets are used to balance this trade-off. Even 500 examples can significantly improve safety guidelines.</li>
+</ul>
+<h4 id="25950-putting-it-together-sft-data_1">[2:59:50] Putting it Together: SFT Data</h4>
+<ul>
+<li>SFT works best when extracting pre-training behaviors, not adding new ones.</li>
+<li>Adding factually correct data can sometimes hurt (by encouraging hallucination if the model doesn't actually know the facts).</li>
+<li>Small amounts of the right kinds of behavior data (safety, instruction-following, style) make a big difference, but there's a long tail that benefits from more data.</li>
+</ul>
+<h4 id="30700-how-to-fine-tune-and-mid-training_1">[3:07:00] How to Fine-Tune (and Mid-training)</h4>
+<ul>
+<li><strong>Flippant Answer</strong>: Just do gradient descent. This is typically how it's done in academic settings for small-scale SFT.</li>
+<li><strong>Frontier Labs</strong>: With more compute and data, the process scales up significantly. Modern instruction tuning pipelines look like pre-training pipelines.</li>
+<li><strong>Blurring Boundaries</strong>: The distinction between pre-training and instruction tuning is blurring.</li>
+<li><strong>Mid-training / Two-phase Training</strong>: An increasingly popular idea is to:<ol>
+<li>Pre-train on web/pre-training data.</li>
+<li>Mix in instruction-tuning data into pre-training (especially towards the tail end of pre-training, as learning rate anneals).</li>
+<li>Do an actual (but short) instruction-tuning round.</li>
+</ol>
+</li>
+<li><strong>Benefits</strong>: Scales up instruction tuning without catastrophic forgetting, gets more leverage from data by integrating it deeper into pre-training.</li>
+<li><strong>Example (MiniCPM)</strong>: Pie charts show data mixtures for "Stable Stage" (pure pre-training) and "Decay Stage" (mid-training). The Decay Stage includes a mix of pre-training data (e.g., Common Crawl, Code Pretrain) and instruction-tuning adjacent data (e.g., Wikipedia, Code SFT, Stack Exchange QA, OSS Instruct, Evil Instruct).</li>
+<li><strong>Implication</strong>: The term "base model" is becoming increasingly questionable, as these models have already undergone implicit instruction tuning through mid-training.</li>
+</ul>
+<h3 id="34200-part-2-rlhf-from-imitation-to-optimization_1">[3:42:00] Part 2: RLHF - From Imitation to Optimization</h3>
+<ul>
+<li><strong>Conceptual Shift</strong>: Moving from pure generative modeling (SFT, where the goal is to fit $p(y|x)$ to some reference distribution $p^*(y|x)$) to optimization (RLHF, where the goal is to find $p(y|x)$ that maximizes the expected reward $E_{p}[R(y,x)]$).</li>
+<li><strong>SFT Perspective</strong>: Pure generative modeling, requires samples from a reference policy.</li>
+<li><strong>RLHF Perspective</strong>: Maximize some reward function that we can measure. LLMs are policies, not models of some distribution.</li>
+</ul>
+<h4 id="34900-why-optimize-costs-and-g-v-gap_1">[3:49:00] Why Optimize? Costs and G-V Gap</h4>
+<p>Two main reasons to optimize with RLHF:
+1.  <strong>Cost</strong>: SFT data (expert demonstrations) can be very expensive to collect.
+    *   Annotation costs for SFT are high ($25k for 100 examples in one study).
+    *   Pairwise feedback (used in RLHF) is cheaper ($4k for 100 examples).
+    *   RLHF (optimizing against a reward model) has lower annotation costs than SFT.
+    *   RLHF is cheaper because it's easier to verify than to generate.
+2.  <strong>Generator-Validator (G-V) Gap</strong>: People don't always write what they prefer in LM outputs.
+    *   Human annotators might prefer LM-generated summaries over their own, even if they are expert writers.
+    *   This suggests that human generation is not always aligned with human preference, creating a gap between what humans generate and what they prefer.
+    *   RLHF helps bridge this gap by directly optimizing for human preference.</p>
+<h4 id="40300-rlhf-data-types-of-pairwise-feedback_1">[4:03:00] RLHF Data: Types of Pairwise Feedback</h4>
+<ul>
+<li><strong>Standard Setup</strong>: The InstructGPT paper outlines the standard RLHF pipeline:<ol>
+<li><strong>Collect demonstration data (SFT)</strong>: Train a supervised policy (e.g., GPT-3 to InstructGPT).</li>
+<li><strong>Collect comparison data (Reward Model)</strong>: Sample multiple outputs from the model, and a human labeler ranks them from best to worst.</li>
+<li><strong>Optimize a policy (RLHF)</strong>: Use reinforcement learning (e.g., PPO) to update the policy based on the reward model.</li>
+</ol>
+</li>
+<li><strong>How do we get pairwise feedback?</strong><ul>
+<li>Typically done via web apps where annotators are given two AI responses and asked to choose which is better (e.g., a 4-way checkbox).</li>
+<li><strong>Annotation Guidelines</strong>: Detailed instructions are provided to annotators on what constitutes a "good" response (helpful, truthful, harmless).</li>
+<li><strong>InstructGPT Guidelines</strong>: Emphasize helpfulness (clear language, answer intent, sensitive to internationality), truthfulness (not hallucinating), and harmlessness (not toxic, not NSFW).</li>
+<li><strong>Google Bard Crowdsourcing (Allegedly Leaked)</strong>: Similar guidelines, with emphasis on helpfulness (address intent, adhere to requirements, no misleading info), style (good/bad styles), and rating scales.</li>
+<li><strong>Crowdsourcing Challenges</strong>:<ul>
+<li>Hard to get high-quality, verifiable annotators (especially for complex tasks).</li>
+<li>Hard to get them to reliably check correctness (e.g., fact-checking under time pressure).</li>
+<li>Risk of annotators using LLMs (e.g., GPT-4) to generate responses, leading to synthetic data.</li>
+<li>Ethical issues: low wages for annotators in third-world countries.</li>
+<li><strong>Demographics</strong>: Annotator demographics can significantly shift model behaviors. InstructGPT annotators were predominantly Filipino and Bangladeshi, leading to models aligning more with Southeast Asian religious views.</li>
+<li><strong>Annotator Style</strong>: Different annotators pay attention to different aspects (e.g., authors focus on factuality, crowdworkers on formatting). This leads to different kinds of feedback.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="45300-rlhf-data-lm-generated-feedback-self-training_1">[4:53:00] RLHF Data: LM-Generated Feedback (Self-Training)</h4>
+<ul>
+<li><strong>Motivation</strong>: To address the cost and quality challenges of human annotation, AI feedback (LM-generated) has become increasingly popular.</li>
+<li><strong>GPT-4 as a good pairwise feedback system</strong>: Studies show high agreement between GPT-4's estimated win rates and human preferences, and between GPT-4 and human annotators.</li>
+<li><strong>Examples</strong>:<ul>
+<li><strong>Ultrafeedback</strong>: Uses a helpful RLHF model to generate responses, then critiques and revises them. It also generates "red teaming" prompts to elicit harmful samples.</li>
+<li><strong>Tulu 3</strong>: Uses prompts from a policy dataset, generates responses from multiple models, and then uses an LM to rate these responses (preference annotation).</li>
+<li><strong>Zephyr 7B</strong>: Hugging Face's Zephyr model was built using AI feedback, where a teacher model (GPT-4) provided feedback for alignment tasks.</li>
+</ul>
+</li>
+<li><strong>Self-Training</strong>: This involves using LMs to generate feedback for self-improvement.<ul>
+<li>Example (Constitutional AI): A helpful RLHF model generates responses. A "red teaming" model generates prompts to elicit harmful samples. Constitutional AI provides feedback for self-improvement, which is then used to fine-tune a preference model. This preference model is used in RLHF training.</li>
+</ul>
+</li>
+<li><strong>Length Effects</strong>: RLHF often leads to models generating longer responses, which humans (and AI) tend to prefer. This is a significant confounder for general preference.</li>
+</ul>
+<h3 id="50900-how-do-we-do-rlhf-ppo-and-dpo_1">[5:09:00] How do we do RLHF? PPO and DPO</h3>
+<ul>
+<li>We now have a high-quality pairwise feedback data collection pipeline.</li>
+<li><strong>Question</strong>: How do we adapt the model to make use of pairwise feedback?</li>
+</ul>
+<h4 id="51200-ppo-proximal-policy-optimization_1">[5:12:00] PPO (Proximal Policy Optimization)</h4>
+<ul>
+<li><strong>From InstructGPT</strong>: PPO is the original algorithm used in InstructGPT.</li>
+<li><strong>Goal</strong>: Find a policy $p(y|x)$ that maximizes the expected reward $E_{p}[R(y,x)]$.</li>
+<li><strong>Method</strong>:<ul>
+<li><strong>Reward Model</strong>: A reward model $R(y,x)$ is trained from human feedback (noisy pairwise comparisons) using the Bradley-Terry model. This model assigns a scalar score to any output.</li>
+<li><strong>PPO Algorithm</strong>: PPO is used to optimize the policy. It's a policy gradient algorithm that aims to maximize the expected reward.</li>
+<li><strong>Objective (Conceptual)</strong>: Maximize $E_{p_{\theta}}[R(z)] \log p_{\theta}(z)$. This means upweighting probabilities of high-reward actions and downweighting low-reward actions.</li>
+<li><strong>Challenges with Policy Gradients</strong>: High variance.</li>
+<li><strong>TRPO (Trust Region Policy Optimization)</strong>: Linearizes the problem around the current policy and adds a KL divergence constraint to ensure the new policy doesn't stray too far from the old one.</li>
+<li><strong>PPO (Clipping)</strong>: Simplifies TRPO by clipping the probability ratios, which naturally incentivizes the policy to stay close to the original policy without an explicit KL constraint.</li>
+<li><strong>InstructGPT's PPO Objective</strong>: Includes a reward term, a KL divergence penalty (to stay close to the SFT model), and a pre-training loss term (to prevent catastrophic forgetting).</li>
+</ul>
+</li>
+</ul>
+<h4 id="53000-can-we-get-rid-of-ppo-introducing-dpo_1">[5:30:00] Can we get rid of PPO? (Introducing DPO)</h4>
+<ul>
+<li>PPO is complicated (reward model, on-policy rollouts, importance sampling, etc.).</li>
+<li><strong>Question</strong>: Can we avoid any 'RL' (on-policy RL algorithms)?</li>
+<li><strong>Some reasonable stuff people thought about</strong>:<ul>
+<li>Train the model with a control token (e.g., <code>[GOOD]</code> or <code>[BAD]</code>) prepended to the input. (Doesn't work well).</li>
+<li>Train the model only on the preferred output. (Doesn't work well).</li>
+<li>Train a reward model, sample LM outputs, train on the preferred output (using the reward model to select the best). (Works okay, but not great).</li>
+</ul>
+</li>
+<li><strong>What really stuck</strong>: DPO (Direct Preference Optimization).</li>
+</ul>
+<h4 id="53400-dpo-rlhf-without-tears_1">[5:34:00] DPO - RLHF without Tears?</h4>
+<ul>
+<li><strong>Goal</strong>: Simplify PPO by getting rid of the reward model and getting rid of on-policy RL (rollouts, outer loops).</li>
+<li><strong>Instead</strong>:<ul>
+<li>Take gradient steps on the log-loss of good stuff.</li>
+<li>Take negative gradient steps on log-loss of bad stuff (appropriately weighted).</li>
+</ul>
+</li>
+<li><strong>DPO Derivation</strong>:<ol>
+<li><strong>Goal</strong>: Optimize the original RLHF objective (maximize reward, penalize KL divergence from reference policy).
+    $$ \max_{\pi_\theta} E_{x \sim D, y \sim \pi_\theta} [r_\phi(x,y)] - \beta D_{KL}(\pi_\theta(y|x) || \pi_{ref}(y|x)) $$</li>
+<li><strong>Assumption</strong>: Assume the policy $\pi$ is the set of all policies (non-parametric assumption). This allows for a closed-form solution for the optimal policy.
+    $$ \pi_r(y|x) = \frac{1}{Z(x)} \pi_{ref}(y|x) \exp(\frac{1}{\beta} r(y,x)) $$</li>
+<li><strong>Solve for Implied Reward</strong>: From this, we can solve for the implied reward $r(y,x) = \beta \log \frac{\pi_r(y|x)}{\pi_{ref}(y|x)} + \beta \log Z(x)$.</li>
+<li><strong>Key Insight</strong>: This implies that every policy has an associated reward function, and vice-versa. We can optimize the reward directly by optimizing the policy.</li>
+<li><strong>DPO Objective</strong>: The DPO objective is derived by plugging the implied reward into the Bradley-Terry model (which models human preferences). This results in a maximum likelihood estimation (MLE) problem on pairwise rewards.
+    $$ L_{DPO}(\pi_\theta; D) = -E_{(x, y_w, y_l) \sim D} [\log \sigma(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})] $$</li>
+<li><strong>Key Steps</strong>:<ul>
+<li>Make a non-parametric assumption (links $\pi_{ref}$ and $r$ in closed form).</li>
+<li>Parametrize reward $r$ via the policy.</li>
+<li>Optimize the reward via supervised losses (which in turn, optimizes the policy).</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<hr />
+<h3 id="54300-practical-takeaways_1">[5:43:00] Practical Takeaways</h3>
+<ul>
+<li>Post-training is essential for making LLMs useful and safe.</li>
+<li>SFT data quality and style are crucial, but collecting it is expensive and prone to biases.</li>
+<li>RLHF offers a way to optimize directly for human preferences, but it's complex and can be costly.</li>
+<li>AI-generated feedback (from powerful LMs like GPT-4) is increasingly used to reduce human annotation costs and improve data quality for RLHF.</li>
+<li>DPO simplifies RLHF by reframing it as a maximum likelihood problem, making it more accessible.</li>
+</ul>
+<h3 id="54600-open-questions-things-to-remember_1">[5:46:00] Open Questions / Things to Remember</h3>
+<ul>
+<li>The boundaries between pre-training and instruction tuning are blurring (mid-training).</li>
+<li>Hallucination is a significant risk when models are forced to generate knowledge they don't possess.</li>
+<li>Length is a confounder in human preference, as longer outputs are often preferred regardless of quality.</li>
+<li>Crowdsourcing RLHF data introduces ethical concerns (wages, working conditions) and biases (demographics of annotators can influence model alignment).</li>
+<li>The "self-bias" of LMs (preferring their own outputs) is a factor to consider when using LMs for feedback.</li>
+<li>The "generator-validator gap" highlights that what humans generate isn't always what they prefer.</li>
+<li>The question of how much models can "self-improve" through self-training loops is an active area of research.</li>
+</ul><div class="pager"><a href="lec14.html">← Lec 14</a><a href="lec16.html" style="text-align:right">Lec 16 →</a></div></main></div></body></html>

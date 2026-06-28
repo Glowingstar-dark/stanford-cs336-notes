@@ -1,0 +1,677 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 Lecture 03: Architectures, Hyperparameters</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html" class="active"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Lecture 03</div><h1>Lecture 03: Architectures, Hyperparameters</h1><p class="meta">Stanford CS336 · Spring 2025 · 1:27:03 · <a href="https://www.youtube.com/watch?v=ptFiH_bHnJw" target="_blank">Watch on YouTube ↗</a></p><div class="banner">📝 Auto-generated notes from the full lecture video (slides, equations, and live code) and transcript. Verify critical details against the source.</div><div class="embed"><a href="https://www.youtube.com/watch?v=ptFiH_bHnJw" target="_blank" rel="noopener" style="background-image:url(https://i.ytimg.com/vi/ptFiH_bHnJw/hqdefault.jpg)"><span class="play"><span>▶ Watch on YouTube</span></span></a></div><hr />
+<figure class="slide"><img src="figs/lec03/00143.jpg" loading="lazy" alt="Slide: &quot;What you implemented - simple, modern variant&quot; with a transformer block diagram and differences listed."><figcaption><span class="ft">2:23</span> Slide: &quot;What you implemented - simple, modern variant&quot; with a transformer block diagram and differences listed.</figcaption></figure>
+<figure class="slide"><img src="figs/lec03/00217.jpg" loading="lazy" alt="Slide: &quot;How to pick architectures?&quot; with many research paper titles on language models."><figcaption><span class="ft">3:37</span> Slide: &quot;How to pick architectures?&quot; with many research paper titles on language models.</figcaption></figure>
+<figure class="slide"><img src="figs/lec03/00342.jpg" loading="lazy" alt="Slide: &quot;Architecture variations..&quot; showing a table comparing different model architectures and trends."><figcaption><span class="ft">5:42</span> Slide: &quot;Architecture variations..&quot; showing a table comparing different model architectures and trends.</figcaption></figure>
+<figure class="slide"><img src="figs/lec03/00444.jpg" loading="lazy" alt="Slide: &quot;Pre-vs-post-norm, the data&quot; with graphs comparing pre-norm and post-norm performance."><figcaption><span class="ft">7:24</span> Slide: &quot;Pre-vs-post-norm, the data&quot; with graphs comparing pre-norm and post-norm performance.</figcaption></figure>
+<figure class="slide"><img src="figs/lec03/00594.jpg" loading="lazy" alt="Slide: &quot;New things - &#x27;double&#x27; norm.&quot; showing diagrams of two different normalization architectures."><figcaption><span class="ft">9:54</span> Slide: &quot;New things - &#x27;double&#x27; norm.&quot; showing diagrams of two different normalization architectures.</figcaption></figure>
+<figure class="slide"><img src="figs/lec03/00713.jpg" loading="lazy" alt="Slide: &quot;LayerNorm vs RMSNorm&quot; with equations for both normalization types and notable models."><figcaption><span class="ft">11:53</span> Slide: &quot;LayerNorm vs RMSNorm&quot; with equations for both normalization types and notable models.</figcaption></figure>
+<figure class="slide"><img src="figs/lec03/00810.jpg" loading="lazy" alt="Slide: &quot;Why RMSNorm?&quot; explaining fewer operations/parameters, with a table of flop percentages."><figcaption><span class="ft">13:30</span> Slide: &quot;Why RMSNorm?&quot; explaining fewer operations/parameters, with a table of flop percentages.</figcaption></figure>
+<figure class="slide"><img src="figs/lec03/00914.jpg" loading="lazy" alt="Slide: &quot;RMSNorm - validation&quot; showing a table comparing RMSNorm performance with other models."><figcaption><span class="ft">15:14</span> Slide: &quot;RMSNorm - validation&quot; showing a table comparing RMSNorm performance with other models.</figcaption></figure>
+<figure class="slide"><img src="figs/lec03/01044.jpg" loading="lazy" alt="Slide: &quot;LayerNorm: recap&quot; summarizing pre-norm, RMSNorm, and bias term practices."><figcaption><span class="ft">17:24</span> Slide: &quot;LayerNorm: recap&quot; summarizing pre-norm, RMSNorm, and bias term practices.</figcaption></figure>
+<figure class="slide"><img src="figs/lec03/01119.jpg" loading="lazy" alt="A speaker presenting in front of a screen displaying the &quot;New things - &#x27;double&#x27; norm&quot; slide."><figcaption><span class="ft">18:39</span> A speaker presenting in front of a screen displaying the &quot;New things - &#x27;double&#x27; norm&quot; slide.</figcaption></figure>
+<figure class="slide"><img src="figs/lec03/01238.jpg" loading="lazy" alt="Slide: &quot;A few of the common activations&quot; showing ReLU and GeLU equations, graphs, and notable models."><figcaption><span class="ft">20:38</span> Slide: &quot;A few of the common activations&quot; showing ReLU and GeLU equations, graphs, and notable models.</figcaption></figure>
+<figure class="slide"><img src="figs/lec03/01400.jpg" loading="lazy" alt="Slide: &quot;Gated variants of standard FF layers&quot; showing GeGLU and SwiGLU equations and notable models."><figcaption><span class="ft">23:20</span> Slide: &quot;Gated variants of standard FF layers&quot; showing GeGLU and SwiGLU equations and notable models.</figcaption></figure>
+
+<p><strong>TL;DR</strong>
+- Modern transformer architectures have converged on pre-norm, RMSNorm, and gated linear units (GLUs) for better stability and performance.
+- Hyperparameter choices, especially the feed-forward dimension to model dimension ratio, show surprising consensus (4x for ReLU, 2.66x for GLU).
+- Weight decay in large language models (LLMs) is used more for optimization dynamics than for controlling overfitting.
+- Stability tricks, particularly related to softmax operations, are crucial for training large models.
+- Innovations like Multi-Query Attention (MQA) and Grouped-Query Attention (GQA) improve inference efficiency, while sparse attention patterns (e.g., sliding window) enable longer context windows.</p>
+<p><strong>Key concepts</strong>
+- Pre-norm vs. Post-norm
+- LayerNorm vs. RMSNorm
+- Gated Linear Units (GLUs)
+- Feed-forward dimension ratio
+- Head dimension to model dimension ratio
+- Aspect ratio (model dimension vs. number of layers)
+- Vocabulary sizes
+- Regularization (Dropout, Weight Decay)
+- Stability tricks (Z-loss, QK norm, Logit soft-capping)
+- Attention heads (GQA/MQA, Sparse/Sliding Window Attention)
+- KV cache</p>
+<hr />
+<p>[00:00] <strong>Lecture 3: Architectures, Hyperparameters</strong></p>
+<p>This lecture will delve into the "nitty-gritty details" of Language Model (LM) architecture and training, covering aspects often omitted in other courses. The goal is to learn from the collective experience of those who have trained many LLMs.</p>
+<p>[00:46] <strong>Outline and Goals</strong>
+1.  Quick recap of the "standard" transformer (what you implement).
+2.  What do most of the large LMs have in common?
+3.  What are common variations to the architecture/training process?</p>
+<p>Today's theme: The best way to learn is hands-on experience; the second best way is to try to learn from others' experience.</p>
+<p>[01:42] <strong>Starting Point: The 'Original' Transformer</strong></p>
+<p>The original Transformer architecture (from "Attention Is All You Need") consists of:
+-   <strong>Position Embeddings</strong>: Sine and cosine functions.
+-   <strong>Feed-Forward Network (FFN)</strong>: ReLU activation, $FFN(x) = \max(0, xW_1 + b_1)W_2 + b_2$.
+-   <strong>Normalization</strong>: Post-LayerNorm (LayerNorm applied <em>after</em> the residual connection).</p>
+<p>We will examine variations in these components, leading to the most modern Transformer variants.</p>
+<p>[02:17] <strong>What You Implemented - Simple, Modern Variant</strong></p>
+<p>The Transformer variant implemented in the assignment is a modern version, not the original "vanilla" Transformer. Key differences include:
+-   <strong>LayerNorm</strong>: Applied <em>in front</em> of the block (pre-norm).
+-   <strong>Position Embeddings</strong>: Rotary Position Embeddings (RoPE).
+-   <strong>FFN Activation</strong>: Uses SwiGLU, not ReLU.
+-   <strong>Linear Layers</strong>: Linear layers (and LayerNorm) have no bias (constant) terms.</p>
+<p>The question arises: Why these specific choices? We will explore these decisions based on empirical evidence from various LLMs.</p>
+<p>[03:07] <strong>How Should We Think About Architectures?</strong></p>
+<p>The field of LLM architectures is rapidly evolving. In the last year alone, there have been over 19 new dense model releases, many with minor architectural tweaks. This proliferation of models (e.g., Command A, OLMo, Gemma, Qwen, Mistral, Falcon) presents a challenge but also a wealth of information. By analyzing what these models have in common and what parts vary, we can understand which architectural choices are truly important.</p>
+<p>[04:30] <strong>What Are We Going to Cover?</strong>
+1.  <strong>Common architecture variations</strong>: Activations, FFN, Attention variants, Position embeddings.
+2.  <strong>Hyperparameters that (do or don't) matter</strong>: What is <code>ff_dim</code>? Do <code>multi_head_dims</code> always sum to <code>model_dim</code>? How many vocab elements?
+3.  <strong>Stability tricks</strong>.</p>
+<p>[05:15] <strong>Architecture Variations</strong></p>
+<p>A high-level overview of various LLMs (from 2017 to 2024) reveals:
+-   <strong>Low consensus</strong> on many architectural choices, with the exception of pre-norm.
+-   <strong>Trends towards 'LLaMA-like' architectures</strong> in recent years.</p>
+<p>[05:54] <strong>Pre-vs-Post Norm</strong></p>
+<p>The original Transformer used <strong>post-norm</strong>, where LayerNorm is applied <em>after</em> the residual connection.
+$$x_{l+1} = LayerNorm(x_l + MultiHeadAtt(x_l))$$
+$$x_{l+1} = LayerNorm(x_l + FFN(x_l))$$
+However, very early on, researchers found that moving LayerNorm to <em>before</em> the block (pre-norm) led to much better results.
+$$x_{l+1} = x_l + MultiHeadAtt(LayerNorm(x_l))$$
+$$x_{l+1} = x_l + FFN(LayerNorm(x_l))$$
+Almost all modern LMs use pre-norm, with OPT-350M being a notable exception.</p>
+<p>[07:13] <strong>Pre-vs-Post Norm, the Data</strong></p>
+<p>Early papers (e.g., Salazar and Nguyen 2019, Xiong 2020) demonstrated the benefits of pre-norm.
+-   <strong>Pre-norm + Stability tricks</strong> (like ScaleNorm + FixNorm) allowed models to train without warm-up, achieving comparable or better performance than post-norm with careful warm-up.
+-   This was observed across various tasks, including machine translation (Dev BLEU) and language modeling (Validation Loss on TWSLT and BERT).</p>
+<p>[08:10] <strong>Pre-vs-Post Norm, Explanations?</strong></p>
+<ul>
+<li><strong>Gradient Attenuation (Xiong 2020)</strong>: Pre-norm helps maintain constant gradient sizes across layers, preventing them from exploding or vanishing. Post-norm, without warm-up, can lead to exploding gradients.</li>
+<li><strong>Gradient Spikes (Salazar and Nguyen 2019)</strong>: Pre-norm leads to more stable training with fewer and smaller gradient spikes compared to post-norm.</li>
+</ul>
+<p>Today, pre-norm and other LayerNorm tricks are primarily used as <strong>stability-inducing aids</strong> for training large neural networks, especially with larger learning rates.</p>
+<p>[09:14] <strong>New Things - 'Double Norm'</strong></p>
+<p>A recent innovation (not present in last year's lectures) is the "double norm" approach.
+-   If putting LayerNorms <em>in</em> residual streams is bad, why not put them <em>outside</em> the stream?
+-   Models like Grok and Gemma 2 apply LayerNorms both <em>before</em> and <em>after</em> the attention and FFN blocks (i.e., in front of the residual stream and after the main block output).
+-   OLMo 2 uses LayerNorms <em>only after</em> the attention and FFN blocks (non-residual post-norm).
+-   This approach is argued to be even more stable and easier to train for larger models.</p>
+<p>[11:59] <strong>LayerNorm vs RMSNorm</strong></p>
+<ul>
+<li><strong>Original Transformer: LayerNorm</strong> normalizes the mean and variance across the model dimension ($d_{model}$).
+    $$y = \frac{x - E[x]}{\sqrt{Var[x] + \epsilon}} \cdot \gamma + \beta$$
+    Notable models using LayerNorm include GPT-2/3/OPT-J, BLOOM.</li>
+<li><strong>Many Modern LMs: RMSNorm</strong> does not subtract the mean or add a bias term.
+    $$y = \frac{x}{\sqrt{\frac{1}{D}\sum x_i^2 + \epsilon}} \cdot \gamma$$
+    Notable models using RMSNorm include LLaMA-family, PaLM, Chinchilla, T5.</li>
+</ul>
+<p>[12:38] <strong>Why RMSNorm?</strong></p>
+<ul>
+<li><strong>Modern explanation</strong>: It's faster and just as good.<ul>
+<li><strong>Fewer operations</strong>: No mean calculation.</li>
+<li><strong>Fewer parameters</strong>: No bias term to store.</li>
+</ul>
+</li>
+<li><strong>Does this explanation make sense?</strong><ul>
+<li>Tensor contractions (matrix multiplies) account for 99.80% of FLOPs, while statistical normalization (LayerNorm/RMSNorm) accounts for only 0.17%. Saving 0.17% of FLOPs doesn't seem like a huge win.</li>
+<li><strong>Important lesson</strong>: FLOPs are not runtime! (We will discuss this in far more detail later).</li>
+<li>While normalization is only 0.17% of FLOPs, it accounts for 25.5% of runtime.</li>
+<li>RMSNorm can still matter due to the importance of <strong>data movement</strong>. Memory movement overhead is a significant factor in runtime, not just FLOPs.</li>
+</ul>
+</li>
+</ul>
+<p>[15:06] <strong>RMSNorm - Validation</strong></p>
+<p>Narang et al. (2020) showed that RMSNorm provides runtime improvements and, surprisingly, performance gains.
+-   <strong>Vanilla Transformer</strong>: 3.50 steps/s, Final loss 1.838.
+-   <strong>RMSNorm</strong>: 3.68 steps/s, Final loss 1.821.
+-   This is a win-win: faster runtime and lower loss.</p>
+<p>[15:58] <strong>More Generally: Dropping Bias Terms</strong></p>
+<p>Most modern Transformers do not have bias terms.
+-   <strong>Original Transformer FFN</strong>: $FFN(x) = \max(0, xW_1 + b_1)W_2 + b_2$.
+-   <strong>Most Implementations FFN (if not gated)</strong>: $FFN(x) = \sigma(xW_1)W_2$.
+-   <strong>Reasons</strong>: Similar to RMSNorm, it saves memory and improves optimization stability. Dropping bias terms has been empirically observed to stabilize training.</p>
+<p>[17:12] <strong>LayerNorm: Recap</strong>
+-   <strong>Basically everyone does pre-norm.</strong>
+    -   <strong>Intuition</strong>: Keep the good parts of residual connections.
+    -   <strong>Observations</strong>: Nicer gradient propagation, fewer spikes.
+    -   <strong>Some people</strong> add a second norm outside the residual stream (not post-norm).
+-   <strong>Most people do RMSNorm.</strong>
+    -   In practice, works as well as LayerNorm.
+    -   But, has fewer parameters to move around, which saves on wallclock time.
+    -   People more generally drop bias terms since the compute/param tradeoffs are not great.</p>
+<p>[18:05] <strong>Activations</strong></p>
+<p>There's a "whole zoo" of activations: ReLU, GeLU, Swish, ELU, GLU, GeGLU, ReGLU, SeLU, SwiGLU, LiGLU.
+-   It really does matter which activation function is chosen. SwiGLU and other GLU variants consistently work well.</p>
+<p>[20:07] <strong>A Few of the Common Activations</strong>
+-   <strong>ReLU</strong>: $FFN(x) = \max(0, xW_1)W_2$.
+    -   Notable models: Original Transformer, T5, Gopher, Chinchilla, OPT.
+-   <strong>GeLU</strong>: $FFN(x) = GeLU(xW_1)W_2 = x\Phi(x)W_2$.
+    -   Notable models: GPT-1/2/3, GPT-Neox, BLOOM.
+-   <strong>SwiGLU / GeGLU</strong> (next slide).
+    -   Notable models: LLaMa 1/2/3, PaLM, Mistral, OLMo, most models post 2023.</p>
+<p>[21:24] <strong>Gated Activations (*GLU)ivations</strong></p>
+<p>GLUs modify the "first part" of an FF layer.
+-   <strong>Original FFN (with ReLU)</strong>: $FFN(x) = \max(0, xW_1)W_2$.
+-   <strong>Instead of a linear + ReLU, augment the above with an (entrywise) linear term</strong>:
+    $$\max(0, xW_1) \rightarrow \max(0, xW_1) \otimes (xV)$$
+-   <strong>This gives the gated variant (ReGLU)</strong>:
+    $$FFN_{ReGLU}(x) = (\max(0, xW_1) \otimes xV)W_2$$
+    -   Note that we have an extra parameter (V).</p>
+<p>[22:47] <strong>Gated Variants of Standard FF Layers</strong>
+-   <strong>GeGLU</strong>: $FFN_{GeGLU}(x, W, V, W_2) = (GeLU(xW_1) \otimes xV)W_2$.
+    -   Notable models: T5 v1.1, mT5, LLaMDA, Phi3, Gemma 2, Gemma 3.
+-   <strong>SwiGLU</strong>: $FFN_{SwiGLU}(x, W, V, W_2) = (Swish(xW_1) \otimes xV)W_2$.
+    -   Notable models: LLaMa 1/2/3, PaLM, Mistral, OLMo, most models post 2023.
+-   <strong>Note</strong>: Gated models use smaller dimensions for the $d_{ff}$ by 2/3 to keep the total parameter count similar to non-gated counterparts.</p>
+<p>[25:49] <strong>Do Gated Linear Units Work?</strong></p>
+<p>Yes, fairly consistently so.
+-   Shazeer (2020) showed that GLU variants consistently outperform ReLU on various tasks (e.g., CoLA, SST-2).
+    -   FFN$_{ReGLU}$ achieved the highest average score (84.67) and accuracy (94.38) among all tested FFN variants.
+-   Narang et al. (2020) corroborated these findings, showing that GLU variants consistently achieve lower losses.</p>
+<p>[27:54] <strong>Gating, Activations</strong>
+-   Many variations (ReLU, GeLU, GLU) across models.
+-   GLU isn't <em>necessary</em> for a good model (see GPT3), but it's probably helpful.
+    -   Recent outlier models like Nemotron 340B (Squared ReLU) and Falcon 2 11B (ReLU) also achieve high performance.
+-   But evidence points towards somewhat consistent gains from SwiGLU/GeGLU.</p>
+<p>[28:51] <strong>Serial vs Parallel Layers</strong></p>
+<p>Normal Transformer blocks are <strong>serial</strong>: they compute attention, then the MLP.
+-   Input comes in, attention is computed, result is passed to MLP, MLP is computed, result is passed forward.
+-   This serial nature can limit parallelism across GPUs.</p>
+<p>[29:40] <strong>Parallel Layers</strong></p>
+<p>A few models (GPT-J, PaLM, GPT-NeoX) do parallel layers. Originally in GPT-J.
+-   <strong>Parallel Layers</strong>: Instead of serial computation, attention and MLP are computed <em>in parallel</em> and then added to the residual stream.
+    -   Standard (serial) formulation: $y = x + MLP(LayerNorm(x)) + Attention(LayerNorm(x))$.
+    -   Parallel formulation: $y = x + MLP(LayerNorm(x)) + Attention(LayerNorm(x))$. (Note: The slide shows the same formula for both serial and parallel, but the key difference is that in parallel, MLP and Attention are computed from the <em>same</em> input $x$ and their outputs are summed <em>before</em> adding to $x$).
+-   The parallel formulation can result in roughly 15% faster training speed at large scales, since the MLP and Attention input matrix multiplications can be fused.
+-   If implemented right, LayerNorm can be shared, and matrix multiplies can be fused for systems efficiency.
+-   <strong>Recent Models</strong>: Cohere Command A, Falcon 2 11B, Command R.
+-   However, most models since then have reverted to serial layers, with only a few exceptions.</p>
+<p>[30:43] <strong>Summary: Architectures</strong>
+-   <strong>Pre-vs-Post norm</strong>: Everyone does pre-norm (except OPT350M), likely with good reason.
+-   <strong>Layer vs RMSNorm</strong>: RMSNorm has clear compute wins, sometimes even performance wins.
+-   <strong>Gating</strong>: GLUs seem generally better, though differences are small.
+-   <strong>Serial vs parallel layers</strong>: No extremely serious ablations, but has a compute win.</p>
+<p>[32:34] <strong>Many Variations in Position Embeddings</strong></p>
+<ul>
+<li><strong>Sine embeddings</strong>: Add sines and cosines that enable localization.<ul>
+<li>$PE_{(pos, 2i)} = \sin(pos/10000^{2i/d_{model}})$</li>
+<li>$PE_{(pos, 2i+1)} = \cos(pos/10000^{2i/d_{model}})$</li>
+<li>Notable models: Original Transformer.</li>
+</ul>
+</li>
+<li><strong>Absolute embeddings</strong>: Add a position vector to the embedding.<ul>
+<li>$Embed(x, i) = V_x + U_i$</li>
+<li>Notable models: GPT-1/2/3, OPT.</li>
+</ul>
+</li>
+<li><strong>Relative embeddings</strong>: Add a vector to the attention computation.<ul>
+<li>$e_{ij} = \frac{x_i W^Q (x_j W^K + a_{ij})^T}{\sqrt{d_z}}$</li>
+<li>Notable models: T5, Gopher, Chinchilla.</li>
+</ul>
+</li>
+<li><strong>RoPE embeddings</strong> (next slides).<ul>
+<li>Notable models: GPTJ, PaLM, most 2024+ models.</li>
+</ul>
+</li>
+</ul>
+<p>[33:29] <strong>RoPE: Rotary Position Embeddings</strong></p>
+<ul>
+<li><strong>High level thought process</strong>: A relative position embedding should be some function $f(x, i)$ such that:
+    $$\langle f(x, i), f(y, j) \rangle = g(x, y, i - j)$$<ul>
+<li>That is, the attention function only gets to depend on the relative position ($i-j$).</li>
+<li>Existing embeddings do not fully get this property:<ul>
+<li><strong>Sine</strong>: Has various cross-terms that are not relative.</li>
+<li><strong>Absolute</strong>: Obviously not relative.</li>
+<li><strong>Relative embeddings</strong>: Is relative, but is not an inner product.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>[34:41] <strong>RoPE: Rotary Position Embeddings - How can we solve this problem?</strong></p>
+<ul>
+<li>We want our embeddings to be invariant to absolute position.</li>
+<li>We know that inner products are invariant to arbitrary rotation.</li>
+<li><strong>Key Idea</strong>: Rotate the word embeddings based on their position.<ul>
+<li>If "we" is at position 0, and "know" is at position 1, we rotate "know" by 1 unit.</li>
+<li>If "we" is at position 2, and "know" is at position 3, we rotate "we" by 2 units and "know" by 3 units.</li>
+<li>The relative angle between the rotated vectors remains the same if their relative positions are the same, preserving the inner product.</li>
+</ul>
+</li>
+</ul>
+<p>[36:16] <strong>RoPE: Rotary Position Embeddings - There are many rotations, which one do you pick?</strong></p>
+<ul>
+<li>It's easy to think about rotations in 2D. In high-dimensional space, it's not obvious how to rotate.</li>
+<li><strong>RoPE's solution</strong>: Pair up the coordinates and rotate them in 2D (motivation: complex numbers).<ul>
+<li>Take a high-dimensional vector (e.g., $D=256$).</li>
+<li>Cut it into blocks of 2 dimensions.</li>
+<li>Rotate each 2D block by a specific angle ($\theta_1, \theta_2, \dots$).</li>
+<li>The rotation angle for each pair of dimensions is chosen to capture different frequency ranges (some rotate quickly for local context, others slowly for long-range context).</li>
+</ul>
+</li>
+</ul>
+<p>[37:24] <strong>The Actual RoPE Math</strong></p>
+<ul>
+<li><strong>Multiply with sines and cosines</strong>.<ul>
+<li>The rotation matrix $R_{\Theta, m}^d$ is a block diagonal matrix where each 2x2 block is a standard 2D rotation matrix.</li>
+<li>This is applied to the query and key vectors.</li>
+</ul>
+</li>
+<li><strong>Difference with sine embeddings</strong>: Not additive, no cross terms. This makes it purely relative.</li>
+</ul>
+<p>[37:52] <strong>Implementation and Code for RoPE</strong></p>
+<ul>
+<li><strong>Multiply with sines and cosines</strong>.</li>
+<li><strong>Usual attention stuff</strong>: Query, Key, Value projections.</li>
+<li><strong>Get the RoPE matrix cos/sin inputs</strong>: Compute rotation angles based on position.</li>
+<li><strong>Multiply query/key by cos/sin</strong>: Apply the rotations to the query and key vectors.</li>
+<li><strong>Same stuff as the usual multi-head self attention below</strong>.</li>
+<li><strong>Note</strong>: Embedding at each attention layer to enforce position invariance. RoPE is applied <em>within</em> the attention mechanism, not as an initial embedding.</li>
+</ul>
+<hr />
+<p>[39:03] <strong>Hyperparameters</strong></p>
+<p>Transformer hyperparameter questions you might have had in 224n:
+-   How much bigger should the feedforward size be compared to hidden size?
+-   How many heads, and should num_heads always divide hidden size?
+-   What should my vocab size be?
+-   Do people even regularize these LMs?
+-   How do people scale these models - very deep or very wide?</p>
+<p>[40:03] <strong>Surprising (?) Consensus Hyperparameter 1 - Feedforward</strong></p>
+<ul>
+<li><strong>Feedforward - model dimension ratio</strong>.<ul>
+<li>$FFN(x) = \max(0, xW_1 + b_1)W_2 + b_2$.</li>
+<li>There are two dimensions that are relevant: the feedforward dim ($d_{ff}$) and model dim ($d_{model}$).</li>
+<li><strong>Relationship</strong>: $d_{ff} = 4 \cdot d_{model}$.</li>
+<li>This is almost always true. There's just a few exceptions.</li>
+</ul>
+</li>
+</ul>
+<p>[41:00] <strong>Exception #1 - GLU Variants</strong></p>
+<ul>
+<li>Remember that GLU variants scale down by 2/3. This means most GLU variants have $d_{ff} = \frac{8}{3} d_{model}$. This is mostly what happens.</li>
+<li><strong>Table of $d_{ff}/d_{model}$ ratios for various models</strong>:
+    | Model        | $d_{ff}/d_{model}$ |
+    | :----------- | :----------------- |
+    | PaLM         | 4                  |
+    | Mistral 7B   | 3.5                |
+    | LLaMA 2 70B  | 3.5                |
+    | LLaMA 70B    | 2.68               |
+    | Qwen 14B     | 2.67               |
+    | DeepSeek 67B | 2.68               |
+    | Yi 34B       | 2.85               |
+    | T5 v1.1      | 2.5                |</li>
+<li>Models are roughly in this range, though PaLM, LLaMA2 and Mistral are slightly larger.</li>
+<li>The 2.66 ratio for GLU variants ensures a similar parameter count to the 4x ratio for ReLU variants.</li>
+</ul>
+<p>[42:00] <strong>Exception #2 - T5</strong></p>
+<ul>
+<li>As we have (and will) see, most LMs are have boring, conservative hyperparameters.</li>
+<li>One exception is T5 (Raffel et al. 2020) which has some very bold settings.</li>
+<li><strong>In particular, for the 11B model, they set</strong>:<ul>
+<li>$d_{ff} = 65,536$</li>
+<li>$d_{model} = 1024$</li>
+<li>This results in an astounding <strong>64-times multiplier</strong> for $d_{ff}/d_{model}$.</li>
+</ul>
+</li>
+<li>The T5 paper states: "For '11B' we use $d_{ff} = 65,536$ with 128-headed attention producing a model with about 11 billion parameters. We chose to scale up $d_{ff}$ specifically because modern accelerators (such as the TPUs we train our models on) are most efficient for large dense matrix multiplications like those in the Transformer's feed-forward networks."</li>
+<li>Other recent exceptions (Gemma 2 (8x), SmallLM/Gemma 3 (4x, GLU)) have also used larger multipliers.</li>
+</ul>
+<p>[43:00] <strong>Why This Range of Multipliers?</strong></p>
+<ul>
+<li>Empirically, there's a basin between 1-10 where this hyperparameter is near-optimal.</li>
+<li>Kaplan et al. (2020) showed that the loss increase is minimal for $d_{ff}/d_{model}$ ratios between 1 and 10.</li>
+<li>The 4x multiplier is a reasonable choice within this optimal range.</li>
+</ul>
+<p>[44:00] <strong>What Can We Learn from the Model-Dim Hyperparam?</strong></p>
+<ul>
+<li>The 'default' choices of $d_{ff} = 4d_{model}$ and $d_{ff} = 2.66d_{model}$ have worked well for nearly all modern LLMs.</li>
+<li>But T5 does show that even radical choices of $64d_{model}$ can work. This hyperparameter choice isn't written in stone.</li>
+<li>T5 has a follow-up model (T5 v1.1) that is 'improved' and uses a much more standard 2.5 multiplier on GeGLU, so the 64-times multiplier is likely suboptimal.</li>
+</ul>
+<p>[45:00] <strong>Surprising (?) Consensus Hyperparameter 2 - Multi-Head Self-Attention</strong></p>
+<ul>
+<li><strong>Head-dim * num-heads to model-dim ratio</strong>.</li>
+<li>Even though we compute $h$ many attention heads, it's not really more costly.<ul>
+<li>We compute $XQ \in \mathbb{R}^{n \times d'}$ and then reshape to $\mathbb{R}^{n \times h \times d/h}$. (Likewise for $XK$, $XV$).</li>
+<li>Then we transpose to $\mathbb{R}^{h \times n \times d/h}$, now the head axis is like a batch axis.</li>
+</ul>
+</li>
+<li>Almost everything else is identical, and the matrices are the same sizes.</li>
+<li>This doesn't <em>have</em> to be true: we can have head-dimensions &gt; model-dim / num-heads.</li>
+<li>But most models do follow this guideline.</li>
+</ul>
+<p>[46:00] <strong>How Many Heads, What's the Model Dim?</strong></p>
+<ul>
+<li><strong>Table of ratios for various models</strong>:
+    | Model        | Num heads | Head dim | Model dim | Ratio ($d_{model} / (h \cdot d_h)$) |
+    | :----------- | :-------- | :------- | :-------- | :---------------------------------- |
+    | GPT3         | 96        | 128      | 12288     | 1                                   |
+    | T5           | 128       | 128      | 1024      | 16                                  |
+    | T5 v1.1      | 64        | 64       | 4096      | 1                                   |
+    | LLaMDA       | 64        | 128      | 8192      | 1                                   |
+    | PaLM         | 48        | 258      | 18432     | 1.48                                |
+    | LLaMa 2      | 64        | 128      | 8192      | 1                                   |</li>
+<li>Most models have ratios around 1 - notable exceptions by some Google models.</li>
+</ul>
+<p>[47:00] <strong>Evidence for 1-1 Ratio?</strong></p>
+<ul>
+<li>There have been papers against the 1-1 ratio (Bhojanapalli et al. 2020).</li>
+<li>They argued that having very few dimensions per head (due to a 1-1 ratio with many heads) can lead to low-rank bottlenecks, affecting expressiveness.</li>
+<li>But we don't seem to be seeing significant 'low rank bottlenecks' in practice. Most models with a 1-1 ratio perform well.</li>
+</ul>
+<p>[47:00] <strong>Aspect Ratios</strong></p>
+<ul>
+<li>Should my model be deep or wide? How deep and how wide?</li>
+<li>Most models are surprisingly consistent on this one too!</li>
+<li><strong>Table of $d_{model}/n_{layer}$ ratios for various models</strong>:
+    | Model        | $d_{model}/n_{layer}$ |
+    | :----------- | :-------------------- |
+    | BLOOM        | 205                   |
+    | T5 v1.1      | 171                   |
+    | PaLM (540B)  | 156                   |
+    | GPT3/OPT/Mistral/Qwen | 128                   |
+    | LLaMA/LLaMA2/Chinchilla | 102                   |
+    | T5 (11B)     | 43                    |
+    | GPT2         | 33                    |</li>
+<li>There's a sweet spot around 100-200 for this ratio.</li>
+</ul>
+<p>[48:00] <strong>Considerations About Aspect Ratio</strong></p>
+<ul>
+<li><strong>The Limits of Depth vs Width</strong>: Scaling depth is an obvious limiter. Deep models are harder to parallelize across devices and have higher latency.</li>
+<li>Scaling depth is an obvious limiter, i.e., they are non-parallelizable across different machines or devices and every computation has to always wait for the previous layer. This is unlike width, which can be easily parallelizable over thousands or hundreds of thousands of devices.</li>
+<li>Within the limitation of scaling, a wide range of architectures achieve similar performance.</li>
+<li><strong>Evidence on aspect ratio scaling (Kaplan et al. 2020)</strong>:<ul>
+<li>Plots of loss increase vs. aspect ratio ($d_{model}/n_{layer}$) for models of different sizes (50M, 274M, 1.5B parameters).</li>
+<li>A sweet spot for aspect ratio is observed around 100, where loss increase is minimized.</li>
+<li>This sweet spot remains relatively consistent across different model sizes.</li>
+</ul>
+</li>
+<li><strong>Impact of depth vs. width on upstream vs. downstream performance</strong>:<ul>
+<li>E.K. et al. (Google) found that for upstream tasks (e.g., negative log-perplexity), parameter count is the only thing that matters; deeper models don't help.</li>
+<li>For downstream tasks (e.g., SuperGLUE accuracy), the story is less clear, but deeper models might be better for the same FLOPs.</li>
+</ul>
+</li>
+</ul>
+<p>[49:00] <strong>What Are Typical Vocabulary Sizes?</strong></p>
+<ul>
+<li><strong>Monolingual models</strong>: 30-50k vocab.<ul>
+<li>Original Transformer: 37000</li>
+<li>GPT: 40257</li>
+<li>GPT-2/3: 50257</li>
+<li>T5/T5v1.1: 32128</li>
+<li>LLaMA: 32000</li>
+</ul>
+</li>
+<li><strong>Multilingual / production systems</strong>: 100-250k.<ul>
+<li>mT5: 250000</li>
+<li>PaLM: 256000</li>
+<li>GPT4: 100276</li>
+<li>Command A: 255000</li>
+<li>DeepSeek: 152064</li>
+<li>Yi: 64000</li>
+</ul>
+</li>
+<li>Monolingual vocabs don't need to be huge, but multilingual ones do.</li>
+<li>As LLMs are deployed more widely and interact with diverse languages and modalities (emojis, etc.), larger vocabularies become necessary.</li>
+<li>Larger models can make good use of larger vocabularies.</li>
+</ul>
+<p>[50:00] <strong>Dropout and Other Regularization</strong></p>
+<ul>
+<li><strong>Do we need regularization during pretraining?</strong><ul>
+<li><strong>Arguments against</strong>:<ul>
+<li>There is a lot of data (trillions of tokens), more than parameters.</li>
+<li>SGD only does a single pass on a corpus (hard to memorize).</li>
+</ul>
+</li>
+<li>This is all quite reasonable... but what do people do in practice?</li>
+</ul>
+</li>
+</ul>
+<p>[51:00] <strong>Dropout and Weight Decay in Practice</strong></p>
+<ul>
+<li><strong>Table of Dropout and Weight Decay for various models</strong>:
+    | Model             | Dropout* | Weight decay |
+    | :---------------- | :------- | :----------- |
+    | Original Transformer | 0.1      | 0            |
+    | GPT2              | 0.1      | 0            |
+    | T5                | 0.1      | 0            |
+    | GPT3              | 0.1      | 0            |
+    | T5 v1.1           | 0        | 0.1          |
+    | PaLM              | 0        | (variable)   |
+    | OPT               | 0.1      | 0.1          |
+    | LLaMA             | 0        | 0.1          |
+    | Qwen 14B          | 0        | 0.1          |</li>
+<li>Many older models used dropout during pretraining.</li>
+<li>Newer models (except Qwen) rely only on weight decay.</li>
+<li><em>Most of the time papers just don't discuss dropout. On open models, this closely matches not doing dropout. This may not be true of closed models.</em></li>
+</ul>
+<p>[52:00] <strong>Why Weight Decay LLMs?</strong></p>
+<ul>
+<li>Andriushchenko et al. (2023) has interesting observations about LLM weight decay.</li>
+<li><strong>It's not to control overfitting.</strong><ul>
+<li>Different amounts of weight decay don't significantly change the ratio of training loss to validation loss.</li>
+<li>If you train long enough, you end up with the same train-to-val loss gap regardless of weight decay.</li>
+</ul>
+</li>
+<li><strong>Weight decay interacts with learning rates (cosine schedule).</strong><ul>
+<li>With a constant learning rate, models with weight decay start slow but drop rapidly when the learning rate is decreased.</li>
+<li>With a cosine learning rate schedule, models with high weight decay start slow but optimize very rapidly as the learning rate cools down.</li>
+</ul>
+</li>
+<li>There's a complex interaction between the optimizer, weight decay, and implicit acceleration at the tail end of training that leads to better models.</li>
+<li>The purpose of weight decay in LLMs is to achieve <strong>better training losses</strong>, not primarily to regularize against overfitting.</li>
+</ul>
+<p>[53:00] <strong>Summary: Hyperparameters</strong>
+-   <strong>Feedforward</strong>: Factor-of-4 rule of thumb (8/3 for GLUs) is standard (with some evidence).
+-   <strong>Head dim</strong>: Head dim * Num head = D model is standard.
+-   <strong>Aspect ratio</strong>: Wide range of 'good' values (100-200). Systems concerns dictate the value.
+-   <strong>Regularization</strong>: You still 'regularize' LMs but its effects are primarily on optimization dynamics.</p>
+<hr />
+<p>[54:00] <strong>Stability Tricks</strong></p>
+<p>Recently, lots of attention on stable training.
+-   As models get bigger and are trained longer, stability issues become more prominent.
+-   A common problem is exploding gradients, which leads to unstable training and divergence.
+-   The goal is to turn an unstable training curve (like the blue one with high gradient spikes) into a stable one (like the orange one with low gradient norms).</p>
+<p>[55:00] <strong>Where Do the Issues Arise? Beware of Softmaxes!</strong></p>
+<ul>
+<li>Softmaxes can be ill-behaved due to exponentials / division by zero.</li>
+<li>There are two softmaxes in a Transformer:<ol>
+<li>The output softmax (at the very end of the decoder).</li>
+<li>The softmax within the self-attention mechanism.</li>
+</ol>
+</li>
+</ul>
+<p>[56:00] <strong>Output Softmax Stability - The 'Z-loss'</strong></p>
+<ul>
+<li>Recall the softmax calculation:
+    $$P(x) = \frac{e^{U_r(x)}}{Z(x)}$$
+    $$Z(x) = \sum_{r'=1}^V e^{U_{r'}(x)}$$
+    $$\log P(x) = U_r(x) - \log Z(x)$$</li>
+<li><strong>This is useful for stability!</strong> PaLM pioneered this 'z-loss' trick.<ul>
+<li>They added an auxiliary loss of $Z_{loss} = 10^{-4} \sum_i (\log Z(x_i) - 0)^2$ to encourage the softmax normalizer $\log Z$ to be close to 0.</li>
+<li>This forces $Z(x)$ to be close to 1.</li>
+<li>If $Z(x)$ is close to 1, then $\log Z(x)$ is close to 0.</li>
+<li>This makes $\log P(x) \approx U_r(x)$, effectively removing the problematic exponential and division.</li>
+<li>This increased the stability of training.</li>
+</ul>
+</li>
+<li><strong>Other examples</strong>: Baichuan 2 (2023), DCLM (2024), OLMo 2 (2025).</li>
+</ul>
+<p>[57:00] <strong>Attention Softmax Stability - The 'QK Norm'</strong></p>
+<ul>
+<li>The other softmax we have to deal with is in the attention operation.</li>
+<li>The query and keys are Layer (RMS) normed before going into the softmax operation.</li>
+<li>This is an innovation from the vision and multimodal model community.<ul>
+<li>Dehgani (2023) trained very large vision transformers.</li>
+<li>IDefCS, Chameleon (Hugging Face) used these tricks for their multimodal components.</li>
+</ul>
+</li>
+<li>It was then picked up by several others: DCLM, OLMo 2, Gemma 2.</li>
+<li>This technique stabilizes the softmax by bounding the inputs, naturally controlling bad behavior.</li>
+</ul>
+<p>[58:00] <strong>Logit Soft-Capping</strong></p>
+<ul>
+<li>Soft-capping the logits to some maximum value via Tanh.</li>
+<li>Bello et al. (2016) in each attention layer and the final layer ensure that the value of the logits stays between -soft_cap and +soft_cap.</li>
+<li>The logits are passed through: $logits \leftarrow soft\_cap \cdot \tanh(logits/soft\_cap)$.</li>
+<li>Set the soft_cap parameter to 50.0 for the self-attention layers and to 30.0 for the final layer.</li>
+<li>This prevents logits from blowing up, but also might have perf issues.</li>
+<li>This technique hasn't been as widely adopted as QK norm.</li>
+</ul>
+<hr />
+<p>[59:00] <strong>Attention Heads</strong></p>
+<ul>
+<li>Most models don't touch the attention heads much at all with a few minor exceptions.</li>
+<li><strong>GQA / MQA</strong>: Saving inference costs by reducing the number of heads.</li>
+<li><strong>Sparse or sliding window attention (GPT4/Mistral)</strong>: Restricting the attention pattern to reduce compute cost.</li>
+<li><strong>Exotic SSM stuff</strong> (Jamba, Falcon 3, etc): Not covered (sorry!).</li>
+</ul>
+<p>[1:00:00] <strong>GQA/MQA - Reducing Attention Head Cost</strong></p>
+<ul>
+<li>Let's think about the compute involved for attention.<ul>
+<li>Total arithmetic operations: $O(bn d^2)$.</li>
+<li>Total memory accesses: $O(bnd + bhn^2 + d^2)$.</li>
+<li>Arithmetic intensity is high $O(\frac{n}{d} + \frac{1}{b})^{-1}$ - need large batches + short seq length (n) or big model dimensions (d) - we can keep our GPUs running.</li>
+</ul>
+</li>
+<li><strong>What about the incremental case when we generate text?</strong><ul>
+<li><strong>Key difference</strong>: Can't parallelize the generation process - needs to be step by step.</li>
+<li>In this case - we need to incrementally re-compute/update attention via the 'KV cache'.</li>
+<li>When generating text, we process one token at a time, conditioning on previous tokens.</li>
+<li>The KV cache stores the keys and values from previous tokens, so they don't need to be recomputed.</li>
+<li>This is essential for efficient inference.</li>
+</ul>
+</li>
+</ul>
+<p>[1:02:00] <strong>GQA/MQA - Reducing Attention Head Cost (cont.)</strong></p>
+<ul>
+<li><strong>What's the incremental arithmetic intensity?</strong><ul>
+<li>When using the KV cache, the total arithmetic operations remain $O(bn d^2)$.</li>
+<li>However, the memory access pattern changes significantly. We are repeatedly loading in matrices (keys, values) from memory.</li>
+<li>The arithmetic intensity becomes $O(\frac{n}{d} + \frac{1}{b})^{-1}$.</li>
+<li>This means arithmetic intensity is not good. We need large batches and short sequence lengths, or big model dimensions.</li>
+<li>The $n/d$ term is difficult to reduce.</li>
+</ul>
+</li>
+</ul>
+<p>[1:03:00] <strong>MQA - Just Have Fewer Key Dimensions.</strong></p>
+<ul>
+<li><strong>Key idea</strong>: Have multiple queries, but just one dimension for keys and values.</li>
+<li>Instead of having $h$ separate key and value heads, we have a single key and value head that is shared across all query heads.</li>
+<li>This significantly reduces the size of the KV cache, as we only store one set of keys and values.</li>
+<li>We have much fewer items to move in and out of memory (KV Cache).</li>
+<li>Total memory access: $O(bnd + bn^2 + d^2)$.</li>
+<li>Arithmetic intensity: $O(\frac{n}{d} + \frac{1}{b})^{-1}$.</li>
+<li>This improves inference efficiency, especially for long sequence lengths.</li>
+</ul>
+<p>[1:04:00] <strong>Recent Extension - GQA</strong></p>
+<ul>
+<li>Don't go all the way to one dimension of KV - have fewer dims.</li>
+<li>Instead of a single key and value head (MQA), Grouped-Query Attention (GQA) groups query heads and shares a key/value head among each group.</li>
+<li>This provides a simple knob to control expressiveness (key-query ratio) and inference efficiency.</li>
+</ul>
+<p>[1:04:00] <strong>Does MQA Hurt? Sometimes.</strong></p>
+<ul>
+<li>Some work shows that MQA can lead to a small perplexity hit (Shazeer 2019).</li>
+<li>Other work shows low/no hit with GQA (Ainslie 2023).</li>
+<li>The trade-off is between inference speed and model quality.</li>
+</ul>
+<p>[1:04:00] <strong>Sparse / Sliding Window Attention</strong></p>
+<ul>
+<li>Attending to the entire context can be expensive (quadratic).</li>
+<li>Build sparse / structured attention that trades off expressiveness vs runtime (GPT3).</li>
+<li>Instead of computing attention for all pairs of tokens, we restrict the attention pattern to a local window or a strided pattern.</li>
+<li>This reduces the computational cost from $O(N^2)$ to $O(N \cdot \text{window_size})$.</li>
+</ul>
+<p>[1:04:00] <strong>Sliding Window Attention</strong></p>
+<ul>
+<li>Another variation on this idea - sliding window attention.</li>
+<li>At each layer, only pay attention to a small region around your current position.</li>
+<li>This also controls the total amount of resources needed for longer contexts.</li>
+<li>Your effective receptive field is now the local one times kind of the layers.</li>
+</ul>
+<p>[1:04:00] <strong>Current Standard Trick - Interleave 'Full' and 'LR' Attention</strong></p>
+<ul>
+<li>From Cohere Command A - Every 4th layer is a full attention.</li>
+<li>This is a very clever trick to both control the systems aspects of things (full attention only happens every now and then) and the length extrapolation aspect.</li>
+<li>Rope only deals with local context windows, and anything that's really really long range has no position embeddings at all.</li>
+<li>This allows for very aggressive extrapolation, as there's no position extrapolation to deal with.</li>
+</ul>
+<hr />
+<p>[1:04:00] <strong>Recap, Conclusion, etc.</strong></p>
+<ul>
+<li>Many aspects (architecture, hyperparameters) of Transformers are in parallel in common across the big LMs.</li>
+<li><strong>Major differences</strong>: Position embeddings, tokenization.</li>
+</ul>
+<hr />
+<p><strong>Practical Takeaways</strong>
+-   When building LLMs, prioritize pre-norm for stability.
+-   RMSNorm is generally preferred over LayerNorm for efficiency without sacrificing performance.
+-   GLU variants (GeGLU, SwiGLU) are the current state-of-the-art for FFN activations.
+-   Follow established hyperparameter ratios (e.g., $d_{ff} = 4d_{model}$ or $8/3 d_{model}$ for GLUs, $d_{model} / (h \cdot d_h) \approx 1$).
+-   Weight decay is crucial for optimizing LLMs, even if not for traditional overfitting control.
+-   Implement stability tricks, especially for softmax operations (Z-loss, QK norm, logit soft-capping).
+-   Consider MQA/GQA for inference efficiency and sparse attention patterns for longer context windows.</p>
+<p><strong>Open Questions / Things to Remember</strong>
+-   The exact theoretical reasons for the superior stability of pre-norm and RMSNorm are still being actively researched, but empirical evidence is strong.
+-   The interaction between weight decay and learning rate schedules is complex and crucial for optimal training.
+-   The field is still evolving, with new architectural tweaks and stability tricks emerging regularly (e.g., double norm, interleaved attention patterns).
+-   System-level considerations (memory movement, parallelism constraints) increasingly influence architectural choices.</p>
+<hr /><div class="pager"><a href="lec02.html">← Lec 02</a><a href="lec04.html" style="text-align:right">Lec 04 →</a></div></main></div></body></html>
