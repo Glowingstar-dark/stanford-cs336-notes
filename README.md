@@ -15,6 +15,10 @@ For every one of the 17 lectures:
 - **~200 real slide screenshots** pulled at the key moments of each lecture, with captions.
 - **Rendered math** (LaTeX/MathJax), **syntax-highlighted code**, section timestamps, and a link back to the source video.
 
+### 🧠 [Algorithm Deep Dives](https://qihongruan.github.io/cs336/deepdives.html)
+
+Beyond the lectures: a curated set of **26 in-depth Q&A** on the genuinely tricky algorithmic parts of the course — BPE complexity, attention/RoPE, MoE routing & load balancing, FlashAttention, parallelism (DP/TP/PP/ZeRO), scaling laws, KV-cache & speculative decoding, and the RL alignment math (PPO/DPO/GRPO) — each worked through with full derivations, intuition, and common pitfalls. Source markdown in [`deep-dives/`](deep-dives/).
+
 ## Lectures
 
 | # | Topic | Notes | Video |
