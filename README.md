@@ -19,6 +19,10 @@ For every one of the 17 lectures:
 
 Beyond the lectures: a curated set of **26 in-depth Q&A** on the genuinely tricky algorithmic parts of the course — BPE complexity, attention/RoPE, MoE routing & load balancing, FlashAttention, parallelism (DP/TP/PP/ZeRO), scaling laws, KV-cache & speculative decoding, and the RL alignment math (PPO/DPO/GRPO) — each worked through with full derivations, intuition, and common pitfalls. Source markdown in [`deep-dives/`](deep-dives/).
 
+### 🛠️ [Assignments — Do the Work](https://qihongruan.github.io/cs336/assignments.html)
+
+The lectures are the easy part. As Andrej Karpathy [noted](https://x.com/karpathy/status/1756380066580455557), real learning takes *effort* — and in CS336 that effort lives in the **5 implementation-heavy assignments** (BPE+model+optimizer, Triton FlashAttention-2 + distributed training, scaling laws, Common Crawl data pipeline, SFT+RL for reasoning). This section is a **study guide for each — guidance, not solutions**: what you build, what makes it hard, how to approach it, and the pitfalls to watch for, with links to the relevant lectures and Deep Dives. Source markdown in [`assignments/`](assignments/).
+
 ## Lectures
 
 | # | Topic | Notes | Video |

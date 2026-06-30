@@ -1,0 +1,363 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CS336 — Assignments (Do the Work)</title>
+<style>
+:root{--fg:#1a1a1a;--muted:#6b7280;--bg:#fff;--accent:#8c1515;--code:#f6f8fa;--border:#e5e7eb;--side:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);line-height:1.65;font-size:16.5px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;width:280px;flex:0 0 280px;border-right:1px solid var(--border);background:var(--side);padding:24px 18px;font-size:14px}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px}
+.sidebar a{display:block;padding:6px 8px;border-radius:6px;color:#333}
+.sidebar a:hover{background:#efeae9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff}
+.sidebar .num{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px}
+.sidebar a.active .num{color:#fff}
+.content{flex:1;min-width:0;padding:40px 48px;max-width:860px}
+.content h1{font-size:30px;line-height:1.25;margin:0 0 6px}
+.content h2{font-size:23px;margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.content h3{font-size:18.5px;margin:24px 0 8px}
+.content h4{font-size:16px;margin:18px 0 6px;color:#374151}
+.content code{background:var(--code);padding:.15em .4em;border-radius:4px;font-size:.88em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.content pre{background:#0d1117;color:#e6edf3;padding:16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.5}
+.content pre code{background:none;padding:0;color:inherit}
+.content table{border-collapse:collapse;margin:16px 0;font-size:14.5px;display:block;overflow-x:auto}
+.content th,.content td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+.content th{background:var(--code)}
+.content blockquote{border-left:3px solid var(--accent);margin:16px 0;padding:4px 16px;color:#444;background:#faf7f7}
+.content img{max-width:100%}
+figure.slide{margin:22px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}
+figure.slide img{display:block;width:100%}
+figure.slide figcaption{font-size:13.5px;color:#555;padding:9px 14px;background:var(--side);border-top:1px solid var(--border)}
+figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);margin-right:8px}
+.crumbs{font-size:14px;color:var(--muted);margin-bottom:18px}
+.meta{color:var(--muted);font-size:14px;margin:0 0 22px}
+.meta a{font-weight:500}
+.embed{position:relative;padding-bottom:56.25%;height:0;margin:18px 0 28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.embed a{position:absolute;inset:0;display:block;background-size:cover;background-position:center;background-color:#000}
+.embed .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);transition:.15s}
+.embed .play:hover{background:rgba(0,0,0,.45)}
+.embed .play span{background:var(--accent);color:#fff;font-weight:600;font-size:16px;padding:11px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ghbtn{display:inline-block;margin-top:18px;background:#1a1a1a;color:#fff;font-weight:600;font-size:14px;padding:9px 16px;border-radius:8px}
+.ghbtn:hover{background:#000;text-decoration:none}
+.sidebar a.ghside{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;color:var(--accent);font-weight:600}
+.sidebar a.ghside:hover{background:transparent;text-decoration:underline}
+.pager{display:flex;justify-content:space-between;margin:48px 0 24px;gap:12px;border-top:1px solid var(--border);padding-top:20px}
+.pager a{max-width:48%}
+.banner{background:#faf7f7;border:1px solid #ecd9d9;border-radius:10px;padding:14px 18px;margin:0 0 28px;font-size:14.5px;color:#5a3a3a}
+/* index */
+.hero{padding:56px 0 28px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.hero h1{font-size:38px;margin:0 0 10px}
+.hero p{font-size:17px;color:#374151;max-width:680px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin:28px 0}
+.card{border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:.15s;background:#fff}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
+.card .n{font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.05em}
+.card h3{margin:6px 0 6px;font-size:18px}
+.card .dur{color:var(--muted);font-size:13px}
+.card a.stretch{position:absolute;inset:0}
+.tag{display:inline-block;background:#f0ecec;color:#7a5a5a;font-size:11px;padding:2px 8px;border-radius:20px;margin-top:8px}
+.feature{display:flex;align-items:center;gap:18px;margin:24px 0 8px;padding:20px 24px;border:1px solid #ecd9d9;border-radius:14px;background:linear-gradient(135deg,#faf7f7,#fff);transition:.15s}
+.feature:hover{box-shadow:0 6px 22px rgba(140,21,21,.10);text-decoration:none;transform:translateY(-2px)}
+.feature .fl{font-size:34px;flex:0 0 auto}
+.feature .ft2{font-size:19px;font-weight:700;color:var(--accent)}
+.feature .fd{font-size:14px;color:#444;margin-top:4px}
+.feature .fa{margin-left:auto;font-size:24px;color:var(--accent)}
+.ddtoc{font-size:14px;background:var(--side);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin:18px 0 28px;line-height:2}
+.ddsec{margin:0 0 12px;padding-bottom:8px}
+.ddsec h2{font-size:24px;color:var(--accent);border-bottom:2px solid var(--accent);scroll-margin-top:16px}
+.ddsec h3{background:var(--side);border-left:3px solid var(--accent);padding:8px 14px;border-radius:0 6px 6px 0;font-size:17px;margin-top:24px}
+.prereq{font-size:14px;background:#f5f7fa;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:10px 0 18px}
+.nosol{color:var(--accent);font-weight:600}
+.assec h2{color:#1a4d8c;border-bottom-color:#1a4d8c}
+@media(max-width:860px){.sidebar{display:none}.content{padding:24px 18px}.hero h1{font-size:30px}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}})});</script>
+
+</head><body><div class="layout"><nav class="sidebar"><h2>CS336 Lectures</h2><a href="index.html">Home</a><a href="deepdives.html">🧠 Algorithm Deep Dives</a><a href="assignments.html" class="active">🛠️ Assignments — Do the Work</a><a href="lec01.html"><span class="num">01</span>Overview and Tokenization</a><a href="lec02.html"><span class="num">02</span>PyTorch, Resource Accounting</a><a href="lec03.html"><span class="num">03</span>Architectures, Hyperparameters</a><a href="lec04.html"><span class="num">04</span>Mixture of Experts</a><a href="lec05.html"><span class="num">05</span>GPUs</a><a href="lec06.html"><span class="num">06</span>Kernels, Triton</a><a href="lec07.html"><span class="num">07</span>Parallelism 1</a><a href="lec08.html"><span class="num">08</span>Parallelism 2</a><a href="lec09.html"><span class="num">09</span>Scaling Laws 1</a><a href="lec10.html"><span class="num">10</span>Inference</a><a href="lec11.html"><span class="num">11</span>Scaling Laws 2</a><a href="lec12.html"><span class="num">12</span>Evaluation</a><a href="lec13.html"><span class="num">13</span>Data 1</a><a href="lec14.html"><span class="num">14</span>Data 2</a><a href="lec15.html"><span class="num">15</span>Alignment — SFT/RLHF</a><a href="lec16.html"><span class="num">16</span>Alignment — RL 1</a><a href="lec17.html"><span class="num">17</span>Alignment — RL 2</a><a href="https://github.com/QihongRuan/stanford-cs336-notes" target="_blank" rel="noopener" class="ghside">⭐ Star on GitHub</a></nav><main class="content"><div class="crumbs"><a href="../">Qihong Ruan</a> / <a href="index.html">CS336 Notes</a> / Assignments</div><h1>🛠️ Assignments — Do the Work</h1><p class="meta">Study guides for the 5 implementation-heavy assignments — where the real learning is.</p><div class="banner">The ~22 hours of lectures are the easy part. The assignments are where you actually learn — and they take far longer. As Andrej Karpathy <a href="https://x.com/karpathy/status/1756380066580455557" target="_blank" rel="noopener">put it</a>, real learning "is not supposed to be fun — the primary feeling should be that of effort," like a serious session at the gym rather than a 10-minute highlight reel. These notes and the Deep Dives are the warm-up and the map; the assignments are the gym. <strong>So this section gives guidance, not solutions</strong> — pointers to do the work yourself, not a way around it.</div><div class="ddtoc"><strong>Jump to:</strong> <a href="#a1">A1: Basics</a> · <a href="#a2">A2: Systems</a> · <a href="#a3">A3: Scaling</a> · <a href="#a4">A4: Data</a> · <a href="#a5">A5: Alignment &amp; Reasoning RL</a></div><section id="a1" class="ddsec assec"><h2>Assignment 1: Basics</h2><p class="meta"><a href="https://github.com/stanford-cs336/assignment1-basics" target="_blank" rel="noopener">Official starter code &amp; handout ↗</a> · due Apr 15, 2026 (2026 offering) · <span class="nosol">No solutions here — by design.</span></p><div class="prereq"><strong>Before you start</strong> — lectures: <a href="lec01.html">Lec 01: Overview and Tokenization</a> · <a href="lec02.html">Lec 02: PyTorch, Resource Accounting</a> · <a href="lec03.html">Lec 03: Architectures, Hyperparameters</a> &nbsp;|&nbsp; deep dives: <a href="deepdives.html#tokenization">Tokenization &amp; Byte-Pair Encoding</a> · <a href="deepdives.html#architecture">Transformer Architecture Choices</a></div><p>You will implement the fundamental components of a modern language model from scratch and assemble them into a working system. The deliverables are:</p>
+<ol>
+<li><strong>A Byte-Pair Encoding (BPE) Tokenizer:</strong> You'll implement the BPE training algorithm to learn a vocabulary and merge rules from a text corpus. Your tokenizer will have <code>train</code>, <code>encode</code>, and <code>decode</code> methods. The specific style is based on GPT-2, which involves a pre-tokenization step before running BPE on word-level chunks.</li>
+<li><strong>A Transformer Model:</strong> You will build the decoder-only Transformer architecture as a <code>torch.nn.Module</code>. This involves implementing its constituent parts: multi-head self-attention (MHA) with Rotary Position Embeddings (RoPE), a SwiGLU feed-forward network, and RMSNorm for normalization. You will assemble these into Transformer blocks and stack them to form the full model.</li>
+<li><strong>An AdamW Optimizer:</strong> You will implement the AdamW optimizer by creating a custom class that inherits from <code>torch.optim.Optimizer</code>. This requires managing the optimizer's state (first and second moment estimates) for each model parameter and implementing the <code>step()</code> logic, including bias correction and decoupled weight decay.</li>
+<li><strong>A Training Harness:</strong> You will write a script that uses these three components to train a minimal language model on a real dataset (like TinyStories). This involves setting up the data loading, the training loop, calculating the cross-entropy loss, and calling your custom optimizer.</li>
+</ol>
+<p>These pieces fit together to form a complete training pipeline: raw text is fed to your tokenizer to create integer sequences, which are batched and passed to your Transformer model. The model's output is used to calculate a loss, and your AdamW optimizer updates the model's weights to minimize this loss.</p>
+<h3 id="why-this-is-where-the-learning-happens">Why this is where the learning happens</h3>
+<p>Watching lectures gives you a map, but implementing this assignment is the journey where you actually learn the terrain. Building these components from first principles forces you to move beyond "leaky abstractions" and confront the details that make these systems work. You will internalize how architectural choices (like RMSNorm vs. LayerNorm) are not just theoretical but have real consequences for speed and memory, and how an algorithmic choice in your tokenizer directly impacts the shape of your model's embedding matrix. This struggle is what solidifies the concepts and builds the engineering mindset required to innovate.</p>
+<h3 id="what-makes-it-hard">What makes it hard</h3>
+<p>This assignment combines conceptual hurdles with non-trivial engineering. Don't underestimate it.</p>
+<ul>
+<li><strong>Algorithmic Complexity (BPE):</strong> A naive BPE training implementation that re-scans the corpus for every merge is computationally infeasible ($O(\text{CorpusSize} \times \text{NumMerges})$). You must devise an efficient method to track and update pair frequencies without repeated scans, which requires careful data structure design. The encoding process also has a subtle greedy logic that must be implemented deterministically.</li>
+<li><strong>Tensor Gymnastics (Transformer):</strong> The logic of multi-head attention involves a flurry of tensor reshaping, transposing, and batch matrix multiplications. Keeping track of dimensions (<code>batch</code>, <code>seq_len</code>, <code>num_heads</code>, <code>head_dim</code>) is a notorious challenge. A single incorrect <code>transpose</code> or <code>view</code> can introduce silent bugs that are hard to trace. Implementing the causal mask and RoPE correctly requires precise control over tensor indices and dimensions.</li>
+<li><strong>Numerical Stability:</strong> You are building a deep neural network where numbers can easily explode or vanish. The attention softmax, $softmax(\frac{QK^T}{\sqrt{d_k}})$, can overflow if the logits in the numerator are too large. The $\sqrt{d_k}$ scaling factor is not just a suggestion; it's critical for stable training. Your choice of normalization (pre-norm vs. post-norm) will dramatically affect gradient flow and training stability.</li>
+<li><strong>Memory Management:</strong> A language model is a memory hog. For every parameter in your model, you must store not only its value (4 bytes for <code>float32</code>), but also its gradient (4 bytes), and the AdamW optimizer's state (8 bytes for the two moments). That's 16 bytes per parameter, <em>before</em> even considering the memory for activations, which scales with batch size and sequence length. You will quickly learn why techniques like mixed-precision training are essential.</li>
+<li><strong>Silent Bugs:</strong> The most frustrating challenge is that your code might be "wrong" but still run without errors. An incorrect attention mask, a miscalculated gradient in your optimizer, or a bug in your BPE encoding might not cause a crash, but will simply lead to a model that refuses to learn. The loss will stagnate, and you won't know why.</li>
+</ul>
+<h3 id="how-to-approach-it">How to approach it</h3>
+<p>Tackle this assignment by building and testing components incrementally. Do not try to write everything at once.</p>
+<ol>
+<li><strong>Start with the Optimizer:</strong> Implement your AdamW optimizer first. You can test it in isolation on a simple problem, like fitting a linear regression model. You can even write a unit test that performs a single step with your optimizer and asserts that the resulting parameter values match those produced by <code>torch.optim.AdamW</code> on the same inputs.</li>
+<li><strong>Build the Tokenizer:</strong><ul>
+<li>First, focus on the <code>encode</code> and <code>decode</code> methods. Assume you are <em>given</em> a vocabulary and a list of learned merges. Can you correctly apply the merges to encode a string and then decode it back? Test your round-trip capability.</li>
+<li>Next, implement the <code>train</code> method. Start with a tiny, one-sentence corpus. Manually trace the first few merges to ensure your pair counting and update logic is correct. Then, scale up to the full training corpus.</li>
+</ul>
+</li>
+<li><strong>Construct the Transformer, Piece by Piece:</strong><ul>
+<li>Start with the innermost components. Implement <code>RMSNorm</code> and the <code>SwiGLU</code> feed-forward block. Write small tests to verify their output shapes.</li>
+<li>Tackle self-attention. First, implement a <em>single</em> attention head without RoPE. Get the masking and scaled dot-product right.</li>
+<li>Then, wrap this in a <code>MultiHeadAttention</code> module. This is mostly about managing shapes and combining the outputs of the individual heads.</li>
+<li>Now, add <code>RoPE</code>. This is a modification to the queries and keys <em>before</em> they are used in the attention calculation.</li>
+<li>Finally, assemble a single <code>TransformerBlock</code> using your MHA and FFN modules, along with the residual connections and normalization.</li>
+</ul>
+</li>
+<li><strong>Assemble and Test the Full Model:</strong> Stack your <code>TransformerBlock</code>s to create the full model. Your goal is to achieve "loss-goes-down" on a single, tiny batch of data. Set up a minimal training loop with your model, a standard <code>CrossEntropyLoss</code>, and your custom AdamW optimizer. If you can overfit a single batch and drive the loss to near-zero, your entire pipeline is likely correct.</li>
+<li><strong>Scale Up:</strong> Once you've successfully overfit a single batch, you can move on to training on the full dataset and trying to achieve a competitive perplexity score.</li>
+</ol>
+<h3 id="common-pitfalls-debugging-tips">Common pitfalls &amp; debugging tips</h3>
+<ul>
+<li><strong>Incorrect Attention Mask:</strong> A classic bug. Your causal mask must prevent a position from attending to future positions. A common error is an off-by-one in the mask's dimensions or applying it incorrectly (e.g., adding <code>0</code> instead of <code>-inf</code> before the softmax). <strong>Tip:</strong> After computing your attention scores but before the softmax, extract a single attention matrix from your batch and print it. The upper triangle (above the diagonal) should be <code>-inf</code>.</li>
+<li><strong>Mismatched Tensor Shapes:</strong> Use <code>assert</code> statements liberally to check the shapes of your tensors at every step, especially within the attention mechanism. Comments like <code># shape: (batch, heads, seq_len, head_dim)</code> are good, but <code>assert x.shape == (b, h, s, d)</code> is better.</li>
+<li><strong>BPE Merge Ambiguity:</strong> The encoding process must be deterministic. When multiple merges are possible (e.g., in "abc", you could merge 'ab' or 'bc'), the ambiguity is resolved by picking the merge that was learned earliest (has the lowest rank). If there's a tie, the leftmost occurrence in the sequence wins.</li>
+<li><strong>Weight Decay vs. L2 Regularization:</strong> The 'W' in AdamW stands for decoupled weight decay. It is <em>not</em> the same as adding an L2 regularization term to the loss. Weight decay is applied directly to the weights during the optimizer step. Make sure you implement this distinction correctly.</li>
+<li><strong>Forgetting <code>.to(device)</code>:</strong> A simple but common error. Your model, your optimizer's state, and your data must all live on the same device (CPU or GPU).</li>
+<li><strong>The Single-Batch Test is Your Best Friend:</strong> If your model can't learn to perfectly memorize a single batch of data, it has no hope of learning from the entire dataset. If your loss isn't plummeting towards zero in this test, there is a bug in your model, loss calculation, or optimizer <code>step</code> function.</li>
+<li><strong>Check Gradients:</strong> If you suspect your backward pass is wrong, you can inspect the <code>.grad</code> attribute of your model's parameters after <code>loss.backward()</code>. Are they <code>None</code>? Are they all zero? This can point to issues like detached parts of your computation graph.</li>
+</ul></section><section id="a2" class="ddsec assec"><h2>Assignment 2: Systems</h2><p class="meta"><a href="https://github.com/stanford-cs336/assignment2-systems" target="_blank" rel="noopener">Official starter code &amp; handout ↗</a> · due Apr 29, 2026 (2026 offering) · <span class="nosol">No solutions here — by design.</span></p><div class="prereq"><strong>Before you start</strong> — lectures: <a href="lec05.html">Lec 05: GPUs</a> · <a href="lec06.html">Lec 06: Kernels, Triton</a> · <a href="lec07.html">Lec 07: Parallelism 1</a> · <a href="lec08.html">Lec 08: Parallelism 2</a> &nbsp;|&nbsp; deep dives: <a href="deepdives.html#kernels">GPU Kernels &amp; FlashAttention</a> · <a href="deepdives.html#parallelism">Parallelism</a></div><p>You will implement three key systems components for large-scale language modeling. First, you'll use profiling tools to benchmark a standard Transformer block and identify performance bottlenecks, particularly in the attention layer. Second, you will write a custom FlashAttention-2 forward and backward pass from scratch in Triton, a Python-based language for GPU programming. This involves implementing tiling, online softmax, and recomputation to minimize slow memory access. Finally, you will use PyTorch's Fully Sharded Data Parallelism (FSDP) to build a memory-efficient, multi-GPU training loop, allowing you to train models that wouldn't fit on a single device.</p>
+<h3 id="why-this-is-where-the-learning-happens">Why this is where the learning happens</h3>
+<p>Watching a lecture on GPU architecture is like reading a map; implementing a custom kernel is like navigating the terrain yourself. You will directly confront the "memory wall"—the massive gap between compute speed and memory bandwidth—that lectures can only describe. By manually managing data movement between slow HBM and fast on-chip SRAM, you will gain a physical intuition for why algorithms like FlashAttention are not just clever, but essential for modern AI. This struggle transforms abstract concepts like tiling and kernel fusion into concrete engineering skills.</p>
+<h3 id="what-makes-it-hard">What makes it hard</h3>
+<p>The primary challenge is bridging the gap between a high-level algorithm and a low-level, hardware-aware implementation.</p>
+<ul>
+<li><strong>Numerical Stability:</strong> The "online softmax" trick in FlashAttention requires maintaining a running maximum and a sum of exponentials. A naive implementation can easily lead to <code>inf</code> or <code>NaN</code> values. The update rule when the running maximum changes, $l_{new} = e^{m_{old} - m_{new}} l_{old} + e^{s_i - m_{new}}$, involves careful scaling to prevent overflow/underflow.</li>
+<li><strong>Memory Management &amp; Correctness:</strong> In Triton, you are responsible for calculating memory offsets for loading "tiles" of your Q, K, and V matrices. An off-by-one error in your pointer arithmetic can lead to incorrect data being loaded, silent correctness failures, or hard crashes. You must also use masks correctly to handle sequences whose lengths are not perfect multiples of your tile size.</li>
+<li><strong>Conceptual Complexity of the Backward Pass:</strong> The backward pass of attention is more complex than the forward pass. To save memory, FlashAttention recomputes attention scores from the forward pass instead of storing them. You must correctly derive and implement the gradients with respect to Q, K, and V, while re-materializing the necessary values on-the-fly within your tiled execution, all without access to the full $N \times N$ attention matrix.</li>
+<li><strong>Distributed Systems Complexity:</strong> Setting up a distributed training job with FSDP involves managing process groups and understanding how model parameters, gradients, and optimizer states are sharded across devices. A common trap is a deadlock, where one GPU waits for another in a collective operation that never completes, causing the program to hang indefinitely.</li>
+</ul>
+<h3 id="how-to-approach-it">How to approach it</h3>
+<p>Follow this roadmap to build your components incrementally, testing at each stage.</p>
+<ol>
+<li>
+<p><strong>Profile First:</strong> Before optimizing, you must measure.</p>
+<ul>
+<li>Set up a simple benchmark for a single Transformer block using a standard PyTorch implementation.</li>
+<li>Use <code>torch.profiler</code> to generate a trace. Identify which operations (e.g., <code>aten::matmul</code>, <code>aten::softmax</code>) consume the most GPU time. This will confirm that the attention calculation is your bottleneck and motivate the need for a custom kernel.</li>
+</ul>
+</li>
+<li>
+<p><strong>Implement the FlashAttention Forward Pass in Triton:</strong></p>
+<ul>
+<li>Start with the simplest case: a "naive" attention kernel in Triton that computes attention for a single row of Q against all of K and V, without tiling the sequence length dimension. Verify its correctness against <code>torch.nn.functional.scaled_dot_product_attention</code>.</li>
+<li>Now, implement the full tiled forward pass. Your outer loop will iterate over blocks of the K/V sequence. Your inner logic will process a block of Q against a block of K/V.</li>
+<li>Focus on the core "online softmax" state: what running statistics (the max value <code>m</code> and the normalization factor <code>l</code>) do you need to carry through the outer loop?</li>
+<li>Think carefully about how to update your output block <code>O</code> when you encounter a new maximum value. You'll need to rescale the existing <code>O</code> before adding the contribution from the new block.</li>
+<li>Test your tiled implementation for numerical correctness against the PyTorch reference on various matrix sizes, especially those that are not perfectly divisible by your tile size.</li>
+</ul>
+</li>
+<li>
+<p><strong>Implement the FlashAttention Backward Pass:</strong></p>
+<ul>
+<li>First, ensure you are saving the correct, minimal set of values from the forward pass to global memory for use in the backward pass (hint: you need the output <code>O</code> and the final softmax statistics <code>L</code>).</li>
+<li>Structure your backward pass kernel to mirror the tiled structure of the forward pass. You will iterate through blocks of Q, K, and V to recompute the attention scores needed for the gradient calculation.</li>
+<li>Derive or look up the gradients <code>dO</code>, <code>dQ</code>, <code>dK</code>, <code>dV</code>. Implement the calculation for <code>dQ</code>, <code>dK</code>, and <code>dV</code> inside your tiled loop. Remember that <code>dK</code> and <code>dV</code> are accumulated across the blocks of Q.</li>
+<li>Again, test for numerical correctness at every step by comparing your kernel's output gradients to those produced by PyTorch's autograd on the reference attention function. Use <code>torch.allclose</code> with a reasonable tolerance.</li>
+</ul>
+</li>
+<li>
+<p><strong>Build the Distributed Training System:</strong></p>
+<ul>
+<li>Start with a standard model (like the one from your previous assignments) and a training loop that runs on a single GPU. Profile its peak memory usage.</li>
+<li>Wrap your model with <code>torch.distributed.fsdp.FullyShardedDataParallel</code>. You will need to set up a <code>torch.distributed</code> process group.</li>
+<li>Run the FSDP-wrapped training loop on multiple GPUs. Profile the peak memory usage <em>per GPU</em>. You should see a significant reduction compared to the single-GPU baseline, demonstrating that you've successfully sharded the model's state.</li>
+</ul>
+</li>
+</ol>
+<h3 id="common-pitfalls-debugging-tips">Common pitfalls &amp; debugging tips</h3>
+<ul>
+<li><strong>Benchmarking Errors:</strong> Always use <code>torch.cuda.synchronize()</code> before starting and stopping your timer. The CPU and GPU execute asynchronously, and failing to synchronize will result in you timing only the CPU's kernel launch time, not the actual GPU execution. Also, run several warm-up iterations before measuring.</li>
+<li><strong>Triton Pointer Math:</strong> Use <code>print()</code> statements inside your Triton kernel (with <code>TRITON_INTERPRET=1</code>) to debug the offsets and pointers you are calculating. It's slow but invaluable for catching indexing errors.</li>
+<li><strong>Handling Edges:</strong> Your code must handle sequence lengths that aren't a multiple of your <code>BLOCK_SIZE</code>. Use the <code>mask</code> argument in <code>tl.load</code> and <code>tl.store</code> to prevent out-of-bounds memory access. Forgetting this will lead to garbage results or crashes.</li>
+<li><strong>Numerical Stability in Softmax:</strong> When implementing the online softmax, always subtract the current running maximum from your scores <em>before</em> calling <code>tl.exp()</code>. This prevents the exponentiation from producing <code>inf</code>.</li>
+<li><strong>Check Against a Reference:</strong> The most powerful debugging tool you have is a correct reference implementation. At every stage of your Triton kernel development (forward and backward), compare your output tensor against the output of <code>torch.nn.functional.scaled_dot_product_attention</code> using <code>torch.allclose</code>. If they don't match, they should be very close.</li>
+<li><strong>Backward Pass State:</strong> For the backward pass, you only need to have stored the final <code>O</code>, <code>L</code>, and <code>dO</code> in global memory. Everything else (like the <code>S</code> matrix) must be recomputed on the fly from <code>Q</code>, <code>K</code>, and <code>V</code>. If you find yourself trying to save the <code>S</code> matrix, you've missed the point of recomputation.</li>
+<li><strong>FSDP Hangs:</strong> If your multi-GPU training script hangs, it's almost always a deadlock. This means one or more processes have entered a collective communication call (like <code>all_reduce</code>) while others have not. Ensure that all ranked processes are executing the exact same code path that involves collective calls.</li>
+</ul></section><section id="a3" class="ddsec assec"><h2>Assignment 3: Scaling</h2><p class="meta"><a href="https://github.com/stanford-cs336/assignment3-scaling" target="_blank" rel="noopener">Official starter code &amp; handout ↗</a> · due May 6, 2026 (2026 offering) · <span class="nosol">No solutions here — by design.</span></p><div class="prereq"><strong>Before you start</strong> — lectures: <a href="lec09.html">Lec 09: Scaling Laws 1</a> · <a href="lec11.html">Lec 11: Scaling Laws 2</a> &nbsp;|&nbsp; deep dives: <a href="deepdives.html#scaling">Scaling Laws &amp; compute-optimal training</a></div><p>You will write a suite of Python scripts to conduct a small-scale replication of the Chinchilla scaling law experiments. Your goal is to determine the compute-optimal way to train a Transformer model. You will not be building the model or trainer itself; instead, you'll use a provided API that lets you train a model of a given size (<code>N</code> parameters) on a given amount of data (<code>D</code> tokens) and returns the final validation loss.</p>
+<p>Your deliverables will be:
+1.  <strong>An Experiment Runner:</strong> A script that systematically calls the training API for various combinations of model sizes (<code>N</code>) and dataset sizes (<code>D</code>) to gather loss data.
+2.  <strong>An IsoFLOP Analyzer:</strong> A tool that implements the "IsoFLOP" method. For a <em>fixed</em> compute budget <code>C</code>, this tool will train several <code>(N, D)</code> configurations that all cost <code>C</code> FLOPs and identify the optimal <code>N</code> that minimizes loss.
+3.  <strong>A Scaling Law Fitter:</strong> A script that takes the optimal points from multiple IsoFLOP analyses and fits power laws to them. Specifically, you will find the exponents <code>a</code> and <code>b</code> in the relationships $N_{opt}(C) \propto C^a$ and $D_{opt}(C) \propto C^b$.
+4.  <strong>A Predictor:</strong> A final function that uses your fitted scaling laws to predict the optimal model size and number of training tokens for a large, unseen training budget.</p>
+<p>These components will work together to transform raw experimental data into a predictive engineering tool.</p>
+<h3 id="why-this-is-where-the-learning-happens">Why this is where the learning happens</h3>
+<p>Watching a lecture on scaling laws can make the concepts seem abstract and the results pre-ordained. This assignment forces you to confront the messy reality of generating the data yourself. You will gain a visceral understanding of the trade-off between model size and data by plotting the U-shaped IsoFLOP curves from your own experiments. Actually fitting the power-law functions to your noisy, hard-won data points will solidify why log-log plots are so essential and how a few small-scale runs can yield powerful predictions about massive models.</p>
+<h3 id="what-makes-it-hard">What makes it hard</h3>
+<p>The primary challenge is not in writing complex code, but in correctly orchestrating the experiments and interpreting the results.</p>
+<ul>
+<li><strong>Conceptual Complexity:</strong> The core of the assignment is the IsoFLOP method (Chinchilla's "Method 2"). You must internalize the compute formula, $C \approx 6ND$, and understand that for a fixed <code>C</code>, <code>N</code> and <code>D</code> are inversely proportional. You are searching for the minimum of a U-shaped loss curve that exists along this hyperbola.</li>
+<li><strong>Managing Experimental Sweeps:</strong> You will be running dozens of training jobs. Keeping track of the parameters (<code>N</code>, <code>D</code>, <code>C</code>) and their resulting <code>loss</code> requires careful organization. A single mislabeled data point can corrupt your analysis.</li>
+<li><strong>Curve Fitting Instability:</strong> You will likely use a library function like <code>scipy.optimize.curve_fit</code> to fit your scaling laws. These numerical optimizers can be sensitive. If you provide a poor functional form or bad initial guesses for the parameters, the fit can fail to converge or produce nonsensical results. The challenge is in understanding the expected shape of the data to guide the fitting process.</li>
+<li><strong>Correctness of Measurement:</strong> As the notes explain, the way you measure loss is critical. A loss value for a given <code>(N, D)</code> pair is only valid if it comes from a model of size <code>N</code> trained from scratch for <code>D</code> tokens with an appropriate learning rate schedule. You cannot simply take intermediate checkpoints from one long run; this will produce biased data and lead to incorrect scaling exponents.</li>
+</ul>
+<h3 id="how-to-approach-it">How to approach it</h3>
+<p>Follow this roadmap to build your solution incrementally and ensure each part is working before moving to the next.</p>
+<ol>
+<li>
+<p><strong>Master the Training API:</strong> Before anything else, figure out how to run a single experiment. Call the provided training function with a fixed <code>N</code> and <code>D</code> and verify that you can successfully retrieve the final validation loss.</p>
+</li>
+<li>
+<p><strong>Run a Simple Scaling Sweep:</strong> To build intuition, start with a one-dimensional analysis.</p>
+<ul>
+<li>Fix a model size <code>N</code>. Run experiments for several different data sizes <code>D</code>.</li>
+<li>Plot <code>log(loss)</code> vs. <code>log(D)</code>. Do you see a roughly linear trend? This is your first scaling law!</li>
+</ul>
+</li>
+<li>
+<p><strong>Implement the IsoFLOP Analysis for a Single Budget:</strong> This is the heart of the assignment.</p>
+<ul>
+<li>Pick one, medium-sized compute budget <code>C</code> (e.g., <code>1e21</code> FLOPs).</li>
+<li>Write a helper function that generates 5-7 pairs of <code>(N, D)</code> that all satisfy the compute constraint $C = 6ND$. Choose your <code>N</code> values to be spaced logarithmically.</li>
+<li>Run the training for each of these pairs and save the results.</li>
+<li>Plot <code>loss</code> vs. <code>N</code> (with <code>N</code> on a log scale). You should see a U-shaped curve.</li>
+<li>Find the optimal model size, <code>N_opt</code>, that corresponds to the minimum of this curve.</li>
+</ul>
+</li>
+<li>
+<p><strong>Scale Up the Analysis:</strong> Now, repeat the process from step 3 for several different compute budgets <code>C</code>. Choose budgets that are an order of magnitude apart (e.g., <code>1e20</code>, <code>1e21</code>, <code>1e22</code> FLOPs). At the end of this step, you should have a list of optimal points: <code>(C_1, N_opt(C_1), D_opt(C_1))</code>, <code>(C_2, N_opt(C_2), D_opt(C_2))</code>, etc.</p>
+</li>
+<li>
+<p><strong>Fit the Final Power Laws:</strong> With your list of optimal points, you can now determine the scaling exponents.</p>
+<ul>
+<li>Plot <code>log(N_opt)</code> vs. <code>log(C)</code>. The data should look like a line. Perform a linear regression to find the slope, which is your exponent <code>a</code>.</li>
+<li>Do the same for <code>log(D_opt)</code> vs. <code>log(C)</code> to find the slope <code>b</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Make Your Prediction:</strong> Use the fitted laws ($N_{opt} \propto C^a$, $D_{opt} \propto C^b$) to calculate the optimal <code>N</code> and <code>D</code> for the final, large compute budget specified in the assignment prompt.</p>
+</li>
+</ol>
+<h3 id="common-pitfalls-debugging-tips">Common pitfalls &amp; debugging tips</h3>
+<ul>
+<li>
+<p><strong>"My IsoFLOP curve isn't U-shaped!"</strong></p>
+<ul>
+<li>Check your range of <code>N</code> values for a fixed <code>C</code>. If they are too close together, you may only see one side of the "U". Your <code>N</code> values should span at least two orders of magnitude.</li>
+<li>Verify your compute calculation. For each <code>(N, D)</code> pair, assert that <code>6 * N * D</code> is very close to your target <code>C</code>. A simple mistake here is a common source of error.</li>
+</ul>
+</li>
+<li>
+<p><strong>Curve fitting is failing or giving weird results.</strong></p>
+<ul>
+<li>Don't fit the complex Chinchilla loss function directly unless you have to. For finding the exponents <code>a</code> and <code>b</code>, it's much more robust to work in log-space and fit a simple line (<code>y = mx + c</code>).</li>
+<li>If you must fit a non-linear function, provide good initial guesses (<code>p0</code>) to the optimizer. For example, the irreducible error term <code>E_ir</code> must be lower than any loss you've observed.</li>
+</ul>
+</li>
+<li>
+<p><strong>"My predicted exponents are very different from Chinchilla's."</strong></p>
+<ul>
+<li>This is possible! Your small-scale experiment may have different characteristics. However, first rule out errors.</li>
+<li>The most critical error to avoid: <strong>Do not use intermediate checkpoints from a single long run.</strong> Each <code>(N, D)</code> data point <em>must</em> come from its own independent training run to be valid.</li>
+<li>To find the minimum of the U-shaped IsoFLOP curve, don't just take the lowest point you sampled. It's more accurate to fit a simple parabola to the <code>(log(N), loss)</code> points and calculate the true minimum of that parabola. This smooths out experimental noise.</li>
+</ul>
+</li>
+<li>
+<p><strong>Forgetting the constants.</strong></p>
+<ul>
+<li>The compute formula is $C \approx 6ND$. Don't forget the <code>6</code>. Write a helper function for this calculation and use it everywhere to ensure consistency.</li>
+</ul>
+</li>
+<li>
+<p><strong>Plotting on the wrong scale.</strong></p>
+<ul>
+<li>Scaling laws appear as straight lines on <strong>log-log plots</strong>. If your data looks curved, double-check that both your x and y axes are logarithmic. Use <code>plt.loglog()</code> or <code>np.log()</code> on your data before passing it to <code>plt.plot()</code>.</li>
+</ul>
+</li>
+</ul></section><section id="a4" class="ddsec assec"><h2>Assignment 4: Data</h2><p class="meta"><a href="https://github.com/stanford-cs336/assignment4-data" target="_blank" rel="noopener">Official starter code &amp; handout ↗</a> · due May 20, 2026 (2026 offering) · <span class="nosol">No solutions here — by design.</span></p><div class="prereq"><strong>Before you start</strong> — lectures: <a href="lec13.html">Lec 13: Data 1</a> · <a href="lec14.html">Lec 14: Data 2</a></div><p>You will construct a multi-stage data processing pipeline to transform raw, messy web data from Common Crawl into a clean, deduplicated, and filtered dataset suitable for pretraining a language model. This is not a single program, but a series of connected components that act like a factory assembly line for data.</p>
+<p>Your pipeline will consist of these core stages:
+1.  <strong>Extractor:</strong> A tool that reads raw web data in WARC (Web ARChive) format, parses the HTML, and extracts the main textual content, discarding boilerplate like navigation bars, ads, and scripts.
+2.  <strong>Filter:</strong> A module that applies a series of cleaning and filtering rules. This includes language identification to keep only English documents and quality heuristics to remove low-quality or nonsensical text (e.g., documents with too little content, repetitive phrases, or "lorem ipsum" placeholder text).
+3.  <strong>Deduplicator:</strong> A scalable system to identify and remove near-duplicate documents. This is the most complex component, as a naive document-to-document comparison is computationally impossible at this scale. You will implement an efficient, approximate algorithm to find these duplicates.</p>
+<p>The final output will be a collection of clean text files, significantly smaller but much higher in quality than the original raw data, ready to be tokenized and fed into a model.</p>
+<h3 id="why-this-is-where-the-learning-happens">Why this is where the learning happens</h3>
+<p>Lectures can introduce you to concepts like "C4" or "RefinedWeb," but building your own data pipeline forces you to confront the messy reality they abstract away. You will learn firsthand that "web data" is not a clean corpus but a chaotic mix of high-quality prose, machine-generated spam, and everything in between. The true challenge—and the real learning—is in making principled, pragmatic trade-offs between processing speed, memory usage, and data quality at a scale where brute-force solutions fail.</p>
+<h3 id="what-makes-it-hard">What makes it hard</h3>
+<p>This assignment combines data engineering, algorithmic thinking, and heuristic design. The primary challenges are not in the complexity of any single line of code, but in making the entire system work correctly and efficiently at scale.</p>
+<ul>
+<li><strong>Scale and Memory:</strong> A single Common Crawl dump is many terabytes. Even a small fraction is too large to fit into a single machine's memory. You cannot load the whole dataset to process it; you must design a streaming pipeline where documents are processed one by one or in small batches, without assuming you can see all the data at once.</li>
+<li><strong>Algorithmic Complexity of Deduplication:</strong> The core of deduplication is finding pairs of similar documents. A naive approach would compare every document with every other document, an $O(N^2)$ operation that is computationally infeasible for millions of documents. The key challenge is to replace this with a near-linear time algorithm. This requires understanding and implementing techniques like:<ul>
+<li><strong>Shingling:</strong> Representing a document as a set of n-grams (its "shingles").</li>
+<li><strong>MinHash:</strong> Creating a small, fixed-size "signature" from the infinite set of shingles, with the special property that the probability of two signatures matching is proportional to the Jaccard similarity of the original documents: $P(h_{min}(A) = h_{min}(B)) = \frac{|A \cap B|}{|A \cup B|}$.</li>
+<li><strong>Locality Sensitive Hashing (LSH):</strong> A technique to find documents with similar MinHash signatures without comparing all pairs. It works by hashing signatures into buckets such that similar signatures are likely to land in the same bucket.</li>
+</ul>
+</li>
+<li><strong>Heuristics and "Correctness":</strong> There is no single "correct" way to clean web text. HTML-to-text extraction is inherently lossy. Quality filters (e.g., "must have 5 sentences" or "must not contain bad words") are brittle heuristics. You will constantly face design decisions with no perfect answer, forcing you to define what "quality" means for your dataset and accept the trade-offs. For example, a filter that removes pages with <code>{</code> might improve quality by removing code, but it also prevents you from training a model that can code.</li>
+</ul>
+<h3 id="how-to-approach-it">How to approach it</h3>
+<p>Tackle this assignment by building and testing your pipeline incrementally. Do not attempt to run on a large dataset until you are confident in each component.</p>
+<ol>
+<li><strong>Start Small:</strong> Begin with a single, small WARC file. Your first goal is to write a script that can read this one file, extract plain text from the HTML payloads, and print it. Don't worry about quality yet; just get text out. Manually inspect the output. Does it contain navigation links, cookie banners, or JavaScript?</li>
+<li><strong>Build the Filter Stage:</strong><ul>
+<li>First, integrate a language identification library (like a pre-trained <code>fastText</code> model) into your script. Process your single WARC file and verify that you can correctly label and filter out non-English documents.</li>
+<li>Next, add a series of simple, rule-based quality filters inspired by datasets like C4. For example, filter out documents that are too short, have a low alphabet-to-character ratio, or contain placeholder text. Test each heuristic on your sample file and observe what it discards.</li>
+</ul>
+</li>
+<li><strong>Implement the Deduplication Engine (On a Small Scale):</strong> This is the most challenging part. Break it down.<ul>
+<li><strong>Shingling &amp; MinHashing:</strong> Write a function that takes a single document's text and produces its MinHash signature. To test this, create two nearly identical documents and one very different one. Verify that the MinHash signatures of the similar documents are themselves similar, while the third is different.</li>
+<li><strong>LSH for Candidate Pairs:</strong> Implement the LSH banding technique. Your goal is a function that takes a batch of MinHash signatures and outputs <em>candidate pairs</em> for full comparison. The key insight is that you only need to compare documents that hash to the same bucket in at least one LSH band. This is what lets you avoid the $O(N^2)$ nightmare.</li>
+<li><strong>End-to-End Deduplication:</strong> Connect the pieces. For a small collection of documents (e.g., from one WARC file), generate all MinHash signatures, use LSH to find candidate pairs, and then for those pairs <em>only</em>, compute the true Jaccard similarity to make a final duplication decision.</li>
+</ul>
+</li>
+<li><strong>Integrate and Scale:</strong> Combine your extractor, filter, and deduplicator into a single pipeline. A major engineering challenge here is managing the state needed for deduplication. You can't hold all MinHash signatures in memory. How can you process files sequentially while still comparing a new document to all <em>previous</em> documents? Think about how LSH bucketing can be implemented in a streaming or multi-stage fashion. Once your pipeline is robust on one file, test it on ten, then one hundred, refining your approach to handle the scale.</li>
+</ol>
+<h3 id="common-pitfalls-debugging-tips">Common pitfalls &amp; debugging tips</h3>
+<ul>
+<li><strong>My deduplication is too slow.</strong> You are almost certainly falling back to a pairwise comparison. The entire point of LSH is to avoid this. Ask yourself: "Am I iterating through every document to compare it with the current one?" If so, you need to rethink your LSH implementation. Your goal is to only retrieve documents from a <em>specific hash bucket</em>.</li>
+<li><strong>My memory usage explodes.</strong> You are trying to keep too much data in memory. Are you storing the full text of every document? The set of shingles for every document? You should only need to keep the compact MinHash signatures (and their LSH hashes) in a central data structure. For exact-duplicate detection (a useful first pass), consider using a memory-efficient probabilistic data structure like a Bloom Filter.</li>
+<li><strong>Deduplication finds too many/too few duplicates.</strong> This is a tuning problem. The "sensitivity" of your LSH is controlled by the number of hash functions per signature ($k$), the number of bands ($B$), and the number of rows per band ($R$). What is the relationship between these parameters and the Jaccard similarity threshold at which two documents are likely to be flagged as a candidate pair? Try to reason about the probability $1 - (1 - s^R)^B$ without just plugging in numbers. If you're finding too few duplicates, you need to make it <em>easier</em> for documents to collide in a bucket (e.g., fewer rows per band).</li>
+<li><strong>The extracted text quality is poor.</strong> HTML parsing is messy. Don't try to write your own parser with regex. Use a robust library like <code>trafilatura</code>. Even then, inspect your "bad" outputs. Is the library failing to find the main content block? Is it grabbing comment sections? You may need to add post-processing heuristics on top of the library's output.</li>
+<li><strong>Sanity-check your components in isolation.</strong> Before building the full pipeline, test each part on a tiny, handcrafted dataset of 5-10 documents. For example, create <code>doc1.txt</code>, <code>doc2.txt</code> (a near-duplicate of 1), <code>doc3.txt</code> (in another language), <code>doc4.txt</code> ("asdf qwer"), and <code>doc5.txt</code> (a good, unique document). Run them through each stage and assert that the output is exactly what you expect. This will save you hours of debugging on a multi-gigabyte corpus.</li>
+</ul></section><section id="a5" class="ddsec assec"><h2>Assignment 5: Alignment &amp; Reasoning RL</h2><p class="meta"><a href="https://github.com/stanford-cs336/assignment5-alignment" target="_blank" rel="noopener">Official starter code &amp; handout ↗</a> · due Jun 3, 2026 (2026 offering) · <span class="nosol">No solutions here — by design.</span></p><div class="prereq"><strong>Before you start</strong> — lectures: <a href="lec15.html">Lec 15: Alignment — SFT/RLHF</a> · <a href="lec16.html">Lec 16: Alignment — RL 1</a> · <a href="lec17.html">Lec 17: Alignment — RL 2</a> &nbsp;|&nbsp; deep dives: <a href="deepdives.html#alignment">Alignment math</a></div><p>You will implement a pipeline to improve a language model's mathematical reasoning ability. This involves two main stages, mirroring the modern alignment process:</p>
+<ol>
+<li><strong>Supervised Fine-Tuning (SFT) Model:</strong> You'll start with a pre-trained base model and fine-tune it on a dataset of math problems and their correct solutions (expert demonstrations). This creates a specialized model, <code>SFT_model</code>, that is better at math than the base model. This <code>SFT_model</code> will also serve as the crucial reference policy ($\pi_{ref}$) in the next stage.</li>
+<li><strong>Direct Preference Optimization (DPO) Model:</strong> You will take your <code>SFT_model</code> and further train it using a preference dataset. This dataset contains pairs of responses to a math problem: one "winning" response ($y_w$) and one "losing" response ($y_l$). You will implement the DPO algorithm to train the model to prefer generating winners over losers. The final output is a <code>DPO_model</code> that is aligned with the preference data, hopefully making it an even better math reasoner.</li>
+</ol>
+<p>The core deliverable is the implementation of the SFT and DPO training loops and the resulting models, evaluated on their ability to solve math problems.</p>
+<h3 id="why-this-is-where-the-learning-happens">Why this is where the learning happens</h3>
+<p>Lectures explain that DPO is a clever way to do reinforcement learning with a simple classification loss, but only by implementing it do you truly grasp the mechanics. You will confront the engineering reality of managing multiple models (the policy and the frozen reference), calculating sequence-level log-probabilities, and debugging a process where the "right" answer isn't just a label, but a preference. This struggle forces you to connect the abstract math of the DPO derivation to concrete PyTorch operations, which is where deep understanding is forged.</p>
+<h3 id="what-makes-it-hard">What makes it hard</h3>
+<p>This assignment moves beyond standard supervised learning into the more complex world of policy optimization. The challenges are both conceptual and technical.</p>
+<ul>
+<li><strong>Managing Multiple Models:</strong> The DPO algorithm requires simultaneous access to the policy you are training ($\pi_\theta$) and a frozen reference policy ($\pi_{ref}$, your SFT model). Keeping these two models in memory, ensuring one is frozen while the other trains, and correctly routing data through them is a significant engineering hurdle.</li>
+<li><strong>Correctly Calculating Log-Probabilities:</strong> The DPO loss is a function of the log-probabilities of entire sequences. You need to write a function that, given a model and a sequence of tokens, correctly computes $\log P(y|x) = \sum_{i} \log P(y_i | y_{<i}, x)$. This is notoriously tricky to get right; off-by-one errors, incorrect attention masking for prompts vs. completions, and mishandling of padding tokens are common traps.</li>
+<li><strong>The DPO Loss Itself:</strong> The loss function involves a difference of log-probability ratios. The full expression is:
+    $$ \mathcal{L}_{DPO} = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[ \log \sigma\left(\beta \log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)} - \beta \log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)}\right) \right] $$
+    Translating this equation into efficient, stable code is the main challenge. You must perform four forward passes (policy on $y_w$, policy on $y_l$, reference on $y_w$, reference on $y_l$) and combine the resulting log-probabilities correctly.</li>
+<li><strong>Debugging is Non-Intuitive:</strong> When a standard classification model fails, you can inspect the labels. Here, the "label" is a preference. If your DPO loss isn't decreasing, is it a bug in your log-prob calculation, an issue with the reference model, or a poor choice of the hyperparameter $\beta$? The feedback loop is much less direct than in SFT.</li>
+</ul>
+<h3 id="how-to-approach-it">How to approach it</h3>
+<p>Follow this sequence. Do not move to the next step until the current one is working and verified.</p>
+<ol>
+<li><strong>Implement and Verify SFT:</strong> First, focus entirely on Supervised Fine-Tuning. Take the base model and fine-tune it on the provided math problems and their solutions. Your goal is to create a model that is demonstrably better at math than the base model. Before moving on, generate some samples from your SFT model and evaluate its accuracy on a held-out test set. This SFT model is your deliverable for the first part and becomes the essential $\pi_{ref}$ for the second.</li>
+<li><strong>Build the DPO Data Pipeline:</strong> Create a <code>Dataset</code> and <code>DataLoader</code> for the preference data. Each item in your batch should contain a tokenized prompt, a tokenized winning response, and a tokenized losing response. Pay close attention to padding and creating the correct attention masks for each of the three components.</li>
+<li><strong>Implement the Log-Probability Helper:</strong> Write and isolate a helper function that takes a model, a batch of prompts, and a batch of corresponding completions, and returns the sum of the log-probabilities for each completion in the batch. Test this function thoroughly. Can it handle variable-length sequences? Does it correctly ignore the prompt tokens in its calculation?</li>
+<li><strong>Assemble the DPO Training Step:</strong> With your data pipeline and log-prob helper ready, you can now write the main DPO training logic.<ul>
+<li>Load your SFT model twice: once as the policy model to be trained, and once as the reference model (remember to freeze this one!).</li>
+<li>In your training loop, for each batch, get the log-probabilities for both the winning and losing responses from <em>both</em> the policy and reference models.</li>
+<li>Use these four sets of log-probabilities to compute the DPO loss according to the formula.</li>
+<li>Perform backpropagation and update the policy model's weights.</li>
+</ul>
+</li>
+<li><strong>Train and Evaluate:</strong> Run the DPO training. Monitor not only the DPO loss but also the model's math accuracy on the validation set. A decreasing DPO loss means you are successfully learning the preferences, but only an increase in math accuracy tells you that this alignment is achieving the ultimate goal.</li>
+</ol>
+<h3 id="common-pitfalls-debugging-tips">Common pitfalls &amp; debugging tips</h3>
+<ul>
+<li><strong>Reference model is not actually frozen.</strong> Your reference model's parameters should not be passed to the optimizer, and you should call <code>.eval()</code> on it. A simple check: verify that the weights of your reference model are not changing after a training step.</li>
+<li><strong>Incorrect log-probability calculation.</strong> This is the most common bug. The log-probability should be calculated <em>only</em> for the tokens in the completion (<code>y</code>), not the prompt (<code>x</code>). Ensure your attention mask correctly separates the two and that you are summing the log-probs of the correct tokens.</li>
+<li><strong>Forgetting the <code>beta</code> hyperparameter.</strong> The DPO loss is scaled by a temperature parameter <code>beta</code>. If you forget it, or set it incorrectly, your training may be unstable or ineffective. What does a very high or very low <code>beta</code> imply about the loss?</li>
+<li><strong>Sanity-check your initial loss.</strong> Before training, the policy model ($\pi_\theta$) is identical to the reference model ($\pi_{ref}$). Therefore, the log-probability ratios should be 1, and their logs should be 0. The argument to the sigmoid function will be 0. What should the value of $-\log(\sigma(0))$ be? If your initial loss is not close to this value, something is wrong in your loss calculation.</li>
+<li><strong>Overfit on a single batch.</strong> A classic debugging technique. Take a single batch of preference pairs and train on it for many iterations. Your DPO loss should go to zero (or very close). If it doesn't, you have a bug in your gradient flow or loss computation.</li>
+<li><strong>Monitor the components of the loss.</strong> Don't just watch the final loss value. Log the average log-prob ratios for winners and losers: $(\log \pi_\theta(y_w|x) - \log \pi_{ref}(y_w|x))$. As training progresses, you should see this term become positive for winners and negative for losers. This confirms the model is learning to increase the relative probability of preferred responses.</li>
+</ul></section></main></div></body></html>
