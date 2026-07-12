@@ -167,7 +167,7 @@ These benchmarks assess a model's factual knowledge and understanding across var
 -   **Scale**: 2500 questions across 100 subjects.
 -   **Purpose**: Designed to be the "final closed-ended academic benchmark at the frontier of human knowledge," aiming to push the limits of language models.
 -   **Data Creation**: Involved a complex process:
-    1.  Awarded $500K prize pool + co-authorship to question creators.
+    1.  Awarded \$500K prize pool + co-authorship to question creators.
     2.  LLMs were used to filter out "too easy" questions.
     3.  Multiple stages of expert review and refinement.
 -   **Results**: Current frontier models (e.g., 03) achieve ~20% accuracy on HLE, indicating it's still a very challenging benchmark.

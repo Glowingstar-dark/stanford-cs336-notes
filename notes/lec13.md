@@ -151,7 +151,7 @@ BERT was trained on:
 
 **`books_corpus()`**
 *   **Smashwords**: Founded in 2008, allowed anyone to self-publish an e-book. By 2024, there were ~150,000 authors and 500,000 books.
-*   **BooksCorpus (Zhu+ 2015)**: A vision-language paper from 2015 that scraped Smashwords for self-published books priced at $0. It contained 7,000 books and 985 million words.
+*   **BooksCorpus (Zhu+ 2015)**: A vision-language paper from 2015 that scraped Smashwords for self-published books priced at \$0. It contained 7,000 books and 985 million words.
 *   **Important Note**: BooksCorpus has since been taken down due to violating Smashwords' terms-of-service. In 2015, AI copyright wasn't a major concern.
 
 **`wikipedia()`**
@@ -460,7 +460,7 @@ NemoTron-CC: Transforming Common Crawl into a Refined Long-Horizon Pretraining D
 *   **Expanded scope**: From 'published' (1909) to 'fixed' (1976). This means copyright applies as soon as a work is fixed in a tangible medium, regardless of publication.
 *   **Registration not required**: Unlike patents, copyright is automatic upon creation.
 *   **Threshold for copyright is extremely low**: Your website is copyrighted as soon as it's created.
-*   **Registration is required before creator can sue**: Costs $65 to register.
+*   **Registration is required before creator can sue**: Costs \$65 to register.
 *   **Duration**: Lasts for 75 years, then the copyright expires and it becomes part of the public domain (e.g., works of Shakespeare, Beethoven, most of Project Gutenberg).
 
 **Summary:** Most things on the internet are actually copyrighted.

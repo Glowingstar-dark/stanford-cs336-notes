@@ -47,9 +47,9 @@ This shift isn't inherently bad, as layers of abstraction boost productivity. Ho
 
 ### [3:59] The Industrialization of Language Models
 A significant challenge in building language models is their industrial scale:
-- **GPT-4**: Rumored to have 1.8 trillion parameters, costing $100 million to train.
+- **GPT-4**: Rumored to have 1.8 trillion parameters, costing \$100 million to train.
 - **xAI**: Building clusters with 200,000 H100 GPUs to train Grok.
-- **Stargate (OpenAI, Nvidia, Oracle)**: Supposedly a $500 billion investment over 4 years.
+- **Stargate (OpenAI, Nvidia, Oracle)**: Supposedly a \$500 billion investment over 4 years.
 
 Furthermore, there's a lack of public details on how these frontier models are built. The GPT-4 technical report explicitly states that due to competitive landscape and safety limitations, they disclose no details about their architecture, training data, or methods.
 

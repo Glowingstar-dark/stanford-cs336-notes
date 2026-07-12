@@ -169,8 +169,8 @@ Instruction-tuning datasets vary significantly in:
 
 Two main reasons to optimize with RLHF:
 1.  **Cost**: SFT data (expert demonstrations) can be very expensive to collect.
-    *   Annotation costs for SFT are high ($25k for 100 examples in one study).
-    *   Pairwise feedback (used in RLHF) is cheaper ($4k for 100 examples).
+    *   Annotation costs for SFT are high (\$25k for 100 examples in one study).
+    *   Pairwise feedback (used in RLHF) is cheaper (\$4k for 100 examples).
     *   RLHF (optimizing against a reward model) has lower annotation costs than SFT.
     *   RLHF is cheaper because it's easier to verify than to generate.
 2.  **Generator-Validator (G-V) Gap**: People don't always write what they prefer in LM outputs.
@@ -445,8 +445,8 @@ Instruction-tuning datasets vary significantly in:
 
 Two main reasons to optimize with RLHF:
 1.  **Cost**: SFT data (expert demonstrations) can be very expensive to collect.
-    *   Annotation costs for SFT are high ($25k for 100 examples in one study).
-    *   Pairwise feedback (used in RLHF) is cheaper ($4k for 100 examples).
+    *   Annotation costs for SFT are high (\$25k for 100 examples in one study).
+    *   Pairwise feedback (used in RLHF) is cheaper (\$4k for 100 examples).
     *   RLHF (optimizing against a reward model) has lower annotation costs than SFT.
     *   RLHF is cheaper because it's easier to verify than to generate.
 2.  **Generator-Validator (G-V) Gap**: People don't always write what they prefer in LM outputs.
