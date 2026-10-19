@@ -361,7 +361,11 @@ High-level principle: everything is about balancing the following:
     - **Algorithms**:
         - **Proximal Policy Optimization (PPO)**: From reinforcement learning (Schulman+ 2017, Ouyang+ 2022).
         - **Direct Policy Optimization (DPO)**: For preference data, simpler (Rafailov+ 2023).
-        - **Group Relative Preference Optimization (GRPO)**: Remove value function (Shao+ 2024).
+    - **Challenges**:
+        - RL algorithms are unstable and hard to tune
+        - At scale, this requires a lot of new infrastructure (inference with async rollouts)
+        - Constantly trading off systems efficiency and on-policyness
+    
 
 #### [55:04] Assignment 5
 - Implement supervised fine-tuning.
