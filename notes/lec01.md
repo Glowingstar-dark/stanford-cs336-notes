@@ -240,6 +240,11 @@ The course is organized into five units, each focusing on a set of design decisi
 - Train on TinyStories and OpenWebText.
 - **Leaderboard**: Minimize OpenWebText perplexity given 90 minutes on an H100 (last year's leaderboard: 3.12).
 
+High-level principle: everything is about balancing the following:
+- Expressivity (can represent complex dependencies in the data)
+- Stability (keep parameter and gradient norms in goldilocks zone)
+- Efficiency (runs fast on hardware, both training and inference)
+
 ### [33:52] Systems
 - **Goal**: Squeeze the most out of the hardware.
 - **Components**: Kernels, parallelism, inference.
