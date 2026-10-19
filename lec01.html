@@ -389,6 +389,12 @@ figure.slide .ft{display:inline-block;font-variant-numeric:tabular-nums;font-wei
 <li>Train on TinyStories and OpenWebText.</li>
 <li><strong>Leaderboard</strong>: Minimize OpenWebText perplexity given 90 minutes on an H100 (last year's leaderboard: 3.12).</li>
 </ul>
+<p>High-level principle: everything is about balancing the following:</p>
+<ul>
+<li>Expressivity (can represent complex dependencies in the data)</li>
+<li>Stability (keep parameter and gradient norms in goldilocks zone)</li>
+<li></li>Efficiency (runs fast on hardware, both training and inference)</li>
+</ul>
 <h3 id="3352-systems">[33:52] Systems</h3>
 <ul>
 <li><strong>Goal</strong>: Squeeze the most out of the hardware.</li>
